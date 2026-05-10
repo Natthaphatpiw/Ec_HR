@@ -1,0 +1,360 @@
+{
+  "brand": {
+    "name": "LinForge HR",
+    "tagline": "LINE-First HR for Modern Factories"
+  },
+  "common": {
+    "tryDemo": "Try Demo Inside LINE",
+    "bookDemo": "Book Sales Demo",
+    "openDashboard": "Open Dashboard",
+    "openLiff": "Open LIFF Demo",
+    "language": "Language",
+    "loading": "Loading",
+    "save": "Save",
+    "cancel": "Cancel",
+    "submit": "Submit",
+    "approve": "Approve",
+    "reject": "Reject",
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisMonth": "This Month",
+    "search": "Search",
+    "filter": "Filter",
+    "export": "Export",
+    "actions": "Actions",
+    "view": "View",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "minutes": "minutes",
+    "hours": "hours",
+    "days": "days",
+    "all": "All"
+  },
+  "nav": {
+    "features": "Features",
+    "compliance": "Compliance",
+    "pricing": "Pricing",
+    "demo": "Demo",
+    "login": "Login",
+    "dashboard": "Dashboard",
+    "attendance": "Attendance",
+    "shifts": "Shifts",
+    "employees": "Employees",
+    "leave": "Leave & OT",
+    "payroll": "Payroll",
+    "reports": "Reports",
+    "settings": "Settings",
+    "aiAssistant": "AI Assistant"
+  },
+  "landing": {
+    "hero": {
+      "badge": "Built for Thailand, Taiwan, and Southeast Asia factories",
+      "headline": "The HR system your workers already know how to use.",
+      "subheadline": "The only HR system your factory needs — built entirely on LINE. Clock-in, leave, payroll, and AI assistant inside the app your team opens every day.",
+      "qrLabel": "Scan to try in LINE",
+      "stat1Label": "factories",
+      "stat1Value": "180+",
+      "stat2Label": "workers active",
+      "stat2Value": "62K",
+      "stat3Label": "uptime",
+      "stat3Value": "99.98%"
+    },
+    "why": {
+      "title": "Why LINE-First wins on the factory floor",
+      "subtitle": "When 100% of your workforce already lives inside LINE, every other HR app is friction.",
+      "card1": {
+        "title": "Zero training, zero downloads",
+        "desc": "Workers tap the Rich Menu they already see every day. No new app, no new password, no PIN reset tickets."
+      },
+      "card2": {
+        "title": "Designed for shift-floor reality",
+        "desc": "Geofence-aware clock-in, photo proof, IP whitelist, multi-shift rotation, and overtime that follows Thai labor law to the baht."
+      },
+      "card3": {
+        "title": "AI Assistant built in",
+        "desc": "Workers and HR ask questions in LINE chat. The Mastra-powered agent answers from real data — leave balance, payslip, schedule, anything."
+      }
+    },
+    "features": {
+      "title": "Every HR feature, inside LINE.",
+      "subtitle": "What used to need three apps and a desktop now lives in one chat.",
+      "lineCheckin": {
+        "title": "LINE Clock-in",
+        "desc": "Geofence + GPS + IP + optional photo — all from one Rich Menu tap."
+      },
+      "shifts": {
+        "title": "Shift Scheduling",
+        "desc": "Drag-and-drop rotation patterns and AI-suggested coverage for 3-shift factories."
+      },
+      "leave": {
+        "title": "Leave & OT Approvals",
+        "desc": "Workers request inside LINE, supervisors approve from a Flex Message — no app required."
+      },
+      "payroll": {
+        "title": "Thai-Compliant Payroll",
+        "desc": "OT 1.5x/2x/3x, SSO, withholding tax, severance — all calculated and exported."
+      },
+      "compliance": {
+        "title": "Labor Law Built-in",
+        "desc": "Minimum leave days, OT rates, holiday pay, and tax forms updated for Thai law."
+      },
+      "ai": {
+        "title": "ForgeHR Assistant",
+        "desc": "Claude-powered agent reads live data: \"Who is late today?\", \"Generate May payroll\", \"Suggest schedule for next week\"."
+      }
+    },
+    "how": {
+      "title": "Three steps from purchase to running shift",
+      "step1": {
+        "title": "Connect your LINE OA",
+        "desc": "We bind your existing Employee and Management OAs in under 30 minutes. No new accounts."
+      },
+      "step2": {
+        "title": "Import your roster",
+        "desc": "Upload your workers via CSV or sync from existing payroll. Each worker binds their LINE in one tap."
+      },
+      "step3": {
+        "title": "Workers start using it tomorrow",
+        "desc": "Rich Menu goes live. Clock-in, leave, payroll — your team works the way they already chat."
+      }
+    },
+    "compliance": {
+      "title": "Compliance and security, by design",
+      "subtitle": "Thai Ministry of Labor + PDPA + SOC 2 controls.",
+      "items": [
+        { "title": "Thai Labor Law", "desc": "Section 56 leave minimums, Section 61–63 OT rates (1.5x weekday, 3x holiday OT), Social Security Fund deductions." },
+        { "title": "PDPA-Ready", "desc": "Worker data residency in Singapore region, full audit trail, right-to-export and right-to-delete workflows." },
+        { "title": "Geofence + IP Protection", "desc": "Configurable factory radius (50–200m), VPN detection, photo verification, anti-spoofing." },
+        { "title": "Row-Level Security", "desc": "Postgres RLS policies enforce role-based access — supervisors see only their team, executives see read-only org rollups." }
+      ]
+    },
+    "testimonials": {
+      "title": "From factory floors that already shipped to LINE-first",
+      "items": [
+        {
+          "quote": "We replaced a fingerprint scanner and three Excel sheets in one weekend. Our line leaders didn't need any training.",
+          "author": "Operations Director",
+          "company": "Auto-parts factory, Samut Prakan"
+        },
+        {
+          "quote": "OT calculation used to take HR two full days every month. Now it runs while we drink coffee — and the numbers match the Ministry's audit.",
+          "author": "HR Manager",
+          "company": "Electronics assembly, Rayong"
+        },
+        {
+          "quote": "The AI assistant alone is worth the subscription. I ask 'who's been late three times this month' and have an answer before I sit down.",
+          "author": "Factory Owner",
+          "company": "Garment manufacturer, Chiang Mai"
+        }
+      ]
+    },
+    "finalCta": {
+      "title": "Try the demo before you finish your coffee.",
+      "subtitle": "No credit card. No download. Open LINE, scan, and run a real shift in two minutes.",
+      "primary": "Try Demo Inside LINE",
+      "secondary": "Book a 20-min call"
+    },
+    "footer": {
+      "product": "Product",
+      "company": "Company",
+      "legal": "Legal",
+      "rights": "All rights reserved."
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "title": "Overview",
+      "subtitle": "Today's snapshot of your factory.",
+      "totalEmployees": "Total Employees",
+      "presentToday": "Present Today",
+      "attendanceRate": "Attendance Rate",
+      "pendingApprovals": "Pending Approvals",
+      "onLeave": "On Leave",
+      "lateToday": "Late Today",
+      "attendanceTrend": "Attendance Trend (Last 7 Days)",
+      "departmentBreakdown": "Department Breakdown",
+      "aiInsight": "AI Insight",
+      "recentActivity": "Recent Activity",
+      "recentNotifications": "Recent Notifications"
+    },
+    "attendance": {
+      "title": "Attendance",
+      "subtitle": "Live clock-in feed and geofence map.",
+      "today": "Today's Records",
+      "calendar": "Calendar View",
+      "map": "Geofence Map",
+      "name": "Employee",
+      "time": "Time",
+      "type": "Type",
+      "status": "Status",
+      "location": "Location",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out"
+    },
+    "shifts": {
+      "title": "Shift Schedule",
+      "subtitle": "Drag-and-drop rotation planning.",
+      "aiSuggest": "AI Suggest Schedule",
+      "morningShift": "Morning",
+      "eveningShift": "Evening",
+      "nightShift": "Night",
+      "off": "Off"
+    },
+    "employees": {
+      "title": "Employees",
+      "subtitle": "Roster of all workers across the factory.",
+      "addEmployee": "Add Employee",
+      "importCsv": "Import CSV",
+      "exportCsv": "Export CSV",
+      "code": "Code",
+      "name": "Name",
+      "department": "Department",
+      "position": "Position",
+      "role": "Role",
+      "status": "Status",
+      "lineBound": "LINE Bound",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "leave": {
+      "title": "Leave & Overtime",
+      "subtitle": "Approve, reject, and audit all requests.",
+      "leaveTab": "Leave",
+      "otTab": "Overtime",
+      "type": "Type",
+      "dates": "Dates",
+      "days": "Days",
+      "reason": "Reason",
+      "annual": "Annual",
+      "sick": "Sick",
+      "maternity": "Maternity",
+      "personal": "Personal"
+    },
+    "payroll": {
+      "title": "Payroll",
+      "subtitle": "Run, preview, and export monthly payroll.",
+      "runPayroll": "Run Payroll",
+      "downloadAll": "Download All Payslips",
+      "month": "Month",
+      "basePay": "Base Pay",
+      "otPay": "OT Pay",
+      "ssfDeduction": "SSF",
+      "taxDeduction": "Tax",
+      "netPay": "Net Pay",
+      "totalPayroll": "Total Payroll",
+      "totalNet": "Total Net Paid"
+    },
+    "reports": {
+      "title": "Reports & Analytics",
+      "subtitle": "Insights across your workforce.",
+      "absenteeism": "Absenteeism",
+      "punctuality": "Punctuality",
+      "overtimeTrend": "Overtime Trend",
+      "kpiTrend": "KPI Trend",
+      "exportExcel": "Export Excel",
+      "exportPdf": "Export PDF"
+    },
+    "settings": {
+      "title": "Settings",
+      "subtitle": "Factory profile, geofence, holidays, roles.",
+      "factoryProfile": "Factory Profile",
+      "geofence": "Geofence",
+      "holidays": "Thai Holidays",
+      "roles": "Role Management",
+      "factoryName": "Factory Name",
+      "thaiTaxId": "Thai Tax ID",
+      "timezone": "Timezone",
+      "geofenceRadius": "Geofence Radius (m)"
+    }
+  },
+  "liff": {
+    "checkin": {
+      "title": "Clock In / Out",
+      "currentTime": "Current Time",
+      "todaysShift": "Today's Shift",
+      "youAreInside": "You are inside the factory geofence.",
+      "youAreOutside": "You are outside the factory geofence.",
+      "checkIn": "Clock In",
+      "checkOut": "Clock Out",
+      "lastCheckIn": "Last Clock-in",
+      "lastCheckOut": "Last Clock-out",
+      "verifyingLocation": "Verifying location",
+      "success": "Clocked in successfully",
+      "successOut": "Clocked out successfully",
+      "addPhoto": "Add photo (optional)"
+    },
+    "myAttendance": {
+      "title": "My Attendance",
+      "thisWeek": "This Week",
+      "thisMonth": "This Month",
+      "ontime": "On Time",
+      "late": "Late",
+      "absent": "Absent",
+      "totalHours": "Total Hours"
+    },
+    "requestLeave": {
+      "title": "Request Leave",
+      "leaveType": "Leave Type",
+      "from": "From",
+      "to": "To",
+      "reason": "Reason",
+      "balance": "Current Balance",
+      "submit": "Submit Request"
+    },
+    "requestOt": {
+      "title": "Request Overtime",
+      "date": "Date",
+      "hours": "Hours",
+      "reason": "Reason"
+    },
+    "payslip": {
+      "title": "Payslips",
+      "viewPdf": "View PDF",
+      "download": "Download"
+    },
+    "aiChat": {
+      "title": "ForgeHR Assistant",
+      "placeholder": "Ask anything — payroll, schedule, leave balance.",
+      "send": "Send",
+      "suggestions": [
+        "What is my leave balance?",
+        "When is my next payroll?",
+        "Show my attendance this week",
+        "Who is late today on my team?"
+      ]
+    },
+    "team": {
+      "title": "Team Today",
+      "present": "Present",
+      "absent": "Absent",
+      "onLeave": "On Leave",
+      "late": "Late"
+    },
+    "onboard": {
+      "title": "Bind Your Account",
+      "subtitle": "Link your LINE profile to your employee record.",
+      "employeeCode": "Employee Code",
+      "fullName": "Full Name",
+      "department": "Department",
+      "position": "Position",
+      "submit": "Bind Account",
+      "success": "Account bound successfully. Welcome to LinForge HR.",
+      "notFound": "Employee code not found. Please contact HR.",
+      "alreadyBound": "This LINE account is already linked to another employee."
+    },
+    "nav": {
+      "home": "Home",
+      "checkin": "Clock",
+      "attendance": "History",
+      "leave": "Leave",
+      "payslip": "Payslip",
+      "ai": "AI"
+    }
+  }
+}

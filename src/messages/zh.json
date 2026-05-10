@@ -1,0 +1,360 @@
+{
+  "brand": {
+    "name": "LinForge HR",
+    "tagline": "全部基于 LINE 的工厂人力资源系统"
+  },
+  "common": {
+    "tryDemo": "在 LINE 中试用",
+    "bookDemo": "预约销售演示",
+    "openDashboard": "打开管理台",
+    "openLiff": "打开 LIFF 演示",
+    "language": "语言",
+    "loading": "加载中",
+    "save": "保存",
+    "cancel": "取消",
+    "submit": "提交",
+    "approve": "批准",
+    "reject": "驳回",
+    "pending": "待处理",
+    "approved": "已批准",
+    "rejected": "已驳回",
+    "today": "今天",
+    "yesterday": "昨天",
+    "thisMonth": "本月",
+    "search": "搜索",
+    "filter": "筛选",
+    "export": "导出",
+    "actions": "操作",
+    "view": "查看",
+    "edit": "编辑",
+    "delete": "删除",
+    "back": "返回",
+    "next": "下一步",
+    "previous": "上一步",
+    "minutes": "分钟",
+    "hours": "小时",
+    "days": "天",
+    "all": "全部"
+  },
+  "nav": {
+    "features": "功能",
+    "compliance": "合规",
+    "pricing": "价格",
+    "demo": "演示",
+    "login": "登录",
+    "dashboard": "仪表板",
+    "attendance": "出勤",
+    "shifts": "班次",
+    "employees": "员工",
+    "leave": "请假与加班",
+    "payroll": "薪酬",
+    "reports": "报表",
+    "settings": "设置",
+    "aiAssistant": "AI 助手"
+  },
+  "landing": {
+    "hero": {
+      "badge": "为泰国、台湾及东南亚工厂量身打造",
+      "headline": "员工已经会用的人力资源系统",
+      "subheadline": "您工厂唯一需要的 HR 系统 — 全部构建在 LINE 之上。打卡、请假、薪酬和 AI 助手都在团队每天打开的应用里。",
+      "qrLabel": "扫码在 LINE 中体验",
+      "stat1Label": "工厂",
+      "stat1Value": "180+",
+      "stat2Label": "活跃员工",
+      "stat2Value": "62K",
+      "stat3Label": "可用率",
+      "stat3Value": "99.98%"
+    },
+    "why": {
+      "title": "为什么 LINE 优先在工厂车间能赢",
+      "subtitle": "当 100% 的员工都已经活跃在 LINE 上,任何其他 HR 应用都是阻力。",
+      "card1": {
+        "title": "零培训,零下载",
+        "desc": "员工点击每天都看到的 Rich Menu。无需新应用、新密码或重置 PIN 工单。"
+      },
+      "card2": {
+        "title": "为车间现实而设计",
+        "desc": "感知地理围栏的打卡、照片证明、IP 白名单、多班次轮换以及精确到铢的泰国劳动法加班计算。"
+      },
+      "card3": {
+        "title": "内置 AI 助手",
+        "desc": "员工和 HR 在 LINE 聊天中提问。Mastra 驱动的代理基于真实数据回答 — 假期余额、工资单、排班,任何问题。"
+      }
+    },
+    "features": {
+      "title": "所有 HR 功能,都在 LINE 里",
+      "subtitle": "曾经需要三个应用和电脑的功能,现在都在一个聊天里。",
+      "lineCheckin": {
+        "title": "LINE 打卡",
+        "desc": "地理围栏 + GPS + IP + 可选照片 — 一次 Rich Menu 点击搞定。"
+      },
+      "shifts": {
+        "title": "班次排班",
+        "desc": "拖放轮换模式 + AI 建议覆盖,适合三班制工厂。"
+      },
+      "leave": {
+        "title": "请假与加班审批",
+        "desc": "员工在 LINE 内提交,主管从 Flex Message 审批 — 无需任何应用。"
+      },
+      "payroll": {
+        "title": "符合泰国法的薪酬",
+        "desc": "OT 1.5x/2x/3x、社保、预扣税、遣散费 — 全部计算并导出。"
+      },
+      "compliance": {
+        "title": "内置劳动法",
+        "desc": "最低假期天数、加班费率、节假日工资和税表,均按泰国法律更新。"
+      },
+      "ai": {
+        "title": "ForgeHR 助手",
+        "desc": "Claude 驱动的代理读取实时数据:\"今天谁迟到了?\"、\"生成 5 月薪酬\"、\"建议下周排班\"。"
+      }
+    },
+    "how": {
+      "title": "三步从购买到运营班次",
+      "step1": {
+        "title": "连接您的 LINE OA",
+        "desc": "我们在 30 分钟内绑定您现有的员工和管理 OA。无新账户。"
+      },
+      "step2": {
+        "title": "导入您的花名册",
+        "desc": "通过 CSV 上传员工或从现有薪酬系统同步。每位员工一键绑定 LINE。"
+      },
+      "step3": {
+        "title": "员工明天开始使用",
+        "desc": "Rich Menu 上线。打卡、请假、薪酬 — 您的团队按已经聊天的方式工作。"
+      }
+    },
+    "compliance": {
+      "title": "合规与安全,从设计开始",
+      "subtitle": "泰国劳动部 + PDPA + SOC 2 控制",
+      "items": [
+        { "title": "泰国劳动法", "desc": "第 56 条最低假期、第 61–63 条加班费率(平日 1.5x、节假日 OT 3x)、社保基金扣除。" },
+        { "title": "PDPA 就绪", "desc": "员工数据存储在新加坡区域,完整审计跟踪,导出权与删除权工作流。" },
+        { "title": "地理围栏 + IP 保护", "desc": "可配置工厂半径(50–200 米)、VPN 检测、照片验证、防欺骗。" },
+        { "title": "行级安全", "desc": "Postgres RLS 策略强制基于角色的访问 — 主管仅看到自己团队,高管看到组织汇总(只读)。" }
+      ]
+    },
+    "testimonials": {
+      "title": "已经迁移到 LINE 优先的工厂的反馈",
+      "items": [
+        {
+          "quote": "我们一个周末就替换了指纹扫描仪和三张 Excel 表。线长根本不需要培训。",
+          "author": "运营总监",
+          "company": "汽车零部件工厂,北榄府"
+        },
+        {
+          "quote": "加班计算曾经每月占 HR 整整两天。现在喝咖啡时就跑完了 — 数字与劳动部审计一致。",
+          "author": "HR 经理",
+          "company": "电子组装,罗勇府"
+        },
+        {
+          "quote": "光是 AI 助手就值得订阅。我问'本月谁迟到三次以上'时,坐下之前就有答案了。",
+          "author": "工厂老板",
+          "company": "服装制造商,清迈"
+        }
+      ]
+    },
+    "finalCta": {
+      "title": "在喝完咖啡前试试演示",
+      "subtitle": "无需信用卡。无需下载。打开 LINE,扫码,两分钟内运行真实班次。",
+      "primary": "在 LINE 中试用",
+      "secondary": "预约 20 分钟通话"
+    },
+    "footer": {
+      "product": "产品",
+      "company": "公司",
+      "legal": "法律",
+      "rights": "保留所有权利。"
+    }
+  },
+  "dashboard": {
+    "overview": {
+      "title": "概览",
+      "subtitle": "工厂今日快照",
+      "totalEmployees": "员工总数",
+      "presentToday": "今日出勤",
+      "attendanceRate": "出勤率",
+      "pendingApprovals": "待审批",
+      "onLeave": "休假中",
+      "lateToday": "今日迟到",
+      "attendanceTrend": "出勤趋势(最近 7 天)",
+      "departmentBreakdown": "部门分布",
+      "aiInsight": "AI 洞察",
+      "recentActivity": "最近活动",
+      "recentNotifications": "最近通知"
+    },
+    "attendance": {
+      "title": "出勤",
+      "subtitle": "实时打卡和地理围栏地图",
+      "today": "今日记录",
+      "calendar": "日历视图",
+      "map": "地理围栏地图",
+      "name": "员工",
+      "time": "时间",
+      "type": "类型",
+      "status": "状态",
+      "location": "位置",
+      "checkIn": "签到",
+      "checkOut": "签退"
+    },
+    "shifts": {
+      "title": "班次排班",
+      "subtitle": "拖放轮换计划",
+      "aiSuggest": "AI 建议排班",
+      "morningShift": "早班",
+      "eveningShift": "晚班",
+      "nightShift": "夜班",
+      "off": "休息"
+    },
+    "employees": {
+      "title": "员工",
+      "subtitle": "工厂全体员工花名册",
+      "addEmployee": "添加员工",
+      "importCsv": "导入 CSV",
+      "exportCsv": "导出 CSV",
+      "code": "工号",
+      "name": "姓名",
+      "department": "部门",
+      "position": "职位",
+      "role": "角色",
+      "status": "状态",
+      "lineBound": "LINE 已绑定",
+      "yes": "是",
+      "no": "否"
+    },
+    "leave": {
+      "title": "请假与加班",
+      "subtitle": "审批、驳回并审计所有申请",
+      "leaveTab": "请假",
+      "otTab": "加班",
+      "type": "类型",
+      "dates": "日期",
+      "days": "天数",
+      "reason": "原因",
+      "annual": "年假",
+      "sick": "病假",
+      "maternity": "产假",
+      "personal": "事假"
+    },
+    "payroll": {
+      "title": "薪酬",
+      "subtitle": "运行、预览并导出每月薪酬",
+      "runPayroll": "运行薪酬",
+      "downloadAll": "下载所有工资单",
+      "month": "月份",
+      "basePay": "基本工资",
+      "otPay": "加班费",
+      "ssfDeduction": "社保",
+      "taxDeduction": "税款",
+      "netPay": "实发",
+      "totalPayroll": "薪酬总额",
+      "totalNet": "实付总额"
+    },
+    "reports": {
+      "title": "报表与分析",
+      "subtitle": "员工洞察",
+      "absenteeism": "缺勤",
+      "punctuality": "准时率",
+      "overtimeTrend": "加班趋势",
+      "kpiTrend": "KPI 趋势",
+      "exportExcel": "导出 Excel",
+      "exportPdf": "导出 PDF"
+    },
+    "settings": {
+      "title": "设置",
+      "subtitle": "工厂资料、地理围栏、节假日、角色",
+      "factoryProfile": "工厂资料",
+      "geofence": "地理围栏",
+      "holidays": "泰国节假日",
+      "roles": "角色管理",
+      "factoryName": "工厂名称",
+      "thaiTaxId": "泰国税号",
+      "timezone": "时区",
+      "geofenceRadius": "地理围栏半径(米)"
+    }
+  },
+  "liff": {
+    "checkin": {
+      "title": "打卡",
+      "currentTime": "当前时间",
+      "todaysShift": "今日班次",
+      "youAreInside": "您在工厂地理围栏内",
+      "youAreOutside": "您在工厂地理围栏外",
+      "checkIn": "签到",
+      "checkOut": "签退",
+      "lastCheckIn": "上次签到",
+      "lastCheckOut": "上次签退",
+      "verifyingLocation": "正在验证位置",
+      "success": "签到成功",
+      "successOut": "签退成功",
+      "addPhoto": "添加照片(可选)"
+    },
+    "myAttendance": {
+      "title": "我的出勤",
+      "thisWeek": "本周",
+      "thisMonth": "本月",
+      "ontime": "准时",
+      "late": "迟到",
+      "absent": "缺勤",
+      "totalHours": "总小时"
+    },
+    "requestLeave": {
+      "title": "申请请假",
+      "leaveType": "请假类型",
+      "from": "从",
+      "to": "到",
+      "reason": "原因",
+      "balance": "当前余额",
+      "submit": "提交申请"
+    },
+    "requestOt": {
+      "title": "申请加班",
+      "date": "日期",
+      "hours": "小时",
+      "reason": "原因"
+    },
+    "payslip": {
+      "title": "工资单",
+      "viewPdf": "查看 PDF",
+      "download": "下载"
+    },
+    "aiChat": {
+      "title": "ForgeHR 助手",
+      "placeholder": "随便问 — 薪酬、班次、假期余额。",
+      "send": "发送",
+      "suggestions": [
+        "我的假期余额是多少?",
+        "下次发薪日是什么时候?",
+        "查看本周出勤",
+        "今天我的团队谁迟到?"
+      ]
+    },
+    "team": {
+      "title": "今日团队",
+      "present": "出勤",
+      "absent": "缺勤",
+      "onLeave": "请假",
+      "late": "迟到"
+    },
+    "onboard": {
+      "title": "绑定您的账户",
+      "subtitle": "将您的 LINE 资料关联到员工记录",
+      "employeeCode": "员工编号",
+      "fullName": "全名",
+      "department": "部门",
+      "position": "职位",
+      "submit": "绑定账户",
+      "success": "账户绑定成功。欢迎使用 LinForge HR。",
+      "notFound": "未找到员工编号。请联系 HR。",
+      "alreadyBound": "此 LINE 账户已关联到另一员工。"
+    },
+    "nav": {
+      "home": "首页",
+      "checkin": "打卡",
+      "attendance": "记录",
+      "leave": "请假",
+      "payslip": "工资单",
+      "ai": "AI"
+    }
+  }
+}
