@@ -18,42 +18,50 @@ export function verifyLineSignature(body: string, signature: string | null): boo
   return crypto.timingSafeEqual(a, b);
 }
 
-export async function replyMessage(replyToken: string, text: string) {
+export interface LineApiResult {
+  ok: boolean;
+  demo?: boolean;
+  status?: number;
+  message?: string;
+  messageId?: string;
+  details?: unknown;
+  raw?: string;
+  [key: string]: unknown;
+}
+
+async function lineFetch(endpoint: string, body: unknown, label: string): Promise<LineApiResult> {
+  const res = await fetch(`${LINE_API}${endpoint}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token()}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  let parsed: Record<string, unknown> = {};
+  try { parsed = JSON.parse(text); } catch { parsed = { raw: text }; }
+  if (!res.ok) {
+    console.error(`[LINE ${label}] HTTP ${res.status}`, parsed);
+    return { ok: false, status: res.status, ...parsed };
+  }
+  return { ok: true, ...parsed };
+}
+
+export async function replyMessage(replyToken: string, text: string): Promise<LineApiResult> {
   if (!token()) {
     console.log("[LINE demo reply]", { replyToken, text });
     return { ok: true, demo: true };
   }
-  const res = await fetch(`${LINE_API}/message/reply`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      replyToken,
-      messages: [{ type: "text", text }],
-    }),
-  });
-  return res.json();
+  return lineFetch("/message/reply", { replyToken, messages: [{ type: "text", text }] }, "reply");
 }
 
-export async function pushMessage(to: string, text: string) {
+export async function pushMessage(to: string, text: string): Promise<LineApiResult> {
   if (!token()) {
     console.log("[LINE demo push]", { to, text });
     return { ok: true, demo: true };
   }
-  const res = await fetch(`${LINE_API}/message/push`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      to,
-      messages: [{ type: "text", text }],
-    }),
-  });
-  return res.json();
+  return lineFetch("/message/push", { to, messages: [{ type: "text", text }] }, "push");
 }
 
 // ---- Flex message helpers ------------------------------------------------
@@ -73,54 +81,30 @@ export interface FlexMessage {
   contents: FlexBubble | { type: "carousel"; contents: FlexBubble[] };
 }
 
-export async function pushFlex(to: string, message: FlexMessage) {
+export async function pushFlex(to: string, message: FlexMessage): Promise<LineApiResult> {
   if (!token()) {
     console.log("[LINE demo push flex]", { to, altText: message.altText });
     return { ok: true, demo: true, messageId: `demo-${Date.now()}` };
   }
-  const res = await fetch(`${LINE_API}/message/push`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ to, messages: [message] }),
-  });
-  return res.json();
+  return lineFetch("/message/push", { to, messages: [message] }, "pushFlex");
 }
 
-export async function replyFlex(replyToken: string, message: FlexMessage) {
+export async function replyFlex(replyToken: string, message: FlexMessage): Promise<LineApiResult> {
   if (!token()) {
     console.log("[LINE demo reply flex]", { replyToken, altText: message.altText });
     return { ok: true, demo: true };
   }
-  const res = await fetch(`${LINE_API}/message/reply`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ replyToken, messages: [message] }),
-  });
-  return res.json();
+  return lineFetch("/message/reply", { replyToken, messages: [message] }, "replyFlex");
 }
 
-export async function replyText(replyToken: string, text: string, quickReply?: unknown) {
+export async function replyText(replyToken: string, text: string, quickReply?: unknown): Promise<LineApiResult> {
   if (!token()) {
     console.log("[LINE demo reply text]", { replyToken, text, quickReply });
     return { ok: true, demo: true };
   }
-  const message: Record<string, unknown> = { type: "text", text };
-  if (quickReply) message.quickReply = quickReply;
-  const res = await fetch(`${LINE_API}/message/reply`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token()}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({ replyToken, messages: [message] }),
-  });
-  return res.json();
+  const msg: Record<string, unknown> = { type: "text", text };
+  if (quickReply) msg.quickReply = quickReply;
+  return lineFetch("/message/reply", { replyToken, messages: [msg] }, "replyText");
 }
 
 // ---- Webhook event types -------------------------------------------------

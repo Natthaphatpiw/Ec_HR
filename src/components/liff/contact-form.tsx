@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CalendarClock, CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { initLiff } from "@/lib/liff-client";
 import { submitContactRequest } from "@/app/liff/ai-chat/contact-actions";
 
 export function ContactForm({ employeeId }: { employeeId?: string }) {
@@ -18,9 +19,19 @@ export function ContactForm({ employeeId }: { employeeId?: string }) {
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
+  const [lineUserId, setLineUserId] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+    initLiff().then((res) => {
+      if (!cancelled && res.profile) setLineUserId(res.profile.userId);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   function submit() {
     const fd = new FormData();
+    if (lineUserId) fd.set("lineUserId", lineUserId);
     if (employeeId) fd.set("employeeId", employeeId);
     fd.set("date", date);
     fd.set("timeStart", timeStart);

@@ -53,6 +53,13 @@ export async function notifySupervisorOfLeave(requestId: string) {
     rejectToken: reject.token,
   });
   const res = await pushFlex(supervisor.line_user_id, card);
+  if (!res.ok) {
+    const detail =
+      typeof res.message === "string" ? res.message :
+      typeof res.status === "number" ? `LINE API ${res.status}` :
+      "LINE push failed";
+    return { ok: false, reason: detail, supervisor };
+  }
   return { ok: true, supervisor, res };
 }
 
@@ -83,6 +90,13 @@ export async function notifySupervisorOfOvertime(requestId: string) {
     rejectToken: reject.token,
   });
   const res = await pushFlex(supervisor.line_user_id, card);
+  if (!res.ok) {
+    const detail =
+      typeof res.message === "string" ? res.message :
+      typeof res.status === "number" ? `LINE API ${res.status}` :
+      "LINE push failed";
+    return { ok: false, reason: detail, supervisor };
+  }
   return { ok: true, supervisor, res };
 }
 
@@ -113,6 +127,13 @@ export async function notifySupervisorOfContact(requestId: string) {
     rejectToken: reject.token,
   });
   const res = await pushFlex(supervisor.line_user_id, card);
+  if (!res.ok) {
+    const detail =
+      typeof res.message === "string" ? res.message :
+      typeof res.status === "number" ? `LINE API ${res.status}` :
+      "LINE push failed";
+    return { ok: false, reason: detail, supervisor };
+  }
   return { ok: true, supervisor, res };
 }
 

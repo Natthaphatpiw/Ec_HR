@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
@@ -17,7 +17,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { submitLeaveRequest } from "@/app/liff/request-leave/actions";
+import { initLiff } from "@/lib/liff-client";
+import { fetchMyLeaveBalance, submitLeaveRequest } from "@/app/liff/request-leave/actions";
 
 interface Balance {
   annual: { used: number; total: number };
@@ -25,7 +26,7 @@ interface Balance {
   personal: { used: number; total: number };
 }
 
-export function LeaveForm({ balance, employeeId }: { balance: Balance; employeeId?: string }) {
+export function LeaveForm({ balance: initialBalance, employeeId }: { balance: Balance; employeeId?: string }) {
   const t = useTranslations("liff.requestLeave");
   const [type, setType] = useState<"annual" | "sick" | "maternity" | "personal">("annual");
   const [from, setFrom] = useState("");
@@ -33,6 +34,19 @@ export function LeaveForm({ balance, employeeId }: { balance: Balance; employeeI
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
+  const [lineUserId, setLineUserId] = useState<string>("");
+  const [balance, setBalance] = useState<Balance>(initialBalance);
+
+  useEffect(() => {
+    let cancelled = false;
+    initLiff().then(async (res) => {
+      if (cancelled || !res.profile) return;
+      setLineUserId(res.profile.userId);
+      const b = await fetchMyLeaveBalance(res.profile.userId);
+      if (!cancelled && b) setBalance(b);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   function submit() {
     if (!from || !to) {
@@ -40,6 +54,7 @@ export function LeaveForm({ balance, employeeId }: { balance: Balance; employeeI
       return;
     }
     const fd = new FormData();
+    if (lineUserId) fd.set("lineUserId", lineUserId);
     if (employeeId) fd.set("employeeId", employeeId);
     fd.set("leaveType", type);
     fd.set("startDate", from);
