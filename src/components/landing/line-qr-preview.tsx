@@ -30,7 +30,7 @@ export function LineQrPreview() {
               </div>
               <div className="mt-1 flex items-center gap-1 text-[10px] text-navy-300">
                 <MapPin className="h-3 w-3" />
-                13.7563°N, 100.5018°E · 142m inside geofence
+                13.740198598326677°N, 100.56227944249513°E · 142m inside geofence
               </div>
             </ChatBubble>
             <ChatBubble role="user">What is my leave balance?</ChatBubble>

@@ -17,8 +17,8 @@ export default async function CheckinPage() {
       <main className="px-4 pb-6 pt-3">
         <CheckinClient
           factoryName={org.name}
-          factoryLat={Number(org.geofence_lat ?? 13.7563)}
-          factoryLng={Number(org.geofence_lng ?? 100.5018)}
+          factoryLat={Number(org.geofence_lat ?? 13.740198598326677)}
+          factoryLng={Number(org.geofence_lng ?? 100.56227944249513)}
           factoryRadiusM={Number(org.geofence_radius)}
           shiftStart={morning.start_time.slice(0, 5)}
           shiftEnd={morning.end_time.slice(0, 5)}

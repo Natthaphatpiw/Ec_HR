@@ -34,8 +34,8 @@ export default async function AttendancePage() {
   const todayLogs = logs.filter((l) => l.timestamp.startsWith(today));
   const points = todayLogs.slice(0, 24).map((l) => ({
     id: l.id,
-    lat: Number(l.latitude ?? org.geofence_lat ?? 13.7563),
-    lng: Number(l.longitude ?? org.geofence_lng ?? 100.5018),
+    lat: Number(l.latitude ?? org.geofence_lat ?? 13.740198598326677),
+    lng: Number(l.longitude ?? org.geofence_lng ?? 100.56227944249513),
     label: getEmployeeName(employeeMap.get(l.employee_id)!, "en"),
     status: l.status,
   }));
@@ -60,8 +60,8 @@ export default async function AttendancePage() {
             </CardHeader>
             <CardContent>
               <GeofenceMap
-                centerLat={Number(org.geofence_lat ?? 13.7563)}
-                centerLng={Number(org.geofence_lng ?? 100.5018)}
+                centerLat={Number(org.geofence_lat ?? 13.740198598326677)}
+                centerLng={Number(org.geofence_lng ?? 100.56227944249513)}
                 radiusM={Number(org.geofence_radius)}
                 points={points}
               />

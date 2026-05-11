@@ -3,7 +3,7 @@
 
 -- Organization
 INSERT INTO organizations (id, name, thai_tax_id, geofence_lat, geofence_lng, geofence_radius)
-VALUES ('11111111-1111-1111-1111-111111111111', 'ThaiAuto Factory', '1234567890123', 13.7563, 100.5018, 150)
+VALUES ('11111111-1111-1111-1111-111111111111', 'ThaiAuto Factory', '1234567890123', 13.740198598326677, 100.56227944249513, 150)
 ON CONFLICT (id) DO NOTHING;
 
 -- Shifts
@@ -39,8 +39,8 @@ SELECT
   e.id,
   CURRENT_TIMESTAMP - (i * INTERVAL '1 day') - (RANDOM() * INTERVAL '8 hours'),
   CASE WHEN RANDOM() > 0.5 THEN 'in' ELSE 'out' END,
-  13.7563 + (RANDOM() * 0.001),
-  100.5018 + (RANDOM() * 0.001),
+  13.740198598326677 + (RANDOM() * 0.001),
+  100.56227944249513 + (RANDOM() * 0.001),
   CASE WHEN RANDOM() > 0.85 THEN 'late' ELSE 'ontime' END
 FROM employees e, generate_series(1, 30) i
 WHERE e.role IN ('employee','supervisor');

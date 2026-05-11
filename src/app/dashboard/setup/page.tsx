@@ -41,11 +41,11 @@ export default function SetupPage() {
               </div>
               <div className="space-y-2">
                 <Label>Geofence latitude</Label>
-                <Input placeholder="13.7563" />
+                <Input placeholder="13.740198598326677" />
               </div>
               <div className="space-y-2">
                 <Label>Geofence longitude</Label>
-                <Input placeholder="100.5018" />
+                <Input placeholder="100.56227944249513" />
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label>Geofence radius (m)</Label>

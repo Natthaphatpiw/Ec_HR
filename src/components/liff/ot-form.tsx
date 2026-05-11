@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
@@ -10,15 +10,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { submitOvertimeRequest } from "@/app/liff/request-ot/actions";
 
 const HOURLY_RATE = 86; // 15000 / 22 days / 8 hours ≈ 86 baht/h
 
-export function OtForm() {
+export function OtForm({ employeeId }: { employeeId?: string }) {
   const t = useTranslations("liff.requestOt");
   const [date, setDate] = useState("");
   const [hours, setHours] = useState("3");
   const [reason, setReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
 
   const calc = useMemo(() => {
@@ -29,16 +30,25 @@ export function OtForm() {
     return { rate, pay, isHoliday };
   }, [hours, date]);
 
-  async function submit() {
+  function submit() {
     if (!date || !hours) {
       toast.error("Please complete all fields");
       return;
     }
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 700));
-    setSubmitting(false);
-    setDone(true);
-    toast.success("OT request submitted");
+    const fd = new FormData();
+    if (employeeId) fd.set("employeeId", employeeId);
+    fd.set("date", date);
+    fd.set("hours", hours);
+    fd.set("reason", reason);
+    startTransition(async () => {
+      const res = await submitOvertimeRequest(fd);
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
+      setDone(true);
+      toast.success(res.message);
+    });
   }
 
   if (done) {

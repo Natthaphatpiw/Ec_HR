@@ -128,10 +128,22 @@
       "title": "Compliance and security, by design",
       "subtitle": "Thai Ministry of Labor + PDPA + SOC 2 controls.",
       "items": [
-        { "title": "Thai Labor Law", "desc": "Section 56 leave minimums, Section 61–63 OT rates (1.5x weekday, 3x holiday OT), Social Security Fund deductions." },
-        { "title": "PDPA-Ready", "desc": "Worker data residency in Singapore region, full audit trail, right-to-export and right-to-delete workflows." },
-        { "title": "Geofence + IP Protection", "desc": "Configurable factory radius (50–200m), VPN detection, photo verification, anti-spoofing." },
-        { "title": "Row-Level Security", "desc": "Postgres RLS policies enforce role-based access — supervisors see only their team, executives see read-only org rollups." }
+        {
+          "title": "Thai Labor Law",
+          "desc": "Section 56 leave minimums, Section 61–63 OT rates (1.5x weekday, 3x holiday OT), Social Security Fund deductions."
+        },
+        {
+          "title": "PDPA-Ready",
+          "desc": "Worker data residency in Singapore region, full audit trail, right-to-export and right-to-delete workflows."
+        },
+        {
+          "title": "Geofence + IP Protection",
+          "desc": "Configurable factory radius (50–200m), VPN detection, photo verification, anti-spoofing."
+        },
+        {
+          "title": "Row-Level Security",
+          "desc": "Postgres RLS policies enforce role-based access — supervisors see only their team, executives see read-only org rollups."
+        }
       ]
     },
     "testimonials": {
@@ -296,7 +308,14 @@
       "ontime": "On Time",
       "late": "Late",
       "absent": "Absent",
-      "totalHours": "Total Hours"
+      "totalHours": "Total Hours",
+      "hub": {
+        "subtitle": "ดู timeline ที่ผ่านมา หรือจัดตารางสัปดาห์นี้",
+        "historyTitle": "ประวัติเข้างาน",
+        "historySubtitle": "Weekly + monthly clock-in / out timeline",
+        "scheduleTitle": "จัดการตารางงาน",
+        "scheduleSubtitle": "Plan your week — work / OT / leave"
+      }
     },
     "requestLeave": {
       "title": "Request Leave",
@@ -355,6 +374,77 @@
       "leave": "Leave",
       "payslip": "Payslip",
       "ai": "AI"
+    },
+    "register": {
+      "title": "New Employee Registration",
+      "subtitle": "Tell us about yourself. HR will review and activate your account in 1-2 working days.",
+      "back": "Back",
+      "next": "Continue",
+      "submit": "Submit application",
+      "lineProfile": "LINE profile detected",
+      "step": "Step {current} of {total}",
+      "stepNames": {
+        "personal": "Personal info",
+        "address": "Contact",
+        "job": "Job preference",
+        "docs": "Documents"
+      },
+      "fields": {
+        "nameTh": "Full name (Thai)",
+        "nameEn": "Full name (English)",
+        "nameZh": "Full name (Chinese, optional)",
+        "dob": "Date of birth",
+        "nationalId": "National ID (13 digits)",
+        "phone": "Mobile phone",
+        "address": "Home address",
+        "emergencyContact": "Emergency contact (name / relation / phone)",
+        "department": "Department",
+        "position": "Position applied",
+        "shiftGroup": "Preferred shift",
+        "bankAccount": "Bank account (optional)",
+        "idCardPhoto": "Photo of national ID card",
+        "bankBookPhoto": "Photo of bank book",
+        "profilePhoto": "Profile photo (optional)"
+      },
+      "departments": {
+        "Production": "Production",
+        "Maintenance": "Maintenance",
+        "Warehouse": "Warehouse",
+        "Quality": "Quality",
+        "Logistics": "Logistics",
+        "HR": "HR",
+        "Other": "Other"
+      },
+      "shiftGroups": {
+        "A": "A · Morning",
+        "B": "B · Evening",
+        "C": "C · Night",
+        "any": "No preference"
+      },
+      "uploaded": "Uploaded",
+      "uploadHint": "Tap to take a photo or choose from your gallery",
+      "submitted": {
+        "title": "Application submitted",
+        "subtitle": "HR will review your application and notify you in LINE within 1-2 working days.",
+        "status": "Status",
+        "pending": "Pending HR review"
+      },
+      "alreadyExists": {
+        "active": "You're already registered. Welcome back.",
+        "activeAction": "Open the worker app",
+        "pendingTitle": "Application under review",
+        "pendingBody": "HR has received your application. We'll send you a LINE message once a decision is made.",
+        "rejectedTitle": "Application not approved",
+        "rejectedReason": "Reason from HR"
+      },
+      "errors": {
+        "missingLine": "LINE profile not detected. Please open this page inside LINE.",
+        "duplicateLine": "This LINE account is already registered.",
+        "duplicateNationalId": "This national ID is already in our records.",
+        "requiredField": "This field is required",
+        "invalidNid": "National ID must be 13 digits",
+        "invalidPhone": "Please enter a valid phone number"
+      }
     }
   }
 }

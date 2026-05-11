@@ -30,7 +30,7 @@ export default async function LiffHome() {
     getTranslations("common"),
   ]);
   const me = employees.find((e) => e.id === DEMO_EMPLOYEE_ID)!;
-  const balance = getLeaveBalance(DEMO_EMPLOYEE_ID);
+  const balance = await getLeaveBalance(DEMO_EMPLOYEE_ID);
   const lastIn = attendance.find((a) => a.type === "in");
 
   return (

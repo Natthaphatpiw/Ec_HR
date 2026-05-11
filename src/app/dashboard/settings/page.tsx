@@ -155,8 +155,8 @@ export default async function SettingsPage() {
                   </Button>
                 </div>
                 <GeofenceMap
-                  centerLat={Number(org.geofence_lat ?? 13.7563)}
-                  centerLng={Number(org.geofence_lng ?? 100.5018)}
+                  centerLat={Number(org.geofence_lat ?? 13.740198598326677)}
+                  centerLng={Number(org.geofence_lng ?? 100.56227944249513)}
                   radiusM={Number(org.geofence_radius)}
                   points={[]}
                 />

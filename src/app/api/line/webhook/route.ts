@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
 import { runAgent } from "@/lib/mastra/agent";
-import { getEmployeeByLineId } from "@/lib/data";
-import { type LineEvent, replyMessage, verifyLineSignature } from "@/lib/line/client";
+import { consumeActionToken, getEmployeeByLineId } from "@/lib/data";
+import {
+  type LineEvent,
+  replyFlex,
+  replyText,
+  verifyLineSignature,
+} from "@/lib/line/client";
+import { applyDecision } from "@/lib/line/approvals";
+import { buildDecisionResultCard, rejectionReasonQuickReply } from "@/lib/line/flex";
+import {
+  hasPendingRejection,
+  setPendingRejection,
+  takePendingRejection,
+} from "@/lib/line/pending-rejection";
+import type { ActionTokenKind } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -13,7 +26,6 @@ export async function POST(req: Request) {
   const raw = await req.text();
   const signature = req.headers.get("x-line-signature");
 
-  // In dev / demo without channel secret, skip verification
   if (process.env.LINE_CHANNEL_SECRET) {
     if (!verifyLineSignature(raw, signature)) {
       return NextResponse.json({ ok: false, error: "invalid signature" }, { status: 401 });
@@ -23,22 +35,128 @@ export async function POST(req: Request) {
   const body = JSON.parse(raw) as { events?: LineEvent[] };
   const events = body.events ?? [];
 
-  await Promise.all(
-    events.map(async (ev) => {
-      if (ev.type !== "message" || ev.message?.type !== "text") return;
-      const text = ev.message.text ?? "";
-      const userId = ev.source?.userId;
-      const replyToken = ev.replyToken;
-      if (!replyToken) return;
-
-      const employee = userId ? await getEmployeeByLineId(userId) : undefined;
-      const result = await runAgent(text, {
-        employeeCode: employee?.employee_code,
-        channel: "line",
-      });
-      await replyMessage(replyToken, result.response);
-    }),
-  );
+  await Promise.all(events.map(handleEvent));
 
   return NextResponse.json({ ok: true, processed: events.length });
+}
+
+async function handleEvent(ev: LineEvent) {
+  if (ev.type === "postback") return handlePostback(ev);
+  if (ev.type === "message" && ev.message?.type === "text") return handleTextMessage(ev);
+}
+
+// =========================================================================
+// Postback: supervisor pressed Approve / Reject on a Flex card
+// =========================================================================
+
+async function handlePostback(ev: LineEvent) {
+  const replyToken = ev.replyToken;
+  const userId = ev.source?.userId;
+  const data = ev.postback?.data ?? "";
+  if (!replyToken || !userId) return;
+
+  const params = new URLSearchParams(data);
+  const action = params.get("action");
+  const kind = params.get("kind") as ActionTokenKind | null;
+  const tokenStr = params.get("token");
+
+  if (!action || !kind || !tokenStr) {
+    await replyText(replyToken, "ลิงก์ไม่ถูกต้อง");
+    return;
+  }
+
+  const me = await getEmployeeByLineId(userId);
+  const consumed = await consumeActionToken(tokenStr, me?.id ?? null);
+  if (!consumed.ok) {
+    await replyText(replyToken, `ไม่สามารถดำเนินการได้: ${consumed.reason}`);
+    return;
+  }
+
+  if (action === "approve") {
+    const result = await applyDecision(kind, consumed.token.request_id, "approved", me?.id ?? "system");
+    if (!result.ok) {
+      await replyText(replyToken, `ไม่สามารถอนุมัติได้: ${result.reason}`);
+      return;
+    }
+    await replyFlex(
+      replyToken,
+      buildDecisionResultCard({
+        kind,
+        status: "approved",
+        title: kindTitle(kind),
+        detail: "บันทึกการอนุมัติเรียบร้อย ระบบแจ้งพนักงานแล้ว",
+      }),
+    );
+    return;
+  }
+
+  if (action === "reject") {
+    setPendingRejection(userId, kind, consumed.token.request_id);
+    await replyText(
+      replyToken,
+      "กรุณาพิมพ์เหตุผลที่ไม่อนุมัติเป็นข้อความถัดไป (มีเวลา 5 นาที)",
+      rejectionReasonQuickReply(),
+    );
+    return;
+  }
+
+  await replyText(replyToken, "ไม่รู้จัก action นี้");
+}
+
+// =========================================================================
+// Text message: either rejection-reason follow-up OR pass to AI agent
+// =========================================================================
+
+async function handleTextMessage(ev: LineEvent) {
+  const replyToken = ev.replyToken;
+  const userId = ev.source?.userId;
+  const text = ev.message?.text ?? "";
+  if (!replyToken) return;
+
+  // 1. Is the user mid-rejection?
+  if (userId && hasPendingRejection(userId)) {
+    const pending = takePendingRejection(userId);
+    if (pending) {
+      const me = await getEmployeeByLineId(userId);
+      const result = await applyDecision(
+        pending.kind,
+        pending.requestId,
+        "rejected",
+        me?.id ?? "system",
+        text.trim(),
+      );
+      if (!result.ok) {
+        await replyText(replyToken, `บันทึกไม่สำเร็จ: ${result.reason}`);
+        return;
+      }
+      await replyFlex(
+        replyToken,
+        buildDecisionResultCard({
+          kind: pending.kind,
+          status: "rejected",
+          title: kindTitle(pending.kind),
+          detail: "บันทึกการไม่อนุมัติเรียบร้อย ระบบแจ้งพนักงานแล้ว",
+          reason: text.trim(),
+        }),
+      );
+      return;
+    }
+  }
+
+  // 2. Otherwise route to the AI agent
+  const employee = userId ? await getEmployeeByLineId(userId) : undefined;
+  const result = await runAgent(text, {
+    employeeCode: employee?.employee_code ?? undefined,
+    channel: "line",
+  });
+  await replyText(replyToken, result.response);
+}
+
+function kindTitle(kind: ActionTokenKind): string {
+  switch (kind) {
+    case "leave":        return "คำขอลา";
+    case "overtime":     return "คำขอ OT";
+    case "contact":      return "ขอเข้าพบ";
+    case "registration": return "ใบสมัครพนักงาน";
+  }
 }

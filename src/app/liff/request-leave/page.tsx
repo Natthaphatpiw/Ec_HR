@@ -7,12 +7,12 @@ const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
 
 export default async function RequestLeavePage() {
   const t = await getTranslations("liff.requestLeave");
-  const balance = getLeaveBalance(DEMO_EMPLOYEE_ID);
+  const balance = await getLeaveBalance(DEMO_EMPLOYEE_ID);
   return (
     <>
       <LiffHeader title={t("title")} />
       <main className="px-4 pb-6 pt-3">
-        <LeaveForm balance={balance} />
+        <LeaveForm balance={balance} employeeId={DEMO_EMPLOYEE_ID} />
       </main>
     </>
   );

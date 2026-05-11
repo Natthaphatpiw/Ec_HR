@@ -42,7 +42,7 @@ export async function bindLineAccount(formData: FormData): Promise<BindResult> {
   return {
     ok: true,
     message: "Account bound successfully. Welcome to LinForge HR.",
-    employeeName: employee.name_en ?? employee.employee_code,
+    employeeName: employee.name_en ?? employee.employee_code ?? "",
     department: employee.department ?? "",
     position: employee.position ?? "",
   };

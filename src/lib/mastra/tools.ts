@@ -104,7 +104,7 @@ export const TOOLS: AgentTool[] = [
     run: async (input) => {
       const emp = await getEmployeeByCode(input.employee_code as string);
       if (!emp) return { error: "Employee not found" };
-      const b = getLeaveBalance(emp.id);
+      const b = await getLeaveBalance(emp.id);
       return {
         employee_code: emp.employee_code,
         annual: { used: b.annual.used, remaining: b.annual.total - b.annual.used },

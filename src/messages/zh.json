@@ -128,10 +128,22 @@
       "title": "合规与安全,从设计开始",
       "subtitle": "泰国劳动部 + PDPA + SOC 2 控制",
       "items": [
-        { "title": "泰国劳动法", "desc": "第 56 条最低假期、第 61–63 条加班费率(平日 1.5x、节假日 OT 3x)、社保基金扣除。" },
-        { "title": "PDPA 就绪", "desc": "员工数据存储在新加坡区域,完整审计跟踪,导出权与删除权工作流。" },
-        { "title": "地理围栏 + IP 保护", "desc": "可配置工厂半径(50–200 米)、VPN 检测、照片验证、防欺骗。" },
-        { "title": "行级安全", "desc": "Postgres RLS 策略强制基于角色的访问 — 主管仅看到自己团队,高管看到组织汇总(只读)。" }
+        {
+          "title": "泰国劳动法",
+          "desc": "第 56 条最低假期、第 61–63 条加班费率(平日 1.5x、节假日 OT 3x)、社保基金扣除。"
+        },
+        {
+          "title": "PDPA 就绪",
+          "desc": "员工数据存储在新加坡区域,完整审计跟踪,导出权与删除权工作流。"
+        },
+        {
+          "title": "地理围栏 + IP 保护",
+          "desc": "可配置工厂半径(50–200 米)、VPN 检测、照片验证、防欺骗。"
+        },
+        {
+          "title": "行级安全",
+          "desc": "Postgres RLS 策略强制基于角色的访问 — 主管仅看到自己团队,高管看到组织汇总(只读)。"
+        }
       ]
     },
     "testimonials": {
@@ -296,7 +308,14 @@
       "ontime": "准时",
       "late": "迟到",
       "absent": "缺勤",
-      "totalHours": "总小时"
+      "totalHours": "总小时",
+      "hub": {
+        "subtitle": "查看过去时间线或安排本周工作",
+        "historyTitle": "考勤记录",
+        "historySubtitle": "每周与每月签到/签退时间线",
+        "scheduleTitle": "工作排程",
+        "scheduleSubtitle": "安排本周工作 / 加班 / 休假"
+      }
     },
     "requestLeave": {
       "title": "申请请假",
@@ -355,6 +374,77 @@
       "leave": "请假",
       "payslip": "工资单",
       "ai": "AI"
+    },
+    "register": {
+      "title": "新员工注册",
+      "subtitle": "请填写您的资料,人力资源部将在 1-2 个工作日内审核并启用您的账户",
+      "back": "返回",
+      "next": "下一步",
+      "submit": "提交申请",
+      "lineProfile": "已识别 LINE 资料",
+      "step": "第 {current} 步,共 {total} 步",
+      "stepNames": {
+        "personal": "个人信息",
+        "address": "联系方式",
+        "job": "岗位意向",
+        "docs": "证件材料"
+      },
+      "fields": {
+        "nameTh": "全名(泰文)",
+        "nameEn": "全名(英文)",
+        "nameZh": "全名(中文,选填)",
+        "dob": "出生日期",
+        "nationalId": "身份证号(13 位)",
+        "phone": "手机号码",
+        "address": "现居地址",
+        "emergencyContact": "紧急联系人(姓名/关系/电话)",
+        "department": "申请部门",
+        "position": "申请职位",
+        "shiftGroup": "首选班次",
+        "bankAccount": "银行账号(选填)",
+        "idCardPhoto": "身份证照片",
+        "bankBookPhoto": "银行存折照片",
+        "profilePhoto": "头像(选填)"
+      },
+      "departments": {
+        "Production": "生产部",
+        "Maintenance": "维修部",
+        "Warehouse": "仓储部",
+        "Quality": "品控部",
+        "Logistics": "物流部",
+        "HR": "人力资源部",
+        "Other": "其他"
+      },
+      "shiftGroups": {
+        "A": "A · 早班",
+        "B": "B · 中班",
+        "C": "C · 夜班",
+        "any": "无偏好"
+      },
+      "uploaded": "已上传",
+      "uploadHint": "点击拍照或从相册选择",
+      "submitted": {
+        "title": "申请已提交",
+        "subtitle": "人力资源部将在 1-2 个工作日内通过 LINE 通知您",
+        "status": "状态",
+        "pending": "等待 HR 审核"
+      },
+      "alreadyExists": {
+        "active": "您已注册,欢迎回来",
+        "activeAction": "进入员工应用",
+        "pendingTitle": "申请审核中",
+        "pendingBody": "HR 已收到您的申请,审核完成后将通过 LINE 通知您",
+        "rejectedTitle": "申请未通过",
+        "rejectedReason": "HR 给出的原因"
+      },
+      "errors": {
+        "missingLine": "未检测到 LINE 资料,请在 LINE 内打开此页面",
+        "duplicateLine": "该 LINE 账户已注册",
+        "duplicateNationalId": "该身份证号已在记录中",
+        "requiredField": "此项必填",
+        "invalidNid": "身份证号必须为 13 位数字",
+        "invalidPhone": "请输入有效的电话号码"
+      }
     }
   }
 }

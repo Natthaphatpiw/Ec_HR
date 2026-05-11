@@ -1,150 +1,74 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Calendar, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { CalendarRange, History } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { listAttendanceForEmployee } from "@/lib/data";
-import { formatDate, formatTime } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
-const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
+interface SearchParams {
+  as?: string;
+}
 
-export default async function MyAttendancePage() {
-  const [t, attendance] = await Promise.all([
-    getTranslations("liff.myAttendance"),
-    listAttendanceForEmployee(DEMO_EMPLOYEE_ID),
-  ]);
-
-  const ontime = attendance.filter((a) => a.status === "ontime").length;
-  const late = attendance.filter((a) => a.status === "late").length;
-  const totalIn = attendance.filter((a) => a.type === "in").length;
-
-  // group by date
-  const byDate = new Map<string, typeof attendance>();
-  for (const a of attendance) {
-    const key = a.timestamp.slice(0, 10);
-    if (!byDate.has(key)) byDate.set(key, []);
-    byDate.get(key)!.push(a);
-  }
-  const days = Array.from(byDate.entries()).slice(0, 30);
+export default async function MyAttendanceHubPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const t = await getTranslations("liff.myAttendance");
+  const sp = await searchParams;
+  const qs = sp.as ? `?as=${sp.as}` : "";
 
   return (
     <>
       <LiffHeader title={t("title")} />
-      <main className="px-4 pb-6 pt-3 space-y-4">
-        <div className="grid grid-cols-3 gap-2">
-          <SummaryCard label={t("ontime")} value={String(ontime)} icon={CheckCircle2} accent="success" />
-          <SummaryCard label={t("late")} value={String(late)} icon={Clock} accent="warning" />
-          <SummaryCard label="Total" value={`${totalIn}d`} icon={Calendar} />
+      <main className="px-4 pb-6 pt-3 space-y-3">
+        <div className="rounded-2xl bg-navy-900 p-5 text-white">
+          <h2 className="text-lg font-semibold">{t("title")}</h2>
+          <p className="mt-1 text-sm text-navy-300">{t("hub.subtitle")}</p>
         </div>
 
-        <Tabs defaultValue="month">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="week">{t("thisWeek")}</TabsTrigger>
-            <TabsTrigger value="month">{t("thisMonth")}</TabsTrigger>
-          </TabsList>
+        <HubButton
+          href={`/liff/my-attendance/history${qs}`}
+          icon={<History className="h-5 w-5" />}
+          title={t("hub.historyTitle")}
+          subtitle={t("hub.historySubtitle")}
+        />
 
-          <TabsContent value="month">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("thisMonth")}</CardTitle>
-                <CardDescription>Daily clock-in / clock-out timeline</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {days.map(([date, logs]) => {
-                  const inLog = logs.find((l) => l.type === "in");
-                  const outLog = logs.find((l) => l.type === "out");
-                  return (
-                    <div
-                      key={date}
-                      className="flex items-center justify-between rounded-lg border border-navy-100 p-3"
-                    >
-                      <div>
-                        <div className="text-sm font-medium text-navy-900">{formatDate(date)}</div>
-                        <div className="mt-0.5 flex items-center gap-2 text-xs text-navy-500">
-                          <span>In: {inLog ? formatTime(inLog.timestamp) : "—"}</span>
-                          <span>·</span>
-                          <span>Out: {outLog ? formatTime(outLog.timestamp) : "—"}</span>
-                        </div>
-                      </div>
-                      <Badge
-                        variant={
-                          inLog?.status === "late"
-                            ? "warning"
-                            : inLog
-                              ? "success"
-                              : "danger"
-                        }
-                      >
-                        {inLog ? inLog.status : "absent"}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="week">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("thisWeek")}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {days.slice(0, 7).map(([date, logs]) => {
-                  const inLog = logs.find((l) => l.type === "in");
-                  return (
-                    <div
-                      key={date}
-                      className="flex items-center justify-between rounded-lg border border-navy-100 p-3"
-                    >
-                      <div>
-                        <div className="text-sm font-medium text-navy-900">{formatDate(date)}</div>
-                        <div className="mt-0.5 text-xs text-navy-500">
-                          In: {inLog ? formatTime(inLog.timestamp) : "—"}
-                        </div>
-                      </div>
-                      <Badge variant={inLog?.status === "late" ? "warning" : "success"}>
-                        {inLog ? inLog.status : "absent"}
-                      </Badge>
-                    </div>
-                  );
-                })}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+        <HubButton
+          href={`/liff/my-attendance/schedule${qs}`}
+          icon={<CalendarRange className="h-5 w-5" />}
+          title={t("hub.scheduleTitle")}
+          subtitle={t("hub.scheduleSubtitle")}
+        />
       </main>
     </>
   );
 }
 
-function SummaryCard({
-  label,
-  value,
-  icon: Icon,
-  accent,
+function HubButton({
+  href,
+  icon,
+  title,
+  subtitle,
 }: {
-  label: string;
-  value: string;
-  icon: typeof CheckCircle2;
-  accent?: "success" | "warning" | "danger";
+  href: string;
+  icon: React.ReactNode;
+  title: string;
+  subtitle: string;
 }) {
-  const color =
-    accent === "success"
-      ? "text-emerald-600"
-      : accent === "warning"
-        ? "text-amber-600"
-        : accent === "danger"
-          ? "text-red-600"
-          : "text-navy-900";
   return (
-    <Card>
-      <CardContent className="p-3 text-center">
-        <Icon className={`mx-auto h-4 w-4 ${color}`} />
-        <div className={`mt-1 text-xl font-semibold tabular-nums ${color}`}>{value}</div>
-        <div className="text-[10px] uppercase tracking-wider text-navy-500">{label}</div>
-      </CardContent>
-    </Card>
+    <Link href={href} className="block">
+      <Card className="transition-colors hover:border-orange-200 hover:bg-orange-50/30">
+        <CardContent className="flex items-center gap-4 p-5">
+          <div className="flex h-11 w-11 items-center justify-center rounded-full bg-navy-900 text-orange-400">
+            {icon}
+          </div>
+          <div className="flex-1">
+            <div className="text-sm font-semibold text-navy-900">{title}</div>
+            <div className="mt-0.5 text-xs text-navy-500">{subtitle}</div>
+          </div>
+          <span className="text-orange-400">›</span>
+        </CardContent>
+      </Card>
+    </Link>
   );
 }

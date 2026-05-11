@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { submitLeaveRequest } from "@/app/liff/request-leave/actions";
 
 interface Balance {
   annual: { used: number; total: number };
@@ -24,26 +25,35 @@ interface Balance {
   personal: { used: number; total: number };
 }
 
-export function LeaveForm({ balance }: { balance: Balance }) {
+export function LeaveForm({ balance, employeeId }: { balance: Balance; employeeId?: string }) {
   const t = useTranslations("liff.requestLeave");
-  const tCommon = useTranslations("common");
   const [type, setType] = useState<"annual" | "sick" | "maternity" | "personal">("annual");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [reason, setReason] = useState("");
-  const [submitting, setSubmitting] = useState(false);
+  const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
 
-  async function submit() {
+  function submit() {
     if (!from || !to) {
       toast.error("Please select dates");
       return;
     }
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 700));
-    setSubmitting(false);
-    setDone(true);
-    toast.success("Leave request submitted to your supervisor");
+    const fd = new FormData();
+    if (employeeId) fd.set("employeeId", employeeId);
+    fd.set("leaveType", type);
+    fd.set("startDate", from);
+    fd.set("endDate", to);
+    fd.set("reason", reason);
+    startTransition(async () => {
+      const res = await submitLeaveRequest(fd);
+      if (!res.ok) {
+        toast.error(res.message);
+        return;
+      }
+      setDone(true);
+      toast.success(res.message);
+    });
   }
 
   if (done) {

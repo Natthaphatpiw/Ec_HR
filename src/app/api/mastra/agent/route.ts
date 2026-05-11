@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     let employeeCode: string | undefined;
     if (employeeId) {
       const emp = await getEmployeeById(employeeId);
-      employeeCode = emp?.employee_code;
+      employeeCode = emp?.employee_code ?? undefined;
     }
     const result = await runAgent(message, { employeeCode, channel });
     return NextResponse.json(result);

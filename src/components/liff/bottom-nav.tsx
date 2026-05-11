@@ -6,9 +6,13 @@ import { useTranslations } from "next-intl";
 import { Calendar, Clock, Home, MessageCircle, Receipt } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const HIDDEN_PATHS = new Set(["/liff/register", "/liff/onboard"]);
+
 export function LiffBottomNav() {
   const pathname = usePathname();
   const t = useTranslations("liff.nav");
+
+  if (HIDDEN_PATHS.has(pathname)) return null;
 
   const items = [
     { href: "/liff", label: t("home"), icon: Home, exact: true },

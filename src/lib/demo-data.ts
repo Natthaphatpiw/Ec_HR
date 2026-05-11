@@ -1,5 +1,7 @@
 import type {
+  ActionToken,
   AttendanceLog,
+  ContactRequest,
   Employee,
   EmployeeShift,
   LeaveRequest,
@@ -8,6 +10,9 @@ import type {
   OvertimeRequest,
   Payroll,
   PerformanceReview,
+  ScheduleAssignment,
+  ScheduleChange,
+  ScheduleEntry,
   Shift,
 } from "./types";
 
@@ -21,8 +26,8 @@ export const ORGANIZATION: Organization = {
   name: "ThaiAuto Factory",
   timezone: "Asia/Bangkok",
   thai_tax_id: "1234567890123",
-  geofence_lat: 13.7563,
-  geofence_lng: 100.5018,
+  geofence_lat: 13.740198598326677,
+  geofence_lng: 100.56227944249513,
   geofence_radius: 150,
   created_at: "2025-01-01T00:00:00Z",
 };
@@ -49,6 +54,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 15000,
     bank_account: "123-4-56789-0",
     sso_number: "SSO-001",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
     created_at: "2024-06-01T00:00:00Z",
   },
   {
@@ -66,6 +75,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 25000,
     bank_account: "123-4-56789-1",
     sso_number: "SSO-002",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
     created_at: "2023-03-15T00:00:00Z",
   },
   {
@@ -83,6 +96,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 15000,
     bank_account: "123-4-56789-2",
     sso_number: "SSO-003",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
     created_at: "2024-08-10T00:00:00Z",
   },
   {
@@ -100,6 +117,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 35000,
     bank_account: "123-4-56789-3",
     sso_number: "SSO-004",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333308",
+    ot_supervisor_id: null,
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
     created_at: "2022-09-01T00:00:00Z",
   },
   {
@@ -117,6 +138,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 18000,
     bank_account: "123-4-56789-4",
     sso_number: "SSO-005",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333304",
     created_at: "2024-01-05T00:00:00Z",
   },
   {
@@ -134,6 +159,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 28000,
     bank_account: "123-4-56789-5",
     sso_number: "SSO-006",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
     created_at: "2022-11-20T00:00:00Z",
   },
   {
@@ -151,6 +180,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 15000,
     bank_account: "123-4-56789-6",
     sso_number: "SSO-007",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
     created_at: "2025-02-14T00:00:00Z",
   },
   {
@@ -168,6 +201,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 80000,
     bank_account: "123-4-56789-7",
     sso_number: "SSO-008",
+    account_status: "active",
+    leave_supervisor_id: null,
+    ot_supervisor_id: null,
+    contact_supervisor_id: null,
     created_at: "2020-01-01T00:00:00Z",
   },
   {
@@ -185,6 +222,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 14000,
     bank_account: "123-4-56789-8",
     sso_number: "SSO-009",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333304",
     created_at: "2024-07-01T00:00:00Z",
   },
   {
@@ -202,6 +243,10 @@ export const EMPLOYEES: Employee[] = [
     base_salary: 15000,
     bank_account: "123-4-56789-9",
     sso_number: "SSO-010",
+    account_status: "active",
+    leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
+    contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
     created_at: "2025-04-12T00:00:00Z",
   },
 ];
@@ -250,8 +295,8 @@ export const ATTENDANCE_LOGS: AttendanceLog[] = workingEmployees.flatMap((e) => 
       employee_id: e.id,
       timestamp: timestampMinus(i, 8, lateMinutes),
       type: "in",
-      latitude: 13.7563 + seededRandom() * 0.0008,
-      longitude: 100.5018 + seededRandom() * 0.0008,
+      latitude: 13.740198598326677 + seededRandom() * 0.0008,
+      longitude: 100.56227944249513 + seededRandom() * 0.0008,
       ip_address: "192.168.1." + (50 + Math.floor(seededRandom() * 100)),
       status,
       photo_url: null,
@@ -261,8 +306,8 @@ export const ATTENDANCE_LOGS: AttendanceLog[] = workingEmployees.flatMap((e) => 
       employee_id: e.id,
       timestamp: timestampMinus(i, 17, Math.floor(seededRandom() * 30)),
       type: "out",
-      latitude: 13.7563 + seededRandom() * 0.0008,
-      longitude: 100.5018 + seededRandom() * 0.0008,
+      latitude: 13.740198598326677 + seededRandom() * 0.0008,
+      longitude: 100.56227944249513 + seededRandom() * 0.0008,
       ip_address: "192.168.1." + (50 + Math.floor(seededRandom() * 100)),
       status: "ontime",
       photo_url: null,
@@ -282,6 +327,10 @@ export const LEAVE_REQUESTS: LeaveRequest[] = [
     status: "approved",
     approver_id: "33333333-3333-3333-3333-333333333304",
     reason: "Family trip to Chiang Mai",
+    supervisor_id: "33333333-3333-3333-3333-333333333302",
+    decision_reason: null,
+    decided_at: "2026-05-08T10:00:00Z",
+    line_card_message_id: null,
     created_at: timestampMinus(10, 9, 30),
   },
   {
@@ -294,6 +343,10 @@ export const LEAVE_REQUESTS: LeaveRequest[] = [
     status: "approved",
     approver_id: "33333333-3333-3333-3333-333333333302",
     reason: "Fever",
+    supervisor_id: "33333333-3333-3333-3333-333333333302",
+    decision_reason: null,
+    decided_at: "2026-05-08T10:00:00Z",
+    line_card_message_id: null,
     created_at: timestampMinus(4, 7, 0),
   },
   {
@@ -306,6 +359,10 @@ export const LEAVE_REQUESTS: LeaveRequest[] = [
     status: "pending",
     approver_id: null,
     reason: "Family event",
+    supervisor_id: "33333333-3333-3333-3333-333333333304",
+    decision_reason: null,
+    decided_at: null,
+    line_card_message_id: null,
     created_at: timestampMinus(2, 14, 15),
   },
   {
@@ -318,6 +375,10 @@ export const LEAVE_REQUESTS: LeaveRequest[] = [
     status: "pending",
     approver_id: null,
     reason: "Vacation",
+    supervisor_id: "33333333-3333-3333-3333-333333333302",
+    decision_reason: null,
+    decided_at: null,
+    line_card_message_id: null,
     created_at: timestampMinus(1, 11, 0),
   },
   {
@@ -330,6 +391,10 @@ export const LEAVE_REQUESTS: LeaveRequest[] = [
     status: "approved",
     approver_id: "33333333-3333-3333-3333-333333333306",
     reason: "Migraine",
+    supervisor_id: "33333333-3333-3333-3333-333333333302",
+    decision_reason: null,
+    decided_at: "2026-05-08T10:00:00Z",
+    line_card_message_id: null,
     created_at: timestampMinus(8, 8, 45),
   },
 ];
@@ -342,6 +407,11 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
     hours: 3,
     reason: "Production rush order",
     status: "approved",
+    supervisor_id: "33333333-3333-3333-3333-333333333306",
+    approver_id: "33333333-3333-3333-3333-333333333306",
+    decision_reason: null,
+    decided_at: "2026-05-08T10:00:00Z",
+    line_card_message_id: null,
     created_at: timestampMinus(3, 18, 0),
   },
   {
@@ -351,6 +421,11 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
     hours: 2,
     reason: "Extra delivery batch",
     status: "approved",
+    supervisor_id: "33333333-3333-3333-3333-333333333306",
+    approver_id: "33333333-3333-3333-3333-333333333306",
+    decision_reason: null,
+    decided_at: "2026-05-08T10:00:00Z",
+    line_card_message_id: null,
     created_at: timestampMinus(2, 17, 30),
   },
   {
@@ -360,6 +435,11 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
     hours: 4,
     reason: "Equipment maintenance",
     status: "pending",
+    supervisor_id: "33333333-3333-3333-3333-333333333304",
+    approver_id: null,
+    decision_reason: null,
+    decided_at: null,
+    line_card_message_id: null,
     created_at: timestampMinus(0, 10, 0),
   },
   {
@@ -369,6 +449,11 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
     hours: 2.5,
     reason: "Inventory count",
     status: "approved",
+    supervisor_id: "33333333-3333-3333-3333-333333333304",
+    approver_id: "33333333-3333-3333-3333-333333333304",
+    decision_reason: null,
+    decided_at: "2026-05-08T10:00:00Z",
+    line_card_message_id: null,
     created_at: timestampMinus(6, 16, 30),
   },
   {
@@ -378,6 +463,11 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
     hours: 3,
     reason: "Night-shift coverage",
     status: "pending",
+    supervisor_id: "33333333-3333-3333-3333-333333333306",
+    approver_id: null,
+    decision_reason: null,
+    decided_at: null,
+    line_card_message_id: null,
     created_at: timestampMinus(0, 14, 20),
   },
 ];
@@ -448,3 +538,59 @@ export const NOTIFICATIONS: Notification[] = [
 ];
 
 export const ALL_DEPARTMENTS = Array.from(new Set(EMPLOYEES.map((e) => e.department).filter(Boolean))) as string[];
+
+// =========================================================================
+// Approval-flow entities (Phase 2/3)
+// =========================================================================
+
+export const CONTACT_REQUESTS: ContactRequest[] = [];
+
+export const SCHEDULE_ENTRIES: ScheduleEntry[] = [
+  // Pre-populate the current week (Mon 11/05/2026 – Sun 17/05/2026) for EMP001
+  // so the schedule UI has something to render in demo mode.
+  {
+    id: "sched-001",
+    employee_id: "33333333-3333-3333-3333-333333333301",
+    date: "2026-05-11",
+    entry_type: "work",
+    hours: 8,
+    notes: null,
+    created_by_id: "33333333-3333-3333-3333-333333333301",
+    is_supervisor_override: false,
+    supervisor_assignment_id: null,
+    created_at: "2026-05-09T08:00:00Z",
+    updated_at: "2026-05-09T08:00:00Z",
+  },
+  {
+    id: "sched-002",
+    employee_id: "33333333-3333-3333-3333-333333333301",
+    date: "2026-05-12",
+    entry_type: "work",
+    hours: 8,
+    notes: null,
+    created_by_id: "33333333-3333-3333-3333-333333333301",
+    is_supervisor_override: false,
+    supervisor_assignment_id: null,
+    created_at: "2026-05-09T08:00:00Z",
+    updated_at: "2026-05-09T08:00:00Z",
+  },
+  {
+    id: "sched-003",
+    employee_id: "33333333-3333-3333-3333-333333333301",
+    date: "2026-05-13",
+    entry_type: "overtime",
+    hours: 3,
+    notes: "Volunteered for night batch",
+    created_by_id: "33333333-3333-3333-3333-333333333301",
+    is_supervisor_override: false,
+    supervisor_assignment_id: null,
+    created_at: "2026-05-09T08:00:00Z",
+    updated_at: "2026-05-09T08:00:00Z",
+  },
+];
+
+export const SCHEDULE_ASSIGNMENTS: ScheduleAssignment[] = [];
+
+export const SCHEDULE_CHANGES: ScheduleChange[] = [];
+
+export const ACTION_TOKENS: ActionToken[] = [];
