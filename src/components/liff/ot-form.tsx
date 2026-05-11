@@ -26,7 +26,7 @@ export function OtForm({ employeeId }: { employeeId?: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    initLiff().then((res) => {
+    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_OT).then((res) => {
       if (!cancelled && res.profile) setLineUserId(res.profile.userId);
     });
     return () => { cancelled = true; };

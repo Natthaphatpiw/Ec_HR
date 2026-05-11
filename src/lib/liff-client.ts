@@ -19,6 +19,9 @@ export async function initLiff(liffId?: string): Promise<{
   const id = liffId ?? process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN;
   // Demo fallback when no LIFF ID configured
   if (!id) {
+    console.warn(
+      "[initLiff] No LIFF id provided AND NEXT_PUBLIC_LIFF_ID_CHECKIN is empty → falling back to demo profile (EMP001). Caller should pass the page-specific LIFF id env var.",
+    );
     return {
       ready: true,
       isLoggedIn: true,

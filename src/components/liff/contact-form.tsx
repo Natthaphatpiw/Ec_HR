@@ -23,7 +23,7 @@ export function ContactForm({ employeeId }: { employeeId?: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    initLiff().then((res) => {
+    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_AI_CHAT).then((res) => {
       if (!cancelled && res.profile) setLineUserId(res.profile.userId);
     });
     return () => { cancelled = true; };

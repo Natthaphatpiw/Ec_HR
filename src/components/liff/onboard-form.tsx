@@ -24,7 +24,7 @@ export function OnboardForm() {
 
   useEffect(() => {
     let cancelled = false;
-    initLiff().then((res) => {
+    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_ONBOARD).then((res) => {
       if (cancelled) return;
       if (res.profile) {
         setLineUserId(res.profile.userId);

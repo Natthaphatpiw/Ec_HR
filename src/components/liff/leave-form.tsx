@@ -39,7 +39,7 @@ export function LeaveForm({ balance: initialBalance, employeeId }: { balance: Ba
 
   useEffect(() => {
     let cancelled = false;
-    initLiff().then(async (res) => {
+    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_LEAVE).then(async (res) => {
       if (cancelled || !res.profile) return;
       setLineUserId(res.profile.userId);
       const b = await fetchMyLeaveBalance(res.profile.userId);
