@@ -85,15 +85,32 @@ export async function saveSupervisorAssignment(input: {
 // every supervisor mutation so the LINE side stays in sync immediately.
 // =========================================================================
 
+function scheduleActionUrl(): string {
+  const liffId = process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE;
+  if (liffId) return `https://liff.line.me/${liffId}/schedule`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://ec-hr-one.vercel.app";
+  return `${appUrl.replace(/\/$/, "")}/liff/my-attendance/schedule`;
+}
+
 async function flushPendingScheduleNotifications() {
   const pending = await listPendingScheduleChanges();
+  console.log("[schedule notify] pending count:", pending.length);
+  if (pending.length === 0) return;
+
+  const actionUrl = scheduleActionUrl();
   for (const c of pending) {
     const emp = await getEmployeeById(c.employee_id);
     const changedBy = c.changed_by_id ? await getEmployeeById(c.changed_by_id) : null;
+
     if (!emp?.line_user_id) {
+      console.warn("[schedule notify] skipping (no line_user_id)", {
+        change_id: c.id,
+        employee_id: c.employee_id,
+      });
       await markScheduleChangeNotified(c.id);
       continue;
     }
+
     const card = buildScheduleChangeCard({
       date: c.date,
       entryType: c.entry_type,
@@ -101,8 +118,27 @@ async function flushPendingScheduleNotifications() {
       newHours: c.new_hours,
       changedByName:
         changedBy?.name_th ?? changedBy?.name_en ?? changedBy?.employee_code ?? "Supervisor",
+      actionUrl,
     });
-    await pushFlex(emp.line_user_id, card);
+
+    const res = await pushFlex(emp.line_user_id, card);
+    if (!res.ok) {
+      console.error("[schedule notify] pushFlex failed", {
+        change_id: c.id,
+        to: emp.line_user_id,
+        employee_id: emp.id,
+        employee_name: emp.name_th ?? emp.name_en,
+        detail: res.message ?? `HTTP ${res.status ?? "?"}`,
+      });
+      // Keep the row unmarked so the next mutation can retry.
+      continue;
+    }
+    console.log("[schedule notify] sent", {
+      change_id: c.id,
+      to: emp.line_user_id,
+      date: c.date,
+      entry_type: c.entry_type,
+    });
     await markScheduleChangeNotified(c.id);
   }
 }

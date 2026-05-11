@@ -306,6 +306,7 @@ export function buildScheduleChangeCard(input: {
   previousHours: number | null;
   newHours: number;
   changedByName: string;
+  actionUrl: string;
 }): FlexMessage {
   const typeLabel =
     input.entryType === "work" ? "ทำงานปกติ" :
@@ -317,7 +318,7 @@ export function buildScheduleChangeCard(input: {
 
   return {
     type: "flex",
-    altText: `ตารางวันที่ ${fmtDate(input.date)} ถูกเปลี่ยนโดย ${input.changedByName}`,
+    altText: `ตารางวันที่ ${fmtDate(input.date)} ถูกเปลี่ยนโดย ${input.changedByName} — แตะเพื่อดูรายละเอียด`,
     contents: {
       type: "bubble",
       size: "kilo",
@@ -338,6 +339,25 @@ export function buildScheduleChangeCard(input: {
             color: COLOR_NAVY_500,
             size: "xs",
             margin: "md",
+          },
+        ],
+      },
+      footer: {
+        type: "box",
+        layout: "vertical",
+        spacing: "sm",
+        paddingAll: "12px",
+        contents: [
+          {
+            type: "button",
+            style: "primary",
+            color: COLOR_ORANGE,
+            height: "sm",
+            action: {
+              type: "uri",
+              label: "เปิดดูตารางของฉัน",
+              uri: input.actionUrl,
+            },
           },
         ],
       },
