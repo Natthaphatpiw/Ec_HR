@@ -1,36 +1,45 @@
 import { Lock, MessageCircle, Sparkles, UserPlus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { LiffHeader } from "@/components/liff/header";
+import { LiffInit } from "@/components/liff/liff-init";
+import { NeedsRegistration } from "@/components/liff/needs-registration";
 import { AiChat } from "@/components/dashboard/ai-chat";
 import { ContactForm } from "@/components/liff/contact-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { getEmployeeById, listEmployees } from "@/lib/data";
+import { getRegistrationStatus } from "@/lib/data";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 
-const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
-
-interface SearchParams {
-  as?: string;
-}
-
-export default async function LiffAiChatPage({
-  searchParams,
-}: {
-  searchParams: Promise<SearchParams>;
-}) {
-  const sp = await searchParams;
+export default async function LiffAiChatPage() {
   const t = await getTranslations("liff.aiChat");
+  const lineUserId = await getLiffUserIdFromCookie();
 
-  let viewer = await getEmployeeById(DEMO_EMPLOYEE_ID);
-  if (sp.as) {
-    const all = await listEmployees();
-    viewer =
-      all.find((e) => e.employee_code === sp.as!.toUpperCase()) ??
-      all.find((e) => e.id === sp.as) ??
-      viewer;
+  if (!lineUserId) {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-3 pb-3 pt-3">
+          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_AI_CHAT} />
+        </main>
+      </>
+    );
   }
 
-  const canUseAi = !!viewer && (viewer.role === "supervisor" || viewer.role === "hr" || viewer.role === "executive");
+  const registration = await getRegistrationStatus(lineUserId);
+  if (registration.state !== "active") {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-3 pb-3 pt-3">
+          <NeedsRegistration status={registration.state} />
+        </main>
+      </>
+    );
+  }
+
+  const me = registration.employee;
+  // AI is gated to anyone who supervises others, or has the HR/executive role.
+  const canUseAi = !!me.is_supervisor || me.role === "hr" || me.role === "executive";
 
   return (
     <>
@@ -49,7 +58,7 @@ export default async function LiffAiChatPage({
           </TabsList>
 
           <TabsContent value="contact" className="mt-3">
-            <ContactForm employeeId={viewer?.id} />
+            <ContactForm employeeId={me.id} />
           </TabsContent>
 
           <TabsContent value="ai" className="mt-3">
@@ -59,7 +68,7 @@ export default async function LiffAiChatPage({
                   <Sparkles className="h-3.5 w-3.5" />
                   <span>ForgeHR Assistant · Claude Sonnet 4.6</span>
                 </div>
-                <AiChat channel="liff" employeeId={viewer!.id} compact />
+                <AiChat channel="liff" employeeId={me.id} compact />
               </>
             ) : (
               <Card>

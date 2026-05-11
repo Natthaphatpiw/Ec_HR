@@ -156,7 +156,16 @@ export async function listHrEmployees(): Promise<Employee[]> {
 }
 
 export async function listTeamForSupervisor(supervisorId: string): Promise<Employee[]> {
+  // Source of truth: employees.subordinate_ids on the supervisor's row.
+  // Falls back to the reverse-lookup on the 3 approval-supervisor pointers
+  // for rows where subordinate_ids hasn't been backfilled yet.
+  const supervisor = await getEmployeeById(supervisorId);
+  const explicit = supervisor?.subordinate_ids ?? [];
+
   if (isDemo()) {
+    if (explicit.length > 0) {
+      return EMPLOYEES.filter((e) => explicit.includes(e.id));
+    }
     return EMPLOYEES.filter(
       (e) =>
         e.leave_supervisor_id === supervisorId ||
@@ -164,7 +173,13 @@ export async function listTeamForSupervisor(supervisorId: string): Promise<Emplo
         e.contact_supervisor_id === supervisorId,
     );
   }
+
   const sb = supabaseAdmin();
+  if (explicit.length > 0) {
+    const { data, error } = await sb.from("employees").select("*").in("id", explicit);
+    if (error) throw new Error(`listTeamForSupervisor (subordinate_ids): ${error.message}`);
+    return (data ?? []) as Employee[];
+  }
   const { data, error } = await sb
     .from("employees")
     .select("*")

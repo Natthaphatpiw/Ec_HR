@@ -48,6 +48,8 @@ export interface Employee {
   leave_supervisor_id?: string | null;
   ot_supervisor_id?: string | null;
   contact_supervisor_id?: string | null;
+  is_supervisor?: boolean;
+  subordinate_ids?: string[];
   created_at: string;
 }
 

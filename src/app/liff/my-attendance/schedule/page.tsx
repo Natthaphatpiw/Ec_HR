@@ -1,25 +1,29 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { CalendarDays, Users } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
+import { LiffInit } from "@/components/liff/liff-init";
+import { NeedsRegistration } from "@/components/liff/needs-registration";
 import { EmployeeSchedule } from "@/components/liff/schedule-employee";
 import { SupervisorSchedule } from "@/components/liff/schedule-supervisor";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 import {
-  getEmployeeById,
+  getRegistrationStatus,
   listScheduleEntries,
   listScheduleEntriesForTeam,
   listTeamForSupervisor,
 } from "@/lib/data";
-
-const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 
 interface SearchParams {
-  as?: string;
+  view?: string;
   week?: string;
 }
 
 function mondayOf(dateStr?: string): string {
-  // Default anchor: 2026-05-11 (the Monday of the week the user mentioned)
-  const base = dateStr ? new Date(dateStr + "T00:00:00Z") : new Date("2026-05-11T00:00:00Z");
-  const dow = base.getUTCDay(); // 0=Sun..6=Sat
+  const base = dateStr ? new Date(dateStr + "T00:00:00Z") : new Date();
+  const dow = base.getUTCDay();
   const offset = dow === 0 ? -6 : 1 - dow;
   const monday = new Date(base);
   monday.setUTCDate(base.getUTCDate() + offset);
@@ -40,65 +44,146 @@ export default async function SchedulePage({
   const sp = await searchParams;
   const t = await getTranslations("liff.myAttendance");
 
-  // Resolve who's viewing — `?as=` overrides the default demo employee
-  let viewer = await getEmployeeById(DEMO_EMPLOYEE_ID);
-  if (sp.as) {
-    const all = await import("@/lib/data").then((m) => m.listEmployees());
-    viewer =
-      all.find((e) => e.employee_code === sp.as!.toUpperCase()) ??
-      all.find((e) => e.id === sp.as) ??
-      viewer;
-  }
-  if (!viewer) {
+  const lineUserId = await getLiffUserIdFromCookie();
+  if (!lineUserId) {
     return (
       <>
         <LiffHeader title={t("hub.scheduleTitle")} />
-        <main className="px-4 pb-6 pt-3 text-sm text-navy-500">ไม่พบพนักงาน</main>
-      </>
-    );
-  }
-
-  const weekStart = mondayOf(sp.week);
-  const weekEnd = addDays(weekStart, 6);
-  const isSupervisor = viewer.role === "supervisor" || viewer.role === "hr";
-
-  if (isSupervisor) {
-    const [team, entries] = await Promise.all([
-      listTeamForSupervisor(viewer.id),
-      listScheduleEntriesForTeam(viewer.id, weekStart, weekEnd),
-    ]);
-    return (
-      <>
-        <LiffHeader title={t("hub.scheduleTitle")} />
-        <main className="px-4 pb-6 pt-3 space-y-3">
-          <SupervisorSchedule
-            supervisor={{ id: viewer.id, name: viewer.name_th ?? viewer.name_en ?? viewer.id }}
-            weekStart={weekStart}
-            team={team.map((e) => ({
-              id: e.id,
-              code: e.employee_code,
-              name: e.name_th ?? e.name_en ?? e.employee_code ?? e.id,
-              department: e.department,
-            }))}
-            entries={entries}
-          />
+        <main className="px-4 pb-6 pt-3">
+          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE} />
         </main>
       </>
     );
   }
+  const registration = await getRegistrationStatus(lineUserId);
+  if (registration.state !== "active") {
+    return (
+      <>
+        <LiffHeader title={t("hub.scheduleTitle")} />
+        <main className="px-4 pb-6 pt-3">
+          <NeedsRegistration status={registration.state} />
+        </main>
+      </>
+    );
+  }
+  const me = registration.employee;
+  const weekStart = mondayOf(sp.week);
+  const weekEnd = addDays(weekStart, 6);
+  const view = me.is_supervisor && sp.view === "team" ? "team" : "own";
 
-  const entries = await listScheduleEntries(viewer.id, weekStart, weekEnd);
   return (
     <>
       <LiffHeader title={t("hub.scheduleTitle")} />
       <main className="px-4 pb-6 pt-3 space-y-3">
-        <EmployeeSchedule
-          employeeId={viewer.id}
-          employeeName={viewer.name_th ?? viewer.name_en ?? viewer.id}
-          weekStart={weekStart}
-          entries={entries}
-        />
+        {me.is_supervisor && (
+          <ViewToggle currentView={view} week={sp.week} subordinateCount={me.subordinate_ids?.length ?? 0} />
+        )}
+
+        {view === "team" ? (
+          <TeamView supervisorId={me.id} supervisorName={me.name_th ?? me.name_en ?? me.id} weekStart={weekStart} weekEnd={weekEnd} />
+        ) : (
+          <OwnView employeeId={me.id} employeeName={me.name_th ?? me.name_en ?? me.id} weekStart={weekStart} weekEnd={weekEnd} />
+        )}
       </main>
     </>
+  );
+}
+
+function ViewToggle({
+  currentView,
+  week,
+  subordinateCount,
+}: {
+  currentView: "own" | "team";
+  week?: string;
+  subordinateCount: number;
+}) {
+  const ownHref = week ? `/liff/my-attendance/schedule?week=${week}` : "/liff/my-attendance/schedule";
+  const teamHref = week
+    ? `/liff/my-attendance/schedule?view=team&week=${week}`
+    : "/liff/my-attendance/schedule?view=team";
+
+  return (
+    <Card>
+      <CardContent className="p-2">
+        <div className="grid grid-cols-2 gap-1">
+          <Link
+            href={ownHref}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-colors",
+              currentView === "own"
+                ? "bg-orange-400 text-white shadow-soft"
+                : "bg-transparent text-navy-500 hover:bg-navy-50",
+            )}
+          >
+            <CalendarDays className="h-3.5 w-3.5" />
+            ตารางของฉัน
+          </Link>
+          <Link
+            href={teamHref}
+            className={cn(
+              "flex items-center justify-center gap-1.5 rounded-md px-3 py-2 text-xs font-semibold transition-colors",
+              currentView === "team"
+                ? "bg-orange-400 text-white shadow-soft"
+                : "bg-transparent text-navy-500 hover:bg-navy-50",
+            )}
+          >
+            <Users className="h-3.5 w-3.5" />
+            จัดการลูกน้อง ({subordinateCount})
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+async function OwnView({
+  employeeId,
+  employeeName,
+  weekStart,
+}: {
+  employeeId: string;
+  employeeName: string;
+  weekStart: string;
+  weekEnd: string;
+}) {
+  const entries = await listScheduleEntries(employeeId, weekStart, addDays(weekStart, 6));
+  return (
+    <EmployeeSchedule
+      employeeId={employeeId}
+      employeeName={employeeName}
+      weekStart={weekStart}
+      entries={entries}
+    />
+  );
+}
+
+async function TeamView({
+  supervisorId,
+  supervisorName,
+  weekStart,
+  weekEnd,
+}: {
+  supervisorId: string;
+  supervisorName: string;
+  weekStart: string;
+  weekEnd: string;
+}) {
+  const [team, entries] = await Promise.all([
+    listTeamForSupervisor(supervisorId),
+    listScheduleEntriesForTeam(supervisorId, weekStart, weekEnd),
+  ]);
+  return (
+    <SupervisorSchedule
+      supervisor={{ id: supervisorId, name: supervisorName }}
+      weekStart={weekStart}
+      team={team.map((e) => ({
+        id: e.id,
+        code: e.employee_code,
+        name: e.name_th ?? e.name_en ?? e.employee_code ?? e.id,
+        department: e.department,
+      }))}
+      entries={entries}
+    />
   );
 }

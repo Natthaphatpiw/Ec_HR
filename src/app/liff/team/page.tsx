@@ -1,37 +1,82 @@
 import { getTranslations } from "next-intl/server";
 import { Activity, Clock, MapPin, PlaneTakeoff, Users } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
+import { LiffInit } from "@/components/liff/liff-init";
+import { NeedsRegistration } from "@/components/liff/needs-registration";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   getEmployeeName,
+  getRegistrationStatus,
   listAttendanceLogs,
-  listEmployees,
   listLeaveRequests,
+  listTeamForSupervisor,
 } from "@/lib/data";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 import { formatTime } from "@/lib/utils";
 
 export default async function LiffTeamPage() {
-  const [t, employees, logs, leaves] = await Promise.all([
-    getTranslations("liff.team"),
-    listEmployees(),
+  const t = await getTranslations("liff.team");
+  const lineUserId = await getLiffUserIdFromCookie();
+  if (!lineUserId) {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-4 pb-6 pt-3">
+          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE} />
+        </main>
+      </>
+    );
+  }
+  const registration = await getRegistrationStatus(lineUserId);
+  if (registration.state !== "active") {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-4 pb-6 pt-3">
+          <NeedsRegistration status={registration.state} />
+        </main>
+      </>
+    );
+  }
+  const me = registration.employee;
+  if (!me.is_supervisor) {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-4 pb-6 pt-3">
+          <Card>
+            <CardContent className="space-y-2 p-8 text-center">
+              <h3 className="text-base font-semibold text-navy-900">หน้านี้สำหรับหัวหน้างาน</h3>
+              <p className="text-sm text-navy-500">
+                คุณไม่ใช่ supervisor — ติดต่อ HR หากเชื่อว่าควรเข้าถึงได้
+              </p>
+            </CardContent>
+          </Card>
+        </main>
+      </>
+    );
+  }
+
+  const [team, logs, leaves] = await Promise.all([
+    listTeamForSupervisor(me.id),
     listAttendanceLogs(),
     listLeaveRequests(),
   ]);
 
-  // Production team
-  const team = employees.filter((e) => e.department === "Production");
-  const today = "2026-05-09";
+  const today = new Date().toISOString().slice(0, 10);
   const todayIns = logs.filter((l) => l.timestamp.startsWith(today) && l.type === "in");
-  const presentIds = new Set(todayIns.map((l) => l.employee_id));
+  const teamIds = new Set(team.map((e) => e.id));
+  const presentIds = new Set(todayIns.filter((l) => teamIds.has(l.employee_id)).map((l) => l.employee_id));
   const onLeaveIds = new Set(
     leaves
       .filter(
         (l) =>
           l.status === "approved" &&
           l.start_date <= today &&
-          l.end_date >= today,
+          l.end_date >= today &&
+          teamIds.has(l.employee_id),
       )
       .map((l) => l.employee_id),
   );
@@ -39,7 +84,9 @@ export default async function LiffTeamPage() {
   const present = team.filter((e) => presentIds.has(e.id));
   const onLeave = team.filter((e) => onLeaveIds.has(e.id));
   const absent = team.filter((e) => !presentIds.has(e.id) && !onLeaveIds.has(e.id));
-  const late = todayIns.filter((l) => l.status === "late" && team.some((e) => e.id === l.employee_id));
+  const late = todayIns.filter(
+    (l) => l.status === "late" && teamIds.has(l.employee_id),
+  );
 
   return (
     <>
@@ -55,9 +102,12 @@ export default async function LiffTeamPage() {
         <Card>
           <CardContent className="p-4">
             <h3 className="mb-3 text-xs font-semibold uppercase tracking-wider text-navy-500">
-              Production team · today
+              ลูกทีมของ {getEmployeeName(me, "en")} · วันนี้
             </h3>
             <div className="space-y-3">
+              {team.length === 0 && (
+                <p className="py-6 text-center text-sm text-navy-500">ยังไม่มีพนักงานในทีม</p>
+              )}
               {team.map((e) => {
                 const inLog = todayIns.find((l) => l.employee_id === e.id);
                 const isOnLeave = onLeaveIds.has(e.id);
@@ -75,10 +125,10 @@ export default async function LiffTeamPage() {
                         {inLog ? (
                           <>
                             <MapPin className="h-3 w-3" />
-                            <span>In {formatTime(inLog.timestamp)} · {e.position}</span>
+                            <span>In {formatTime(inLog.timestamp)} · {e.position ?? "—"}</span>
                           </>
                         ) : (
-                          <span>{e.position}</span>
+                          <span>{e.position ?? "—"}</span>
                         )}
                       </div>
                     </div>

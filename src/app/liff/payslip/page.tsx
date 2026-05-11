@@ -1,13 +1,14 @@
 import { getTranslations } from "next-intl/server";
 import { Download, FileText, Receipt } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
+import { LiffInit } from "@/components/liff/liff-init";
+import { NeedsRegistration } from "@/components/liff/needs-registration";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { listPayrollsForEmployee } from "@/lib/data";
+import { getRegistrationStatus, listPayrollsForEmployee } from "@/lib/data";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 import { formatCurrency } from "@/lib/utils";
-
-const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
 
 const MONTH_NAMES: Record<string, string> = {
   "01": "January", "02": "February", "03": "March", "04": "April",
@@ -16,10 +17,30 @@ const MONTH_NAMES: Record<string, string> = {
 };
 
 export default async function PayslipPage() {
-  const [t, payrolls] = await Promise.all([
-    getTranslations("liff.payslip"),
-    listPayrollsForEmployee(DEMO_EMPLOYEE_ID),
-  ]);
+  const t = await getTranslations("liff.payslip");
+  const lineUserId = await getLiffUserIdFromCookie();
+  if (!lineUserId) {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-4 pb-6 pt-3">
+          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_PAYSLIP} />
+        </main>
+      </>
+    );
+  }
+  const registration = await getRegistrationStatus(lineUserId);
+  if (registration.state !== "active") {
+    return (
+      <>
+        <LiffHeader title={t("title")} />
+        <main className="px-4 pb-6 pt-3">
+          <NeedsRegistration status={registration.state} />
+        </main>
+      </>
+    );
+  }
+  const payrolls = await listPayrollsForEmployee(registration.employee.id);
 
   const latest = payrolls[0];
 

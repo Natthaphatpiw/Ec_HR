@@ -11,26 +11,53 @@ import {
   Users,
 } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
+import { LiffInit } from "@/components/liff/liff-init";
+import { NeedsRegistration } from "@/components/liff/needs-registration";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
+  getEmployeeByLineId,
   getEmployeeName,
   getLeaveBalance,
+  getRegistrationStatus,
   listAttendanceForEmployee,
-  listEmployees,
+  listTeamForSupervisor,
 } from "@/lib/data";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 import { formatTime } from "@/lib/utils";
 
-const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
-
 export default async function LiffHome() {
-  const [employees, attendance, tCommon] = await Promise.all([
-    listEmployees(),
-    listAttendanceForEmployee(DEMO_EMPLOYEE_ID),
-    getTranslations("common"),
+  const tCommon = await getTranslations("common");
+  const lineUserId = await getLiffUserIdFromCookie();
+  if (!lineUserId) {
+    return (
+      <>
+        <LiffHeader />
+        <main className="px-4 pb-6 pt-3">
+          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN} />
+        </main>
+      </>
+    );
+  }
+
+  const registration = await getRegistrationStatus(lineUserId);
+  if (registration.state !== "active") {
+    return (
+      <>
+        <LiffHeader />
+        <main className="px-4 pb-6 pt-3">
+          <NeedsRegistration status={registration.state} />
+        </main>
+      </>
+    );
+  }
+
+  const me = registration.employee;
+  const [attendance, balance, team] = await Promise.all([
+    listAttendanceForEmployee(me.id),
+    getLeaveBalance(me.id),
+    me.is_supervisor ? listTeamForSupervisor(me.id) : Promise.resolve([]),
   ]);
-  const me = employees.find((e) => e.id === DEMO_EMPLOYEE_ID)!;
-  const balance = await getLeaveBalance(DEMO_EMPLOYEE_ID);
   const lastIn = attendance.find((a) => a.type === "in");
 
   return (
@@ -50,7 +77,12 @@ export default async function LiffHome() {
               <div className="text-sm text-navy-300">{tCommon("today")}</div>
               <div className="truncate text-base font-semibold">{getEmployeeName(me, "en")}</div>
               <div className="text-xs text-navy-300">
-                {me.employee_code} · {me.department}
+                {me.employee_code ?? "—"} · {me.department ?? "—"}
+                {me.is_supervisor && (
+                  <span className="ml-2 rounded-full bg-orange-400/20 px-2 py-0.5 text-[10px] font-medium text-orange-200">
+                    Supervisor
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -58,7 +90,7 @@ export default async function LiffHome() {
           <div className="mt-4 grid grid-cols-3 gap-3">
             <KpiPill label="Annual" value={`${balance.annual.total - balance.annual.used}d`} />
             <KpiPill label="Sick" value={`${balance.sick.total - balance.sick.used}d`} />
-            <KpiPill label="OT mo" value="5h" />
+            <KpiPill label="Team" value={me.is_supervisor ? `${team.length}` : "—"} />
           </div>
         </section>
 
@@ -77,12 +109,12 @@ export default async function LiffHome() {
             desc="Annual · Sick"
           />
           <ActionTile href="/liff/request-ot" icon={TrendingUp} title="Request OT" desc="1.5x · 2x · 3x" />
-          <ActionTile href="/liff/payslip" icon={Receipt} title="Payslip" desc="May 2026" />
+          <ActionTile href="/liff/payslip" icon={Receipt} title="Payslip" desc="Latest" />
           <ActionTile
             href="/liff/my-attendance"
             icon={Calendar}
             title="My Attendance"
-            desc="This month"
+            desc={me.is_supervisor ? "Own + team schedule" : "This month"}
           />
           <ActionTile href="/liff/ai-chat" icon={MessageCircle} title="ForgeHR AI" desc="Ask anything" />
         </section>
@@ -94,11 +126,12 @@ export default async function LiffHome() {
                 <div>
                   <div className="text-xs text-navy-500">Last clock-in</div>
                   <div className="mt-1 text-sm font-medium text-navy-900">
-                    {formatTime(lastIn.timestamp)} · ThaiAuto Factory
+                    {formatTime(lastIn.timestamp)}
                   </div>
                   <div className="mt-1 flex items-center gap-1 text-[11px] text-navy-500">
                     <MapPin className="h-3 w-3" />
-                    {Number(lastIn.latitude).toFixed(4)}, {Number(lastIn.longitude).toFixed(4)}
+                    {lastIn.latitude != null ? Number(lastIn.latitude).toFixed(4) : "—"},{" "}
+                    {lastIn.longitude != null ? Number(lastIn.longitude).toFixed(4) : "—"}
                   </div>
                 </div>
                 <Badge variant={lastIn.status === "ontime" ? "success" : "warning"}>
@@ -109,32 +142,36 @@ export default async function LiffHome() {
           </section>
         )}
 
-        <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-500">
-            Team summary
-          </h3>
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-900 text-orange-400">
-                    <Users className="h-4 w-4" />
+        {me.is_supervisor && team.length > 0 && (
+          <section>
+            <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-navy-500">
+              Team summary
+            </h3>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-navy-900 text-orange-400">
+                      <Users className="h-4 w-4" />
+                    </div>
+                    <div>
+                      <div className="text-sm font-medium text-navy-900">
+                        {me.department ?? "—"}
+                      </div>
+                      <div className="text-xs text-navy-500">{team.length} subordinates</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="text-sm font-medium text-navy-900">Production team</div>
-                    <div className="text-xs text-navy-500">6 of 7 present today</div>
-                  </div>
+                  <Link
+                    href="/liff/my-attendance/schedule"
+                    className="text-xs font-semibold text-orange-500 hover:text-orange-600"
+                  >
+                    Schedule →
+                  </Link>
                 </div>
-                <Link
-                  href="/liff/team"
-                  className="text-xs font-semibold text-orange-500 hover:text-orange-600"
-                >
-                  View team →
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+              </CardContent>
+            </Card>
+          </section>
+        )}
       </main>
     </>
   );

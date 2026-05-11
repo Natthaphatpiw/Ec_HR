@@ -58,6 +58,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    is_supervisor: false,
+    subordinate_ids: [],
     created_at: "2024-06-01T00:00:00Z",
   },
   {
@@ -79,6 +81,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
+    is_supervisor: true,
+    subordinate_ids: ["33333333-3333-3333-3333-333333333301", "33333333-3333-3333-3333-333333333303", "33333333-3333-3333-3333-333333333307", "33333333-3333-3333-3333-333333333310"],
     created_at: "2023-03-15T00:00:00Z",
   },
   {
@@ -100,6 +104,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    is_supervisor: false,
+    subordinate_ids: [],
     created_at: "2024-08-10T00:00:00Z",
   },
   {
@@ -121,6 +127,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333308",
     ot_supervisor_id: null,
     contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
+    is_supervisor: true,
+    subordinate_ids: ["33333333-3333-3333-3333-333333333002", "33333333-3333-3333-3333-333333333005", "33333333-3333-3333-3333-333333333006", "33333333-3333-3333-3333-333333333009"],
     created_at: "2022-09-01T00:00:00Z",
   },
   {
@@ -142,6 +150,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    is_supervisor: false,
+    subordinate_ids: [],
     created_at: "2024-01-05T00:00:00Z",
   },
   {
@@ -163,6 +173,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
+    is_supervisor: true,
+    subordinate_ids: ["33333333-3333-3333-3333-333333333301", "33333333-3333-3333-3333-333333333303", "33333333-3333-3333-3333-333333333307", "33333333-3333-3333-3333-333333333310"],
     created_at: "2022-11-20T00:00:00Z",
   },
   {
@@ -184,6 +196,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    is_supervisor: false,
+    subordinate_ids: [],
     created_at: "2025-02-14T00:00:00Z",
   },
   {
@@ -205,6 +219,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: null,
     ot_supervisor_id: null,
     contact_supervisor_id: null,
+    is_supervisor: true,
+    subordinate_ids: ["33333333-3333-3333-3333-333333333002", "33333333-3333-3333-3333-333333333006"],
     created_at: "2020-01-01T00:00:00Z",
   },
   {
@@ -226,6 +242,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333304",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333304",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333304",
+    is_supervisor: false,
+    subordinate_ids: [],
     created_at: "2024-07-01T00:00:00Z",
   },
   {
@@ -247,6 +265,8 @@ export const EMPLOYEES: Employee[] = [
     leave_supervisor_id: "33333333-3333-3333-3333-333333333302",
     ot_supervisor_id: "33333333-3333-3333-3333-333333333306",
     contact_supervisor_id: "33333333-3333-3333-3333-333333333302",
+    is_supervisor: false,
+    subordinate_ids: [],
     created_at: "2025-04-12T00:00:00Z",
   },
 ];

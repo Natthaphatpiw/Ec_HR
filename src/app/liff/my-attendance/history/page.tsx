@@ -1,19 +1,40 @@
 import { getTranslations } from "next-intl/server";
 import { Calendar, CheckCircle2, Clock } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
+import { LiffInit } from "@/components/liff/liff-init";
+import { NeedsRegistration } from "@/components/liff/needs-registration";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { listAttendanceForEmployee } from "@/lib/data";
+import { getRegistrationStatus, listAttendanceForEmployee } from "@/lib/data";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 import { formatDate, formatTime } from "@/lib/utils";
 
-const DEMO_EMPLOYEE_ID = "33333333-3333-3333-3333-333333333301";
-
 export default async function AttendanceHistoryPage() {
-  const [t, attendance] = await Promise.all([
-    getTranslations("liff.myAttendance"),
-    listAttendanceForEmployee(DEMO_EMPLOYEE_ID),
-  ]);
+  const t = await getTranslations("liff.myAttendance");
+  const lineUserId = await getLiffUserIdFromCookie();
+  if (!lineUserId) {
+    return (
+      <>
+        <LiffHeader title={t("hub.historyTitle")} />
+        <main className="px-4 pb-6 pt-3">
+          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE} />
+        </main>
+      </>
+    );
+  }
+  const registration = await getRegistrationStatus(lineUserId);
+  if (registration.state !== "active") {
+    return (
+      <>
+        <LiffHeader title={t("hub.historyTitle")} />
+        <main className="px-4 pb-6 pt-3">
+          <NeedsRegistration status={registration.state} />
+        </main>
+      </>
+    );
+  }
+  const attendance = await listAttendanceForEmployee(registration.employee.id);
 
   const ontime = attendance.filter((a) => a.status === "ontime").length;
   const late = attendance.filter((a) => a.status === "late").length;
