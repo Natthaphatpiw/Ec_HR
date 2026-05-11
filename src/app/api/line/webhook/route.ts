@@ -41,8 +41,24 @@ export async function POST(req: Request) {
 }
 
 async function handleEvent(ev: LineEvent) {
+  // Debug: every webhook event prints the userId so you can compare it
+  // against employees.line_user_id in Supabase.
+  console.log("[LINE webhook]", {
+    type: ev.type,
+    userId: ev.source?.userId,
+    sourceType: ev.source?.type,
+    messageType: ev.message?.type,
+    postbackData: ev.postback?.data?.slice(0, 80),
+  });
   if (ev.type === "postback") return handlePostback(ev);
   if (ev.type === "message" && ev.message?.type === "text") return handleTextMessage(ev);
+  if (ev.type === "follow") {
+    // User just added the OA as a friend — log so we know when this happens
+    console.log("[LINE webhook] follow event — user is now a friend", { userId: ev.source?.userId });
+  }
+  if (ev.type === "unfollow") {
+    console.log("[LINE webhook] unfollow event", { userId: ev.source?.userId });
+  }
 }
 
 // =========================================================================

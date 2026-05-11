@@ -58,6 +58,12 @@ export async function notifySupervisorOfLeave(requestId: string) {
       typeof res.message === "string" ? res.message :
       typeof res.status === "number" ? `LINE API ${res.status}` :
       "LINE push failed";
+    console.error("[approvals] push failed", {
+      to: supervisor.line_user_id,
+      supervisor_id: supervisor.id,
+      supervisor_name: supervisor.name_th ?? supervisor.name_en,
+      detail,
+    });
     return { ok: false, reason: detail, supervisor };
   }
   return { ok: true, supervisor, res };
@@ -95,6 +101,12 @@ export async function notifySupervisorOfOvertime(requestId: string) {
       typeof res.message === "string" ? res.message :
       typeof res.status === "number" ? `LINE API ${res.status}` :
       "LINE push failed";
+    console.error("[approvals] push failed", {
+      to: supervisor.line_user_id,
+      supervisor_id: supervisor.id,
+      supervisor_name: supervisor.name_th ?? supervisor.name_en,
+      detail,
+    });
     return { ok: false, reason: detail, supervisor };
   }
   return { ok: true, supervisor, res };
@@ -132,6 +144,12 @@ export async function notifySupervisorOfContact(requestId: string) {
       typeof res.message === "string" ? res.message :
       typeof res.status === "number" ? `LINE API ${res.status}` :
       "LINE push failed";
+    console.error("[approvals] push failed", {
+      to: supervisor.line_user_id,
+      supervisor_id: supervisor.id,
+      supervisor_name: supervisor.name_th ?? supervisor.name_en,
+      detail,
+    });
     return { ok: false, reason: detail, supervisor };
   }
   return { ok: true, supervisor, res };
