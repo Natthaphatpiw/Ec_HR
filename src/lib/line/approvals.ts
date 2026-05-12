@@ -6,9 +6,11 @@ import {
   decideOvertimeRequest,
   getContactRequestById,
   getEmployeeById,
+  getLeaveBalance,
   getLeaveRequestById,
   getOvertimeRequestById,
   getSupervisorForEmployee,
+  listOvertimeForEmployee,
   recordNotification,
   rejectRegistration,
 } from "../data";
@@ -46,9 +48,11 @@ export async function notifySupervisorOfLeave(requestId: string) {
     request_id: requestId,
     intended_user_id: supervisor.id,
   });
+  const balance = await getLeaveBalance(employee.id);
   const card = buildLeaveApprovalCard({
     request: req,
     employee,
+    balance,
     approveToken: approve.token,
     rejectToken: reject.token,
   });
@@ -89,9 +93,15 @@ export async function notifySupervisorOfOvertime(requestId: string) {
     request_id: requestId,
     intended_user_id: supervisor.id,
   });
+  const monthKey = req.date.slice(0, 7);
+  const otHistory = await listOvertimeForEmployee(employee.id);
+  const monthlyOvertimeHours = otHistory
+    .filter((o) => o.status === "approved" && o.date.startsWith(monthKey))
+    .reduce((acc, o) => acc + Number(o.hours), 0);
   const card = buildOvertimeApprovalCard({
     request: req,
     employee,
+    monthlyOvertimeHours,
     approveToken: approve.token,
     rejectToken: reject.token,
   });
@@ -215,9 +225,11 @@ export async function applyDecision(
     const card = buildDecisionResultCard({
       kind,
       status: decision,
-      title: `คำขอลา ${updated.leave_type}`,
-      detail: `${updated.start_date} ถึง ${updated.end_date} (${updated.days} วัน)`,
+      title: leaveTypeFormal(updated.leave_type),
+      detail: `${updated.start_date} ถึง ${updated.end_date} รวม ${updated.days} วัน`,
       reason: updated.decision_reason,
+      referenceId: updated.id,
+      actionUrl: scheduleDeepLink(),
     });
     await pushFlex(employee.line_user_id, card);
     await recordNotification(
@@ -238,9 +250,11 @@ export async function applyDecision(
     const card = buildDecisionResultCard({
       kind,
       status: decision,
-      title: "คำขอทำโอที",
-      detail: `${updated.date} · ${updated.hours} ชม.`,
+      title: "ทำงานล่วงเวลา",
+      detail: `${updated.date} จำนวน ${updated.hours} ชั่วโมง`,
       reason: updated.decision_reason,
+      referenceId: updated.id,
+      actionUrl: scheduleDeepLink(),
     });
     await pushFlex(employee.line_user_id, card);
     await recordNotification(
@@ -261,9 +275,10 @@ export async function applyDecision(
     const card = buildDecisionResultCard({
       kind,
       status: decision,
-      title: "ขอเข้าพบหัวหน้า",
-      detail: `${updated.requested_date} · ${updated.time_start} – ${updated.time_end}`,
+      title: "นัดหมายเข้าพบหัวหน้างาน",
+      detail: `${updated.requested_date} เวลา ${updated.time_start.slice(0,5)} – ${updated.time_end.slice(0,5)}`,
       reason: updated.decision_reason,
+      referenceId: updated.id,
     });
     await pushFlex(employee.line_user_id, card);
     await recordNotification(
@@ -289,8 +304,10 @@ export async function applyDecision(
       const card = buildDecisionResultCard({
         kind,
         status: "approved",
-        title: "ใบสมัครพนักงาน",
-        detail: `ยินดีต้อนรับ! รหัสพนักงานของคุณคือ ${code}`,
+        title: "ใบสมัครพนักงานใหม่",
+        detail: `ยินดีต้อนรับเข้าสู่องค์กร รหัสพนักงานของคุณคือ ${code}`,
+        referenceId: updated.id,
+        actionUrl: appHome(),
       });
       await pushFlex(updated.line_user_id, card);
       return { ok: true, kind, status: decision, notified: true };
@@ -302,9 +319,10 @@ export async function applyDecision(
     const card = buildDecisionResultCard({
       kind,
       status: "rejected",
-      title: "ใบสมัครพนักงาน",
-      detail: "ทาง HR พิจารณาแล้วยังไม่สามารถรับเข้าทำงานได้ในขณะนี้",
+      title: "ใบสมัครพนักงานใหม่",
+      detail: "ฝ่ายทรัพยากรบุคคลได้พิจารณาแล้ว ยังไม่สามารถรับเข้าทำงานในขณะนี้",
       reason: updated.rejection_reason,
+      referenceId: updated.id,
     });
     await pushFlex(updated.line_user_id, card);
     return { ok: true, kind, status: decision, notified: true };
@@ -322,6 +340,30 @@ async function nextEmployeeCode(): Promise<string> {
     .map((c) => parseInt(c.slice(3), 10));
   const max = codes.length ? Math.max(...codes) : 0;
   return `EMP${String(max + 1).padStart(3, "0")}`;
+}
+
+function leaveTypeFormal(t: string): string {
+  switch (t) {
+    case "annual":    return "ลาพักร้อน";
+    case "sick":      return "ลาเนื่องจากเจ็บป่วย";
+    case "maternity": return "ลาคลอด";
+    case "personal":  return "ลากิจ";
+    default:          return t;
+  }
+}
+
+function scheduleDeepLink(): string {
+  const liffId = process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE;
+  if (liffId) return `https://liff.line.me/${liffId}/schedule`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://ec-hr-one.vercel.app";
+  return `${appUrl.replace(/\/$/, "")}/liff/my-attendance/schedule`;
+}
+
+function appHome(): string {
+  const liffId = process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN;
+  if (liffId) return `https://liff.line.me/${liffId}`;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://ec-hr-one.vercel.app";
+  return `${appUrl.replace(/\/$/, "")}/liff`;
 }
 
 // Re-export for convenience
