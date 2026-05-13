@@ -1,11 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { ArrowRight, MessageCircle, ShieldCheck, Zap } from "lucide-react";
+import { ArrowRight, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { LineQrPreview } from "./line-qr-preview";
 
 export function LandingHero() {
-  const t = useTranslations();
   return (
     <section className="relative overflow-hidden border-b border-navy-100">
       <div className="absolute inset-0 grid-pattern opacity-50" aria-hidden />
@@ -14,84 +12,94 @@ export function LandingHero() {
         aria-hidden
       />
 
-      <div className="container-page relative grid gap-16 py-20 md:py-28 lg:grid-cols-12 lg:gap-12">
+      <div className="container-page relative grid gap-12 py-20 md:py-28 lg:grid-cols-12 lg:gap-16">
         <div className="lg:col-span-7 flex flex-col gap-8 animate-fade-in">
-          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-navy-200 bg-white px-3 py-1 text-xs font-medium text-navy-700 shadow-soft">
-            <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
-            {t("landing.hero.badge")}
+          <div className="inline-flex w-fit items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
+            <Sparkles className="h-3 w-3" />
+            HR SaaS ที่ทำงานบน LINE · พัฒนาโดยทีม HR + AI Engineers
           </div>
 
-          <h1 className="text-balance text-4xl font-semibold tracking-tight text-navy-900 sm:text-5xl lg:text-6xl">
-            {t("landing.hero.headline")}
+          <h1 className="text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-navy-900 sm:text-5xl lg:text-[64px]">
+            ลา · OT · เช็คอิน · สลิป · ตารางงาน
+            <br />
+            <span className="text-orange-500">จบในแชท LINE ที่ทีมคุณใช้ทุกวัน</span>
           </h1>
 
-          <p className="max-w-2xl text-lg leading-relaxed text-navy-500 sm:text-xl">
-            {t("landing.hero.subheadline")}
+          <p className="max-w-2xl text-lg leading-relaxed text-navy-600 sm:text-xl">
+            ระบบ HR ครบทั้งวงจร พร้อม AI ผู้ช่วยส่วนตัว
+            <span className="font-semibold text-navy-900"> ไม่ต้องโหลดแอปใหม่ ไม่ต้องเทรนพนักงาน </span>
+            แค่เพิ่ม LINE OA เป็นเพื่อน เริ่มใช้ได้เลยภายใน 5 นาที
           </p>
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Button asChild size="xl">
+            <Button asChild size="xl" className="shadow-card">
               <Link href="/liff/checkin">
                 <MessageCircle className="h-5 w-5" />
-                {t("common.tryDemo")}
+                ทดลองใช้ฟรี 30 วัน
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </Button>
             <Button asChild size="xl" variant="outline">
-              <Link href="#book-demo">{t("common.bookDemo")}</Link>
+              <Link href="#pricing">ดูราคาแพ็คเกจ</Link>
             </Button>
           </div>
 
-          <div className="grid grid-cols-3 gap-6 border-t border-navy-100 pt-8 max-w-xl">
-            <Stat label={t("landing.hero.stat1Label")} value={t("landing.hero.stat1Value")} />
-            <Stat label={t("landing.hero.stat2Label")} value={t("landing.hero.stat2Value")} />
-            <Stat label={t("landing.hero.stat3Label")} value={t("landing.hero.stat3Value")} />
+          <div className="grid grid-cols-2 gap-6 border-t border-navy-100 pt-8 sm:grid-cols-4 max-w-2xl">
+            <Stat value="5 นาที" label="สมัครเสร็จ พร้อมใช้" />
+            <Stat value="0 บาท" label="ค่าเทรนพนักงาน" />
+            <Stat value="7 ระบบ" label="จบใน LINE OA เดียว" />
+            <Stat value="3 ภาษา" label="ไทย / อังกฤษ / จีน" />
           </div>
         </div>
 
-        <div className="lg:col-span-5 relative">
-          <LineQrPreview />
-          <FloatingPills />
+        <div className="lg:col-span-5 relative animate-fade-in">
+          <PhoneStack />
+        </div>
+      </div>
+
+      <div className="border-t border-navy-100 bg-navy-50/40">
+        <div className="container-page py-6">
+          <p className="text-center text-sm font-medium tracking-wider text-navy-500">
+            “ระบบที่ดี ระเบียบที่ง่าย เพียงคลิ้กๆ ก็จบ”
+          </p>
         </div>
       </div>
     </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div>
-      <div className="text-2xl font-semibold tracking-tight text-navy-900 sm:text-3xl">{value}</div>
-      <div className="mt-1 text-xs uppercase tracking-wider text-navy-400">{label}</div>
+      <div className="text-2xl font-bold tracking-tight text-navy-900">{value}</div>
+      <div className="mt-1 text-[11px] uppercase tracking-wider text-navy-500">{label}</div>
     </div>
   );
 }
 
-function FloatingPills() {
+function PhoneStack() {
   return (
-    <>
-      <div className="absolute -left-4 top-12 hidden rounded-xl border border-navy-100 bg-white p-3 shadow-card animate-fade-in lg:block">
-        <div className="flex items-center gap-2">
-          <div className="rounded-md bg-emerald-50 p-1.5">
-            <ShieldCheck className="h-4 w-4 text-emerald-600" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-navy-900">Geofence verified</div>
-            <div className="text-[11px] text-navy-500">ThaiAuto Factory · 142m</div>
-          </div>
-        </div>
+    <div className="relative mx-auto h-[600px] w-[320px] sm:h-[640px] sm:w-[340px]">
+      <div className="absolute -left-12 top-16 hidden rotate-[-8deg] overflow-hidden rounded-[36px] border border-navy-200 bg-white shadow-card sm:block">
+        <Image
+          src="/screens/leave-approval-card.png"
+          alt="LINE Flex card อนุมัติใบลา"
+          width={280}
+          height={607}
+          className="h-[480px] w-[225px] object-cover"
+          priority
+        />
       </div>
-      <div className="absolute -right-4 bottom-16 hidden rounded-xl border border-navy-100 bg-white p-3 shadow-card animate-fade-in lg:block">
-        <div className="flex items-center gap-2">
-          <div className="rounded-md bg-orange-50 p-1.5">
-            <Zap className="h-4 w-4 text-orange-500" />
-          </div>
-          <div>
-            <div className="text-xs font-semibold text-navy-900">Clock-in 08:02</div>
-            <div className="text-[11px] text-navy-500">EMP001 · Somchai · On time</div>
-          </div>
-        </div>
+      <div className="absolute -right-8 top-0 z-10 overflow-hidden rounded-[36px] border-2 border-navy-900 bg-white shadow-card">
+        <Image
+          src="/screens/leave-form.png"
+          alt="ฟอร์มขอลาใน LIFF"
+          width={320}
+          height={693}
+          className="h-[600px] w-[280px] object-cover sm:h-[640px] sm:w-[300px]"
+          priority
+        />
       </div>
-    </>
+    </div>
   );
 }
