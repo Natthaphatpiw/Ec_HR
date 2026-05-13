@@ -1,216 +1,347 @@
 # LinForge HR — Image Prompts (English)
 
-Marketing image prompt library for paid social ads, LinkedIn, Twitter/X, and
-SaaS-directory hero shots.
+Marketing image library where **text is baked into the image** (in-image
+typography). Every visual answers 5 questions in the first 10 seconds:
+
+1. What SaaS is this? 2. What problem does it solve? 3. How is it better?
+4. What does the product look like? 5. What should I do next (CTA)?
 
 ---
 
-## How to use
+## Core rules
 
-- Tools: **Midjourney v6+, DALL·E 3, Imagen 3, Flux 1.1 Pro, Google Veo (video)**
-- No emojis baked into images
-- Brand palette: navy `#0F172A`, orange `#FB923C`, white `#FFFFFF`
-- Corporate, premium SaaS look — avoid cartoon styles
-- Append "professional photography, soft natural lighting, sharp focus, 8K"
+| Item | Rule |
+|---|---|
+| In-image language | English (with optional small Thai/CN labels) |
+| Typography | Sans-serif. Semi-bold for headlines, regular for body |
+| Forbidden | No emoji, no cartoon styles, no overdone gradients, no cliché stock |
+| Brand palette | navy `#0F172A`, orange `#FB923C`, white `#FFFFFF`, emerald `#059669` |
+| Aspect ratios | 1:1 (1080×1080), 4:5 (1080×1350), 9:16 (1080×1920), 16:9 (1920×1080) |
+| Headline length | ≤ 10 words, readable in 2 seconds |
+| Sub-description | 1–2 lines explaining feature/benefit, must "wow" |
+| Recommended tools | **Ideogram 2.0** or **DALL·E 3** (best text rendering), Midjourney v6+, Flux 1.1 Pro |
 
----
-
-## 1) HOOK headlines (overlay on image + copy)
-
-### Primary headline (pick 1 of 5)
-
-| # | Headline | Strength | Best for |
-|---|---|---|---|
-| **H1** | **"Leave, OT, clock-in — done in the LINE chat your team already uses"** | Zero-friction value | Hero ad |
-| **H2** | **"Stop drowning in Excel. Open LINE, run HR."** | Pain-killer | Carousel slide 1 |
-| **H3** | **"Full HR + AI co-pilot — $3/employee/month"** | Price + AI hook | Retargeting |
-| **H4** | **"Employees punching cards for each other? We add 3 layers of proof."** | Pain point | Factory/blue-collar |
-| **H5** | **"Good systems, simple workflows — one tap, done."** | Tagline | Header/footer |
-
-### Sub-headline
-
-- "No new app to install. No training required. Add the LINE OA as a friend — live in 5 minutes."
-- "Built by HR practitioners + AI engineers. Speaks Thai, English, Chinese."
-- "30-day free trial. Cancel anytime. No hidden onboarding fees."
+> Critical: pick a model with strong text-rendering. Ideogram + DALL·E 3
+> produce far cleaner letterforms than Midjourney for in-image copy.
 
 ---
 
-## 2) Campaign prompts
+## TEMPLATE A — Product Screenshot + Big Outcome (most-used pattern)
 
-### 2.1 Hero banner — "HR in your team's pocket"
-**1920×1080 or 1080×1080**
-
-```
-A professional flat-lay photograph from directly overhead, showing a black
-modern smartphone resting on a clean white minimalist desk. The phone screen
-displays a LINE chat showing a corporate Flex card (navy header, orange
-accent button, formal English text, NO EMOJI). Beside the phone: a sleek
-matte-white espresso cup on a saucer, a navy hardcover notebook with subtle
-embossing reading "LinForge HR", a brushed-aluminum pen. Soft natural
-morning light from upper-left creating gentle shadows. Background: seamless
-white paper with subtle texture. Aesthetic: premium B2B SaaS, executive
-desk. Color palette: navy #0F172A, orange #FB923C, white. NO TEXT OVERLAY
-in image, NO EMOJI, no human subjects. 8K photo, shallow depth-of-field on
-the phone screen.
-```
-
-### 2.2 Factory check-in (industry-specific)
+### Composition (copy into every prompt)
 
 ```
-Documentary-style photograph of a Southeast Asian factory worker (mid-30s,
-gender-neutral, wearing a navy-blue work uniform with subtle orange chest
-patch) standing at the gate of a clean modern industrial facility. The
-worker holds an Android smartphone displaying a clock-in screen with a
-geofence map: a circular radius zone in orange on the map, a green
-"verified" indicator. Soft early-morning sunlight, slight haze. The
-worker's face is calm and focused, not posing. Background: factory
-entrance gate, subtle wayfinding signage. Realistic, ambient, shallow
-DOF. Color tone: cool morning blues + warm orange accent. NO EMOJI, NO
-TEXT OVERLAY in the photo.
+[Top 18%]   HEADLINE (≤10 words) + small orange category chip
+[Middle 60%] Phone / screenshot mockup as the hero, centered
+[Around it]  3 feature callouts connected with thin orange dashed lines
+[Bottom 15%] CTA pill button + tagline + URL
+[Corner]    "LinForge HR" logo + tiny "Powered by LINE OA"
 ```
 
-### 2.3 Manager approving in LINE
+### A1 — Hero Ad: "Leave, OT, Clock-in — all inside LINE"
 
 ```
-Cinematic over-the-shoulder shot of a Southeast Asian senior manager
-(40s, smart-casual: crisp white shirt, navy slacks) seated in a modern
-co-working space in Bangkok. Holding a smartphone showing a LINE chat
-with a Flex approval card (navy header, formal title, two action
-buttons in emerald and red — NO EMOJI on the card). The manager's thumb
-hovers over the green approve button. Background gently blurred: a
-laptop, a glass of water, warm late-afternoon window light. Premium
-business mood. Tones: warm whites, deep navy, single orange accent. NO
-EMOJI, NO TEXT OVERLAY in the image.
+A premium B2B SaaS marketing graphic in the visual style of Pipedrive,
+Linear, or Notion product ads. 1080×1080 square format.
+
+LAYOUT (top to bottom):
+- TOP BAND (18%): Plain white background. Render this English headline
+  in BOLD large sans-serif (Inter or Söhne), color navy #0F172A,
+  perfectly readable:
+    "Leave, OT, clock-in — all inside LINE"
+  Above the headline, a small pill chip with orange background and white
+  text: "HR SaaS · Runs on LINE".
+- MIDDLE 60%: Center a photorealistic iPhone mockup tilted 5° to the
+  right, showing a LIFF leave-request form (navy header, orange submit
+  button, formal English labels). The phone casts a soft realistic
+  shadow on the surface beneath.
+- AROUND THE PHONE: Three feature callout cards, each connected to the
+  phone with a thin orange dashed line.
+    Top-left card (small line-art clock icon):
+      "Submit in 30 seconds"
+    Right card (small thumbs-up icon):
+      "Manager approves in LINE"
+    Bottom-left card (small sparkle icon):
+      "AI answers HR questions 24/7"
+- BOTTOM (15%): A solid orange pill button "Start 30-day free trial" in
+  white text. Below in small navy text: "No app install · Live in 5 min".
+  Bottom-right corner: small navy text "LinForge HR".
+
+STYLE: Clean, minimal, premium B2B SaaS. Strict color palette: navy
+#0F172A, orange #FB923C, white. NO EMOJI, NO PEOPLE. Render all English
+text with perfect letterforms — no garbled characters. 8K, sharp.
 ```
 
-### 2.4 AI assistant — premium tech vibe
-
-```
-Studio product shot of a smartphone floating mid-air against a deep navy
-gradient backdrop. The phone screen shows the ForgeHR AI chat interface
-in English, single message bubble visible: a clean conversational AI
-panel. Soft glowing orange particles float around the phone suggesting
-AI processing. Subtle rim lighting in orange from behind. Premium,
-futuristic, but still corporate (not cartoonish). 1:1 ratio for
-Instagram or 9:16 for Stories. NO EMOJI, NO TEXT OVERLAY.
-Photorealistic, sharp focus on screen, 8K render quality.
-```
-
-### 2.5 "Drag-and-drop schedule"
-
-```
-Top-down view of a young Southeast Asian office worker's hands using a
-smartphone on a wooden cafe table. The phone screen shows a colorful
-weekly schedule grid (7 columns × 3 rows: work cells in navy, OT cells
-in orange, leave cells in emerald — clear, clean UI). A cup of Thai
-milk tea or pour-over coffee sits beside the phone. Soft warm cafe
-lighting from the side. Cozy, productive, modern urban lifestyle
-aesthetic. 4:5 ratio for Instagram feed. NO EMOJI on screen UI, NO TEXT
-OVERLAY on photo.
-```
-
-### 2.6 "Zero onboarding cost — just add LINE"
-
-```
-Close-up of a Southeast Asian female HR officer (30s, professional
-attire — pale blue blouse) smiling slightly while showing her phone
-screen to two factory workers. The phone displays a clean "Add Friend"
-screen for the LinForge HR LINE Official Account with a visible QR
-code. The two workers lean in, expressions warm and curious. Background:
-clean factory administrative office, soft warm overhead lighting, a
-small green plant in the corner. Candid documentary photography style.
-Captures the "this is unbelievably easy" feeling. NO EMOJI, NO TEXT
-OVERLAY in the photo.
-```
-
-### 2.7 Dashboard + LIFF split shot
-
-```
-Wide cinematic shot of a Southeast Asian HR manager (40s, female,
-navy blazer over white blouse) at a modern desk in a Bangkok office.
-Left: a 27-inch monitor showing a clean HR dashboard (navy sidebar,
-white content area, orange KPI cards, no clutter). Right: a smartphone
-on a stand showing the same data in the LIFF mobile app. She gestures
-between them as if explaining. Soft natural window light, plants
-softly blurred in the background. Mood: premium SaaS product
-demonstration. 16:9 ratio. NO EMOJI, NO TEXT OVERLAY in the photo.
-```
-
----
-
-## 3) Background / texture prompts
-
-### 3.1 Navy-orange gradient
-
-```
-Abstract premium gradient background, deep navy #0F172A flowing into a
-soft orange #FB923C glow in the upper-right corner. Subtle grain
-texture, no subjects, no objects, no text. 16:9 ratio, 8K, suitable for
-slide backgrounds.
-```
-
-### 3.2 SME office bokeh
-
-```
-Slightly out-of-focus background of a small modern SME office: white
-walls with a single orange accent wall, a wooden desk, a Monstera
-plant, blurred open laptop, soft warm afternoon light. Cinematic bokeh.
-16:9 ratio. Use as backing for testimonial quotes.
-```
-
----
-
-## 4) Caption templates
-
-### Caption #1 — Pain hook
-> Still chasing leave forms in Excel?
->
+**Caption:**
+> Still chasing leave forms in Excel and personal LINE messages?
 > LinForge HR moves your entire HR stack into the LINE chat your team
-> already uses.
-> · Leave · OT · Clock-in · Payslip · Schedule — all in LINE
-> · AI co-pilot that speaks Thai, English, Chinese
-> · From $3/employee/month · 30-day free trial
->
-> See the live demo → ec-hr-one.vercel.app
-
-### Caption #2 — Check-in feature
-> Worried about buddy-punching at clock-in?
->
-> Our check-in verifies three signals every time:
-> – Geofence: must be inside the factory radius
-> – IP whitelist: must be on company Wi-Fi
-> – Photo verify: snap a selfie at clock-in
->
-> All inside the LINE app your team already has open.
-
-### Caption #3 — AI angle
-> The first HR AI in Thailand that reads your live database.
->
-> "Who was late today?" — answered in 3 seconds.
-> "Generate May payroll for EMP005" — done.
-> "Draft a Songkran holiday announcement in 3 languages" — ready
-> for your review.
->
-> ForgeHR Assistant · Claude Sonnet 4.6 · Built by HR + AI experts.
-
-### Caption #4 — Time-to-value
-> 5 minutes from signup to your first employee clocking in.
->
-> 1. Sign up → 2. Add the LINE OA as a friend → 3. You're live.
->
-> No training. No manual. No server to set up. Just LINE.
-> "Good systems, simple workflows — one tap, done."
+> already opens every day. Leave, OT, clock-in, payslip, schedule +
+> AI co-pilot — from $100/month. 30-day free trial, no card required.
 
 ---
 
-## 5) Posting cadence
+## TEMPLATE B — Before / After Split Screen
 
-| Week | Image | Caption | Goal |
+### B1 — "Goodbye Excel chaos. Hello clarity."
+
+```
+A high-conversion SaaS Facebook ad, 1200×628 horizontal format.
+
+LAYOUT:
+- TOP BAND (15%): Center-aligned English headline in bold navy:
+  "Goodbye Excel chaos. Hello clarity."
+  Below it in smaller gray text: "Good systems, simple workflows — one tap, done."
+
+- MIDDLE 70%: Vertical split into two equal halves divided by a thin
+  vertical orange line.
+
+  LEFT HALF — labeled "Before" in a small red pill at top-left:
+  Top-down photograph of a chaotic desk: scattered Excel printouts in
+  English with red highlighter marks, sticky notes with handwritten
+  abbreviations (Leave / OT / Late), an old paper attendance log, a
+  desk calculator, a coffee stain on one sheet. Desaturated colors,
+  slight yellow tint, suggesting frustration.
+
+  RIGHT HALF — labeled "After" in a small emerald pill at top-left:
+  A clean white desk with ONE smartphone showing a LIFF dashboard
+  (navy header, three orange-accent KPI cards). Beside the phone: a
+  small succulent, a single white espresso cup. Bright, organized,
+  full color, soft natural daylight.
+
+- BOTTOM (15%): Orange pill button "See 60-sec demo →" + tiny gray
+  text "linforgehr.com · From $100/month · 30-day free trial".
+
+STYLE: Strong visual contrast. Photorealistic on both sides. NO EMOJI,
+NO PEOPLE. English text perfectly rendered. 8K.
+```
+
+---
+
+## TEMPLATE C — 3-Step Flow
+
+### C1 — "Live in 3 steps"
+
+```
+A clean infographic-style SaaS marketing image, 1080×1350 portrait
+(works for Reels and Instagram feed).
+
+LAYOUT:
+- TOP 12%: English headline centered: "Live in 3 steps — Done in 5 minutes"
+  Color navy. Below in tiny gray: "No app install · No training required"
+
+- MIDDLE 70%: Three vertical step blocks separated by thin orange arrows.
+
+  STEP 1 — circular icon (monoline QR code, orange stroke) + English text:
+    "1. Scan QR · Add LINE OA"
+    Sub: "Employees open their LINE app, scan once"
+
+  STEP 2 — circular icon (monoline chat + sparkle, orange stroke):
+    "2. Fill the LIFF form"
+    Sub: "Name, dept, role, photos — 4 steps, 90 seconds"
+
+  STEP 3 — circular icon (monoline checkmark + factory, orange stroke):
+    "3. HR approves → ready to use"
+    Sub: "Employee receives a LINE confirmation card instantly"
+
+- BOTTOM 18%: A small phone mockup peeking from bottom-right showing the
+  registration success screen (30% area). Orange pill button
+  "Onboard your team →" + tiny navy text "support@linforgehr.com".
+
+STYLE: Editorial infographic. Background: warm cream-white #FAFAF7.
+Icons: monoline orange #FB923C strokes. Text in navy. NO EMOJI, NO
+PEOPLE. 8K, English text perfectly rendered.
+```
+
+---
+
+## TEMPLATE D — Metric Hero
+
+### D1 — "70% less HR paperwork"
+
+```
+A bold typographic "metric hero" SaaS ad, 1080×1080 square.
+
+LAYOUT:
+- HERO CENTER: A MASSIVE orange number "70%" in a custom serif/display
+  font, taking up 40% of the canvas height, color #FB923C with a subtle
+  inner shadow for depth.
+- Above the number: a small orange pill chip "Real customer result".
+- Below the number (in navy): "less time on HR paperwork — first month"
+- Around the number: 3 small floating proof cards in an arc:
+    Top-left:    "Leave → 3 seconds"     (small phone outline icon)
+    Top-right:   "Approval → 1 tap"      (small thumbs-up outline)
+    Bottom:      "AI answers in English" (small sparkle outline)
+  Each card has a thin navy border and white background.
+- BOTTOM 12%: Orange pill button "Read case study →" + tiny gray text
+  "Auto-parts factory · 120 employees · 6-month study"
+
+STYLE: Bold typographic poster, in the style of Stripe / Linear metric
+ads. White background with a subtle orange radial glow behind the
+number. NO EMOJI, NO PEOPLE. English text rendered perfectly. 8K.
+```
+
+---
+
+## TEMPLATE E — Feature Cards (4-grid or 6-grid)
+
+### E1 — "6 features. 1 LINE OA."
+
+```
+A SaaS feature-showcase ad, 1080×1080 square.
+
+LAYOUT:
+- TOP 15%: Bold navy headline centered: "6 HR features — 1 LINE OA"
+  Below in small gray: "No app install. No new login. Just LINE."
+
+- MIDDLE 70%: A 3×2 grid of feature cards (3 columns, 2 rows). Each
+  card: white background, thin navy-100 border, soft shadow. Each card
+  contains a monoline orange icon (40px), a bold English label, and a
+  one-line gray sub-text:
+
+    Card 1: icon "calendar-clock" — "Leave Requests" / "See balance live"
+    Card 2: icon "timer"          — "Overtime"      / "Auto-calculated pay"
+    Card 3: icon "receipt"        — "Payslips"      / "Browse any month"
+    Card 4: icon "calendar-grid"  — "Schedule"      / "Drag-drop weekly grid"
+    Card 5: icon "map-pin"        — "Clock In/Out"  / "GPS + IP + photo"
+    Card 6: icon "sparkles"       — "AI Assistant"  / "Speaks TH/EN/中文"
+
+- BOTTOM 15%: Orange pill button "See all 6 in action" + tiny text
+  "From $100/month · 30-day free trial · linforgehr.com"
+
+STYLE: Notion / Linear feature-page aesthetic. Background: off-white
+#F8FAFC. Cards evenly spaced with generous whitespace. NO EMOJI, NO
+PEOPLE. English typography crisp and correct. 8K.
+```
+
+---
+
+## TEMPLATE F — Persona-based
+
+### F1 — "Stop answering the same HR questions"
+
+```
+A persona-driven SaaS ad, 1080×1350 portrait.
+
+LAYOUT:
+- TOP 15%: Bold navy English headline:
+  "HR shouldn't answer the same question 50 times a day."
+
+- MIDDLE 60%: Composition split.
+  LEFT (40%): A stylized monoline portrait of an exhausted female HR
+  officer (early 30s, professional attire) holding her head in one
+  hand. Around her, 4 chat-bubble outlines float with English text
+  inside each:
+    "How many leave days do I have?"
+    "Can I get last month's payslip?"
+    "Is my OT approved yet?"
+    "I forgot to clock in!"
+  Drawn entirely in monoline navy strokes on white background.
+
+  RIGHT (60%): A photorealistic phone mockup showing the ForgeHR AI
+  chat screen answering the same questions, with a green check badge
+  floating top-right of the phone. The phone has a soft orange glow.
+
+- BOTTOM 25%: Three small benefit pills in a horizontal row:
+    "24/7 answers" · "Speaks TH/EN/中文" · "Live data"
+  Below: orange pill button "Let AI take the calls →"
+
+STYLE: Editorial illustration on the left + product photography on the
+right. Mood: empathetic but solution-forward. Navy and orange only. NO
+EMOJI. English text precise. 8K.
+```
+
+---
+
+## TEMPLATE G — Comparison Table
+
+### G1 — "Excel vs LinForge HR"
+
+```
+A SaaS comparison ad, 1080×1080 square, designed in the style of a
+clean SaaS landing-page comparison table.
+
+LAYOUT:
+- TOP 12%: Bold navy headline: "Why teams ditch Excel for LinForge HR"
+
+- MIDDLE 75%: A two-column comparison table with rounded corners.
+
+  LEFT COLUMN — header "Excel / Manual" with a small gray X icon and
+  light gray background:
+    "Manual entry · error-prone"
+    "No notifications"
+    "Hard to search history"
+    "No audit log"
+    "Re-train every new hire"
+
+  RIGHT COLUMN — header "LinForge HR" with a small emerald check icon
+  and navy background, white text:
+    "Submit via LINE in 30 seconds"
+    "Flex card alerts instantly"
+    "Full audit log on every action"
+    "Everyone already knows LINE"
+    "AI answers HR questions 24/7"
+
+  Alternate row backgrounds subtly for readability.
+
+- BOTTOM 13%: Orange pill button "Start 30-day free trial →" + tiny
+  text "No card required · Free Excel migration"
+
+STYLE: Linear / Notion comparison-table aesthetic. Crisp, minimal,
+typography-forward. NO EMOJI, NO PEOPLE. English text precise. 8K.
+```
+
+---
+
+## High-converting hooks (use as in-image headlines)
+
+| # | Hook | Communicates |
+|---|---|---|
+| H1 | "Leave, OT, clock-in — all inside LINE" | Zero friction |
+| H2 | "Goodbye Excel chaos. Hello clarity." | Pain killer |
+| H3 | "Full HR + AI co-pilot — from $100/month" | Price hook |
+| H4 | "Live in 5 minutes. Zero training." | Time-to-value |
+| H5 | "An HR AI that actually speaks Thai." | AI / localization |
+| H6 | "Three-layer check-in. No buddy punching." | Anti-fraud |
+| H7 | "70% less HR paperwork — first month." | Metric proof |
+| H8 | "Drag-drop schedule for self AND team." | Schedule UX |
+| H9 | "Good systems, simple workflows — one tap, done." | Slogan |
+| H10 | "Add the LINE OA — your full HR opens up." | Onboarding |
+
+---
+
+## Sub-descriptions (small text under hook — must "wow")
+
+| # | Sub | Pair with |
+|---|---|---|
+| S1 | "Built by HR practitioners + AI engineers. Made in Bangkok." | H1, H3 |
+| S2 | "Zero setup fee. Zero employee training. Cancel anytime." | H3, H4 |
+| S3 | "Geofence + IP whitelist + selfie verification — 3 layers, 0 fraud." | H6 |
+| S4 | "Reads your live database. Answers in 3 seconds." | H5 |
+| S5 | "Works for factories, offices, restaurants. Onsite and remote." | H1, H2 |
+| S6 | "Cuts Excel time 80% · Cuts leave-chasing calls 95%." | H7 |
+| S7 | "30-day free trial. No card. Monthly billing." | H3 |
+
+---
+
+## CTA buttons
+
+- **Primary**: "Start 30-day free trial →" (orange BG, white text)
+- **Secondary**: "Watch 60-sec demo →" (transparent BG, navy border)
+- **Sales-led**: "Talk to sales on LINE →" (emerald BG, white text)
+- **Urgency**: "From $100/mo · 20% off annual" (white BG, navy text)
+
+---
+
+## Posting cadence
+
+| Week | Template | Hook | Goal |
 |---|---|---|---|
-| 1 | Hero (2.1) | Pain hook (#1) | Awareness |
-| 2 | Factory (2.2) | Check-in feature (#2) | Industry segment |
-| 3 | AI (2.4) | AI angle (#3) | Tech-forward SMEs |
-| 4 | Onboarding (2.6) | Time-to-value (#4) | Conversion |
-| 5 | Dashboard (2.7) | Manager testimonial | B2B decision-makers |
+| 1 | A (Product + outcome) | H1 / H3 | Awareness |
+| 2 | B (Before / after)   | H2     | Pain killer |
+| 3 | D (Metric hero)       | H7     | Performance |
+| 4 | C (3-step flow)       | H4 / H10 | Conversion |
+| 5 | F (Persona)           | H5     | Decision-makers |
+| 6 | E (Feature grid)      | H8 / H10 | Retargeting |
+| 7 | G (Comparison)        | H2 / H9 | Final close |
 
 Refresh creative every 60 days to avoid ad fatigue.

@@ -1,206 +1,336 @@
 # LinForge HR — Image Prompts (ภาษาไทย)
 
-ชุด prompt สำหรับสร้างภาพ marketing เพื่อใช้บนโซเชียลมีเดีย Facebook Ads, LINE OA, Instagram, LinkedIn
+ชุด prompt สำหรับสร้างภาพ marketing ที่ **มีข้อความฝังในภาพ** (in-image typography)
+ตอบ 5 คำถามใน 10 วินาทีแรก:
+1. นี่คือ SaaS อะไร? 2. แก้ปัญหาอะไร? 3. ใช้แล้วดีขึ้นยังไง? 4. หน้าตาระบบเป็นอย่างไร? 5. ทำอะไรต่อ (CTA)?
 
 ---
 
-## หลักการใช้งาน
+## หลักการสำคัญ
 
-- ใช้กับเครื่องมือ image generation เช่น **Midjourney v6+, DALL·E 3, Imagen 3, Google Veo (สำหรับ video), Flux 1.1 Pro**
-- ทุก prompt ต้องห้ามใส่ emoji ในภาพ
-- Brand palette: navy `#0F172A`, orange accent `#FB923C`, white `#FFFFFF`
-- รักษาความเป็น corporate, ไม่ใช้ภาพการ์ตูนสีฉูดฉาด
-- ใส่คำเสริม "professional photography, soft natural lighting, crisp focus, 8K"
+| รายการ | กติกา |
+|---|---|
+| ภาษาในภาพ | ไทย (มี EN ตัวเล็กได้ในบาง element) |
+| ฟอนต์ | Sans-serif, semi-bold สำหรับ headline, regular สำหรับ body |
+| ห้าม | emoji ทุกชนิด, ภาพการ์ตูน, gradient เกินจริง, stock photo ที่ดู cliché |
+| Brand palette | navy `#0F172A`, orange `#FB923C`, white `#FFFFFF`, emerald `#059669` (success) |
+| สัดส่วน | 1:1 (1080×1080), 4:5 (1080×1350), 9:16 (1080×1920), 16:9 (1920×1080) |
+| ข้อความใน Hook | ≤ 12 คำ, อ่านเข้าใจใน 2 วินาที |
+| Sub-description | 1–2 บรรทัด อธิบาย feature/benefit สั้นๆ แต่ wow |
+| Tools | Midjourney v6+, DALL·E 3, Flux 1.1 Pro, Imagen 3, Ideogram (ดี text rendering) |
+
+> **เครื่องมือแนะนำที่สุดสำหรับ text-in-image**: **Ideogram 2.0** หรือ **DALL·E 3** เพราะ render ตัวอักษรไทย/อังกฤษได้ค่อนข้างถูก
 
 ---
 
-## 1) HOOK headlines (ใช้แปะบนภาพ + caption)
+## TEMPLATE A — Product Screenshot + Big Outcome (ใช้บ่อยที่สุด)
 
-### Headline หลัก (เลือก 1 จาก 5)
+### โครงสร้างองค์ประกอบ (สำคัญมาก — copy ไปต่อ prompt ทุกอัน)
 
-| # | Headline | จุดเด่น | ใช้กับ |
+```
+[Top 18%]  HEADLINE ใหญ่ (≤12 คำ) + แถบ orange เล็กบอกหมวด
+[Middle 60%]  Phone/Screenshot mockup เป็นพระเอก กลางภาพ
+[Right/Left of mockup]  3 feature callouts คั่นด้วย thin orange line
+[Bottom 15%]  CTA pill button + tagline เล็ก + URL
+[Corner]  โลโก้ "LinForge HR" + tiny "Powered by LINE OA"
+```
+
+### A1 — Hero Ad: "ลา OT เช็คอิน — จบในแชท LINE"
+
+```
+A premium SaaS marketing graphic, 1080×1080 square format, designed in the
+style of Pipedrive / Notion / Linear product ads.
+
+LAYOUT (top to bottom):
+- Top band (18% height): On a clean white background, render this Thai
+  headline in BOLD large sans-serif text (Inter or Noto Sans Thai):
+  "ลา OT เช็คอิน — จบในแชท LINE"
+  Color: navy #0F172A. Above the headline, a small orange pill chip with
+  white text: "HR SaaS · ทำงานบน LINE"
+- Middle 60%: Center a photorealistic iPhone mockup (slight 5-degree tilt)
+  showing a LIFF leave-request form screen with navy header and orange
+  submit button. Phone casts a soft shadow on the surface below.
+- Left of phone: 3 feature callout cards stacked vertically, each with a
+  small navy icon and Thai text:
+    "ขอลา 30 วินาทีเสร็จ"
+    "หัวหน้ากดอนุมัติใน LINE"
+    "AI ช่วยตอบคำถาม HR"
+  Each card connects to the phone with a thin orange dashed line.
+- Bottom 15%: A solid orange pill button reading "ทดลองใช้ฟรี 30 วัน" in
+  white text. Below it small navy text: "ไม่ต้องโหลดแอป · 5 นาทีพร้อมใช้".
+  Bottom-right corner: small navy logo text "LinForge HR".
+
+STYLE: Crisp, minimal, B2B SaaS premium. Color palette strictly navy
+#0F172A, orange #FB923C, white. NO EMOJI, NO PEOPLE. Use real Thai
+typography, no garbled text. 8K render quality.
+```
+
+**Caption คู่กัน:**
+> หัวหน้ายังต้องตามใบลาผ่าน LINE ส่วนตัว Excel กับโทรศัพท์อยู่อีกหรือ?
+> LinForge HR ย้ายงาน HR ทั้งระบบเข้ามาอยู่ในแชท LINE ที่ทีมคุณเปิดทุกวันแล้ว
+> ลา OT เช็คอิน สลิป ตารางงาน + AI ช่วยคิด — เริ่มต้น $100/เดือน
+> 👉 ทดลองฟรี 30 วัน · ไม่ต้องผูกบัตร
+
+---
+
+## TEMPLATE B — Before/After Split Screen
+
+### B1 — "เลิก Excel หลายแผ่น" (Pain → Solution)
+
+```
+A high-conversion SaaS Facebook ad, 1200×628 horizontal format.
+
+LAYOUT:
+- Top band (15%): center-aligned Thai headline in bold:
+  "เลิก Excel หลายแผ่น — เปิด LINE จัดการ HR ครบเลย"
+  Color: navy. Below in smaller gray text: "ระบบที่ดี ระเบียบที่ง่าย เพียงคลิ้กๆ ก็จบ"
+
+- Middle 70%: Vertical split into two equal halves divided by a thin
+  orange line.
+
+  LEFT HALF — labeled "ก่อน" in a small red pill at top-left:
+  Top-down photograph of a chaotic desk: scattered Thai Excel printouts
+  stacked unevenly, sticky notes with handwritten Thai (ลา / OT / สาย),
+  a desk calculator, an old paper attendance ledger, coffee stain on
+  one sheet. Desaturated colors, slight yellow tint.
+
+  RIGHT HALF — labeled "หลัง" in a small emerald pill at top-left:
+  Clean white desk with ONE smartphone showing a LIFF dashboard
+  screen (navy header, orange accent KPI cards). Beside the phone:
+  a single succulent plant, a white coffee cup. Bright, organized,
+  full-color, soft natural light.
+
+- Bottom 15%: Orange pill button "ดูเดโม 1 นาที →" + tiny text
+  "ec-hr-one.vercel.app · เริ่มต้น $100/เดือน".
+
+STYLE: Strong visual contrast left-vs-right. Photorealistic. NO EMOJI,
+NO PEOPLE. Thai typography rendered correctly. 8K.
+```
+
+---
+
+## TEMPLATE C — 3-Step Flow (ขั้นตอนง่าย)
+
+### C1 — "เริ่มใช้ใน 3 ขั้นตอน"
+
+```
+A clean infographic-style SaaS marketing image, 1080×1350 portrait (Reels).
+
+LAYOUT:
+- Top 12%: Thai headline center: "เริ่มใช้ใน 3 ขั้นตอน — เสร็จใน 5 นาที"
+  Color navy. Tiny gray subline: "ไม่ต้องโหลดแอป · ไม่ต้องเทรนพนักงาน"
+
+- Middle 70%: Three vertical step blocks separated by thin orange arrows
+  pointing downward.
+
+  STEP 1 — circular icon (line-art QR code, orange stroke) + Thai text:
+  "1. สแกน QR เพิ่ม LINE OA"
+  Sub: "พนักงานเปิด LINE ของตัวเอง สแกนครั้งเดียว"
+
+  STEP 2 — circular icon (line-art chat bubble + sparkle, orange stroke):
+  "2. กรอกฟอร์มสมัครใน LIFF"
+  Sub: "ชื่อ-สกุล แผนก ตำแหน่ง รูปบัตร · 4 ขั้นตอน"
+
+  STEP 3 — circular icon (line-art checkmark + factory) + Thai text:
+  "3. HR กดอนุมัติ — พร้อมใช้งาน"
+  Sub: "พนักงานได้รับการ์ดยืนยันใน LINE ทันที"
+
+- Bottom 18%: A subtle phone mockup peeking from bottom-right showing the
+  registration success screen (small, 30% of bottom area). Orange pill
+  button reading "ลองให้ลูกค้าสมัคร" + tiny navy text "support@linforgehr.com".
+
+STYLE: Editorial / infographic. Background: warm cream-white #FAFAF7.
+Icons: monoline orange #FB923C strokes. Text in navy. NO EMOJI, NO PEOPLE.
+8K render with correctly rendered Thai text.
+```
+
+---
+
+## TEMPLATE D — Metric Hero (ตัวเลขเด่น)
+
+### D1 — "ลดเวลาเอกสาร 70%"
+
+```
+A bold "metric hero" SaaS marketing ad, 1080×1080 square.
+
+LAYOUT:
+- Hero center: A MASSIVE orange number "70%" in a custom serif/display
+  font, taking up 40% of the canvas height, color #FB923C with a subtle
+  inner shadow.
+- Above the number: small orange pill "ผลลัพธ์จริงจากลูกค้า"
+- Below the number (in navy): "เวลาทำเอกสาร HR ที่ลดลง — เดือนแรก"
+- Around the number: 3 small floating proof cards arranged in an arc:
+    Card top-left: "ลา → 3 วินาที" (small phone icon outline)
+    Card top-right: "อนุมัติ → 1 คลิก" (small thumbs-up outline)
+    Card bottom-center: "AI ตอบเป็นภาษาไทย" (small sparkle outline)
+  Each card has a thin navy border and white background.
+- Bottom 12%: Orange pill button "อ่านเคสจริง →" + tiny text "โรงงานชลบุรี · 120 คน · 6 เดือน"
+
+STYLE: Bold typographic poster, like Stripe or Linear's metric ads.
+White background with subtle orange radial glow behind the number.
+NO EMOJI, NO PEOPLE. Render all Thai text correctly. 8K.
+```
+
+---
+
+## TEMPLATE E — Feature Cards (4-grid)
+
+### E1 — "6 ฟีเจอร์ ใน 1 LINE OA"
+
+```
+A SaaS feature-showcase ad, 1080×1080 square.
+
+LAYOUT:
+- Top 15%: Thai headline "6 ฟีเจอร์ HR — ใน 1 LINE OA" in bold navy,
+  centered. Below in small gray: "ไม่ต้องโหลดแอป ไม่ต้องล็อกอินใหม่"
+
+- Middle 70%: A 3×2 grid of feature cards (3 columns, 2 rows), each card
+  with a white background, thin navy-100 border, soft shadow. Each card
+  contains a monoline orange icon (40px), a Thai label (semi-bold navy),
+  and a one-line Thai sub-text (gray):
+
+    Card 1: icon "calendar-clock" — "ขอลางาน" / "ดูโควต้าคงเหลือทันที"
+    Card 2: icon "timer"         — "ขอ OT" / "คิดค่าล่วงเวลาให้อัตโนมัติ"
+    Card 3: icon "receipt"       — "สลิปเงินเดือน" / "ดูย้อนหลังทุกเดือน"
+    Card 4: icon "calendar-grid" — "ตารางงาน" / "drag-drop รายสัปดาห์"
+    Card 5: icon "map-pin"       — "เข้า-ออกงาน" / "GPS + IP + รูป 3 ชั้น"
+    Card 6: icon "sparkles"      — "AI ผู้ช่วย" / "ตอบเป็นภาษาไทย/EN/中文"
+
+- Bottom 15%: Orange pill button "ดูสาธิตทั้ง 6 ระบบ" + tiny text
+  "เริ่มต้น $100/เดือน · ทดลองฟรี 30 วัน · linforgehr.com"
+
+STYLE: Notion / Linear feature page style. Background: off-white #F8FAFC.
+Cards crisp, evenly spaced, plenty of whitespace. NO EMOJI, NO PEOPLE.
+Thai text rendered perfectly. 8K.
+```
+
+---
+
+## TEMPLATE F — Persona-based ("เป็นเรื่องของคุณ")
+
+### F1 — "HR ที่ตอบแชทเดิมทุกวัน"
+
+```
+A persona-driven SaaS ad, 1080×1350 portrait.
+
+LAYOUT:
+- Top 15%: Thai headline "HR ไม่ควรเสียเวลาตอบคำถามเดิมทุกวัน" in bold navy.
+
+- Middle 60%: Compositional split.
+  LEFT (40%): Stylized line-art portrait of an exhausted Thai female HR
+  officer (early 30s, bun hairstyle, blouse) holding her head, surrounded
+  by 4 chat-bubble shapes with Thai text inside each bubble:
+    "เหลือวันลากี่วัน?"
+    "ขอสลิปย้อนหลัง"
+    "อนุมัติ OT หรือยัง?"
+    "ลืมกดเข้างานทำไง?"
+  Drawn in monoline navy strokes on white background.
+
+  RIGHT (60%): A photorealistic phone mockup showing the ForgeHR AI
+  chat screen answering the same questions, with a green check badge
+  floating top-right. The phone has a soft orange glow halo.
+
+- Bottom 25%: 3 small benefit pills in a row:
+  "ตอบ 24 ชม. ไม่หยุด" · "ภาษาไทย/EN/中文" · "เชื่อมข้อมูลสด"
+  Below: Orange pill button "ให้ AI ตอบแทนคุณ →"
+
+STYLE: Editorial illustration left + product photography right. Mood:
+sympathetic but solution-forward. Navy and orange accent only. NO EMOJI.
+Realistic Thai text. 8K.
+```
+
+---
+
+## TEMPLATE G — Comparison Table (vs Excel)
+
+### G1 — "Excel vs LinForge HR"
+
+```
+A SaaS comparison ad, 1080×1080 square, designed like a clean SaaS
+landing-page comparison table.
+
+LAYOUT:
+- Top 12%: Thai headline "ทำไมเลิกใช้ Excel แล้วเปลี่ยนมา LinForge HR" in bold navy.
+
+- Middle 75%: A two-column comparison table with rounded corners.
+
+  COLUMN 1 — header "Excel / Manual" with a small gray X icon, gray
+  background:
+    "ต้องกรอกเอง · พลาดง่าย"
+    "ไม่มีแจ้งเตือน"
+    "หาเอกสารย้อนหลังลำบาก"
+    "ไม่มี audit log"
+    "พนักงานต้องสอนทุกครั้ง"
+
+  COLUMN 2 — header "LinForge HR" with a small emerald check icon,
+  navy background, white text:
+    "พนักงานกรอกผ่าน LINE ใน 30 วินาที"
+    "Flex card แจ้งเตือนทันที"
+    "Audit log ครบทุก action"
+    "พนักงานเปิด LINE ของตัวเอง"
+    "AI ช่วยตอบคำถาม HR ตลอด 24 ชม."
+
+  Rows alternate background slightly for readability.
+
+- Bottom 13%: Orange pill button "ทดลองใช้ฟรี 30 วัน →" + tiny text
+  "ไม่ต้องผูกบัตร · ย้ายข้อมูลจาก Excel ฟรี"
+
+STYLE: Linear / Notion comparison-table aesthetic. Crisp, minimal,
+typography-forward. NO EMOJI, NO PEOPLE. Thai text precise. 8K.
+```
+
+---
+
+## ประโยค Hook ที่ขายดี (ใช้ใน headline ของภาพ)
+
+| # | Hook | สิ่งที่สื่อ |
+|---|---|---|
+| H1 | "ลา OT เช็คอิน — จบในแชท LINE" | Zero-friction |
+| H2 | "เลิก Excel หลายแผ่น เปิด LINE จัดการ HR ครบ" | Pain killer |
+| H3 | "HR ครบทั้งระบบ + AI — $100/เดือน" | ราคา hook |
+| H4 | "5 นาที จาก signup ถึงพนักงานคนแรกใช้งาน" | Time-to-value |
+| H5 | "AI ผู้ช่วย HR คนไทย พูดได้ 3 ภาษา" | AI angle |
+| H6 | "พนักงานปั๊มบัตรแทนกัน? เราตรวจ 3 ชั้น" | Anti-fraud |
+| H7 | "ลดงาน HR ซ้ำ ๆ 70% ในเดือนแรก" | Metric proof |
+| H8 | "Drag-drop ตารางทำงาน ทั้งของตัวเองและทีม" | Schedule UX |
+| H9 | "ระบบที่ดี ระเบียบที่ง่าย เพียงคลิ้กๆ ก็จบ" | Slogan |
+| H10 | "เพิ่ม LINE OA ทีเดียว — เปิดประตู HR ทั้งหมด" | Onboarding |
+
+---
+
+## Sub-description (ตัวอักษรเล็กใต้ hook — สำคัญมาก ต้อง wow)
+
+| # | Sub | คู่กับ Hook |
+|---|---|---|
+| S1 | "พัฒนาโดยทีม HR + AI Engineers · พร้อมใช้ในไทยและอาเซียน" | H1, H3 |
+| S2 | "ไม่มีค่า setup · ไม่ต้องเทรนพนักงาน · ยกเลิกได้ตลอด" | H3, H4 |
+| S3 | "Geofence + IP whitelist + รูปยืนยัน — ป้องกันโกงเวลา 100%" | H6 |
+| S4 | "อ่าน database สด ตอบคำถาม HR ได้ทันที 24 ชม." | H5 |
+| S5 | "ใช้กับโรงงาน ร้านอาหาร office ทั้งคนเข้างาน onsite และ remote" | H1, H2 |
+| S6 | "ลด Excel 80% · ลดการโทรตามใบลา 95%" | H7 |
+| S7 | "ทดลองฟรี 30 วัน · ไม่ต้องผูกบัตร · บิลรายเดือน" | H3 |
+
+---
+
+## CTA buttons (ใช้ใน pill ด้านล่างของภาพ)
+
+- **Primary**: "ทดลองใช้ฟรี 30 วัน →" (orange BG, white text)
+- **Secondary**: "ดูสาธิต 60 วินาที →" (transparent BG, navy border)
+- **Sales-led**: "นัดทีมขายผ่าน LINE →" (emerald BG, white text)
+- **Urgency**: "เริ่มต้นแค่ $100/เดือน · ลด 20% ปีนี้" (white BG, navy text)
+
+---
+
+## Posting cadence (Recommended)
+
+| Week | Template | Hook | Goal |
 |---|---|---|---|
-| **H1** | **"ลา OT เช็คอิน — จบในแชท LINE ที่ทีมคุณใช้ทุกวัน"** | กระชับ, friction zero | Hero ad, Facebook feed |
-| **H2** | **"เลิก Excel หลายแผ่น เปิด LINE แล้วจัดการ HR ครบเลย"** | ปัญหา → ทางออกชัด | Carousel ad slide 1 |
-| **H3** | **"HR ทั้งระบบ + AI ช่วยคิด — ราคา 99 บาท/คน/เดือน"** | ราคา hook + AI | Retargeting ad |
-| **H4** | **"พนักงานโกงเวลาเข้างาน? เรามี Geofence + IP + รูป 3 ชั้น"** | Pain point ตรงจุด | สำหรับโรงงาน/ก่อสร้าง |
-| **H5** | **"ระบบที่ดี ระเบียบที่ง่าย เพียงคลิ้กๆ ก็จบ"** | Slogan tagline | Header/footer ทุก post |
+| 1 | A (Product+Outcome) | H1 / H3 | Awareness |
+| 2 | B (Before/After) | H2 | Pain killer |
+| 3 | D (Metric hero) | H7 | Performance ads |
+| 4 | C (3-step flow) | H4 / H10 | Conversion |
+| 5 | F (Persona) | H5 | Decision-makers |
+| 6 | E (Feature 4-grid) | H8 / H10 | Re-marketing |
+| 7 | G (Comparison) | H2 / H9 | Final push |
 
-### Sub-headline (ใช้คู่กับ H1-H5)
-
-- "ไม่ต้องโหลดแอปใหม่ ไม่ต้องเทรนพนักงาน เพิ่ม LINE เป็นเพื่อน 5 นาทีเริ่มใช้ได้"
-- "พัฒนาโดยทีม HR + AI Engineers รองรับ ไทย/อังกฤษ/จีน"
-- "ทดลองใช้ฟรี 30 วัน — ยกเลิกได้ตลอด ไม่มี hidden cost"
-
----
-
-## 2) Image prompts ตามแคมเปญ
-
-### 2.1 Hero banner — "HR ครบใน LINE"
-**ขนาด: 1920×1080 (Facebook feed) / 1080×1080 (Instagram)**
-
-```
-Professional flat-lay photograph from directly above, showing a Samsung Galaxy
-smartphone on a white minimalist desk. The phone screen displays a LINE chat
-interface in Thai with a leave-request approval card (navy header, orange accent
-buttons, no emojis, formal Thai text). Beside the phone: a sleek white coffee
-cup, a navy-blue Moleskine notebook embossed with subtle "LinForge HR" logo, a
-modern brushed-aluminum pen. Soft natural morning light from upper-left
-creating gentle shadows. Background is pure white seamless paper with subtle
-texture. Corporate, minimal, premium Thai SME aesthetic. Color palette: navy
-#0F172A, orange #FB923C, white. NO TEXT OVERLAY in image, NO EMOJI, no people.
-8K professional photography, depth of field on the phone screen.
-```
-
-### 2.2 Feature carousel — "GPS เช็คอิน ป้องกันโกง"
-**ใช้เป็นภาพประกอบสำหรับฟีเจอร์ check-in**
-
-```
-Photograph of a Thai factory worker (mid-30s, wearing navy-blue work uniform
-with subtle orange logo on chest) holding a smartphone displaying a clock-in
-screen with geofence map overlay. Worker stands at the gate of a clean modern
-Thai factory, soft early-morning light. The phone screen shows a circular
-radius zone in orange on a map, with a "verified" checkmark in green. Worker's
-expression is calm and focused. Behind: factory entrance with "LinForge HR"
-sign integrated subtly into the wayfinding signage. Realistic, documentary
-style, shallow depth of field. Avoid Western clothing or non-Thai facial
-features. NO EMOJI, NO TEXT OVERLAY in the photo itself.
-```
-
-### 2.3 "Boss approves in LINE" — for managers segment
-
-```
-Close-up over-the-shoulder shot of a Thai senior manager (40s, wearing a crisp
-white shirt and navy slacks) sitting in a modern Bangkok co-working space.
-Holding a phone showing a LINE chat with a Flex card (navy header, formal
-Thai title "แบบขออนุมัติการลา", clean detail rows, two buttons in emerald and
-red — no emoji visible). Manager's thumb hovering over the green "approve"
-button. Background slightly blurred showing a laptop, a glass of water, and
-warm afternoon window light. Cinematic, premium business feel. Color tone:
-warm whites, deep navy, accent orange. NO EMOJI, NO TEXT OVERLAY.
-```
-
-### 2.4 "AI Assistant" — premium tech vibe
-
-```
-Studio product shot of a smartphone floating mid-air against a navy gradient
-background. The screen shows the ForgeHR AI chat interface in Thai, with a
-single message bubble visible. Around the phone, soft glowing orange particles
-suggest AI processing. Subtle navy and orange lighting from below. Premium,
-futuristic, but still corporate. Minimal — no clutter. Aspect 1:1 for
-Instagram or 9:16 for Stories/Reels. NO EMOJI, NO TEXT OVERLAY. Photorealistic
-rendering, sharp focus on the screen, 8K.
-```
-
-### 2.5 "ตารางงานง่ายแค่ลาก-วาง"
-
-```
-Top-down view of a young Thai office worker's hands (gender-neutral, wearing
-a casual neat sweater in cream) using a smartphone on a wooden cafe table. The
-phone screen shows a colorful weekly schedule grid (7 columns × 3 rows: work
-in navy, OT in orange, leave in emerald). Cup of Thai milk tea beside the
-phone, soft cafe lighting. Cozy, productive, modern Thai urban lifestyle.
-Aspect 4:5 for Instagram feed. NO EMOJI in screen design, NO TEXT OVERLAY in
-the photo. Professional lifestyle photography.
-```
-
-### 2.6 "0 ค่า onboarding — เพิ่ม LINE เป็นเพื่อน" — viral hook
-
-```
-Close-up of a Thai female HR officer (30s, professional attire) smiling
-slightly while showing her phone screen to two factory employees. The phone
-displays a "เพิ่มเพื่อน" / "Add Friend" screen for the LinForge HR LINE OA, with
-a QR code visible. The two employees lean in, expressions warm and curious.
-Background: clean factory administrative office, soft warm overhead lighting,
-green plants in the corner. Real, candid, documentary style. Captures the
-"this is so easy, no app needed" feeling. NO EMOJI, NO TEXT OVERLAY in photo.
-```
-
-### 2.7 "Dashboard ฝั่ง HR" — desktop split
-
-```
-Wide cinematic shot of a Thai HR manager (40s, female, blazer over blouse)
-sitting at a modern desk in a Bangkok office. On her left: a large iMac-style
-monitor showing a clean HR dashboard (navy sidebar, white content, orange
-accent KPIs). On her right: a smartphone showing the same data in the
-employee LIFF app. She gestures between them. Soft natural window light,
-plants in background. Conveys: "same data, two surfaces, one platform."
-Premium SaaS look. Aspect 16:9. NO EMOJI, NO TEXT OVERLAY in the photo.
-```
-
----
-
-## 3) Background / texture prompts (สำหรับใช้เป็น base graphic)
-
-### 3.1 Navy-orange gradient mesh
-
-```
-Abstract premium gradient background, deep navy #0F172A blending into orange
-#FB923C glow on the upper-right corner. Subtle noise grain texture. No
-subjects, no objects, no text. 16:9 aspect ratio, 8K, suitable as a
-presentation slide background.
-```
-
-### 3.2 Thai SME office vibe
-
-```
-Slightly out-of-focus background of a small Thai SME office: white walls with
-a single orange accent wall, wooden desk, a potted Monstera plant, blurred
-laptop on the desk, soft afternoon light. Boke quality, dreamy but
-professional. Aspect 16:9. Use as background for testimonial overlays.
-```
-
----
-
-## 4) Caption templates (สำหรับใช้คู่กับภาพ)
-
-### Caption #1 — Pain point hook
-> หัวหน้ายังต้องเปิด Excel ตามใบลาอยู่หรือเปล่า?
->
-> LinForge HR ย้ายงาน HR ทั้งระบบมาอยู่ใน LINE ที่ทีมคุณเปิดทุกวันแล้ว
-> · ลา OT เช็คอิน สลิป ตารางงาน — กดใน LINE ทุกอย่าง
-> · AI ผู้ช่วยส่วนตัว ตอบเป็นภาษาไทย
-> · เริ่มต้น 99 บาท/คน/เดือน ทดลองฟรี 30 วัน
->
-> ดูตัวอย่างที่ → ec-hr-one.vercel.app
-
-### Caption #2 — Feature focus (Check-in)
-> โกงเวลาเข้างาน? พนักงานปั๊มบัตรแทนกัน?
->
-> ระบบเช็คอินของเราตรวจ 3 ชั้น
-> ✓ Geofence — ต้องอยู่ในรัศมีโรงงาน
-> ✓ IP whitelist — Wi-Fi ของบริษัทเท่านั้น
-> ✓ Photo verify — ถ่ายรูปตอนกดเข้างาน
->
-> ทุกอย่างใน LINE ที่พนักงานเปิดอยู่แล้ว
-
-### Caption #3 — AI angle
-> AI ตัวแรกของไทย ที่อ่าน HR database ของคุณได้แบบเรียลไทม์
->
-> "ใครสายวันนี้บ้าง" — ตอบใน 3 วินาที
-> "ออกสลิปเดือนพ.ค.ของ EMP005" — ทำให้เลย
-> "ร่างประกาศวันหยุดสงกรานต์ 3 ภาษา" — ส่งกลับมาให้ตรวจ
->
-> ForgeHR Assistant · Claude Sonnet 4.6 · พัฒนาโดยทีม HR + AI
-
-### Caption #4 — Quick start
-> 5 นาที จาก signup ถึงพนักงานคนแรกใช้งาน
->
-> 1. สมัครที่เว็บ → 2. เพิ่ม LINE OA เป็นเพื่อน → 3. ใช้ได้เลย
->
-> ไม่ต้องสอนพนักงาน ไม่ต้องเขียน manual ไม่ต้องตั้ง server เอง
-> "ระบบที่ดี ระเบียบที่ง่าย เพียงคลิ้กๆ ก็จบ"
-
----
-
-## 5) Recommended posting cadence
-
-| สัปดาห์ | ภาพ | Caption | Goal |
-|---|---|---|---|
-| 1 | Hero banner (2.1) | Pain point hook (#1) | Awareness |
-| 2 | Check-in factory (2.2) | Feature focus (#2) | Industry-specific (โรงงาน) |
-| 3 | AI premium (2.4) | AI angle (#3) | Tech-forward SME |
-| 4 | Quick onboard (2.6) | Quick start (#4) | Conversion close |
-| 5 | Dashboard split (2.7) | Manager testimonial | B2B decision-makers |
-
-ทำ remix ใหม่ทุก 2 เดือนเพื่อหลีกเลี่ยง ad fatigue
+หมุน creative ทุก 60 วันเพื่อหลีกเลี่ยง ad fatigue
