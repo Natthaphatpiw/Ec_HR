@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Calendar, Clock, Home, MessageCircle, Receipt } from "lucide-react";
+import { Calendar, Clock, Home, Receipt, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const HIDDEN_PATHS = new Set(["/liff/register", "/liff/onboard"]);
+const HIDDEN_PATHS = new Set([
+  "/liff/register",
+  "/liff/register-supervisor",
+  "/liff/onboard",
+]);
 
 export function LiffBottomNav() {
   const pathname = usePathname();
@@ -19,7 +23,7 @@ export function LiffBottomNav() {
     { href: "/liff/checkin", label: t("checkin"), icon: Clock },
     { href: "/liff/my-attendance", label: t("attendance"), icon: Calendar },
     { href: "/liff/payslip", label: t("payslip"), icon: Receipt },
-    { href: "/liff/ai-chat", label: t("ai"), icon: MessageCircle },
+    { href: "/liff/profile", label: t("profile"), icon: User },
   ];
 
   return (

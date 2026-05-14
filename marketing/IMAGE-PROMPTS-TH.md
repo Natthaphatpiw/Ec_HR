@@ -19,8 +19,6 @@
 | Sub-description | 1–2 บรรทัด อธิบาย feature/benefit สั้นๆ แต่ wow |
 | Tools | Midjourney v6+, DALL·E 3, Flux 1.1 Pro, Imagen 3, Ideogram (ดี text rendering) |
 
-> **เครื่องมือแนะนำที่สุดสำหรับ text-in-image**: **Ideogram 2.0** หรือ **DALL·E 3** เพราะ render ตัวอักษรไทย/อังกฤษได้ค่อนข้างถูก
-
 ---
 
 ## TEMPLATE A — Product Screenshot + Big Outcome (ใช้บ่อยที่สุด)

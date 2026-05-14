@@ -1,43 +1,20 @@
 import { Lock, MessageCircle, Sparkles, UserPlus } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { LiffHeader } from "@/components/liff/header";
-import { LiffInit } from "@/components/liff/liff-init";
-import { NeedsRegistration } from "@/components/liff/needs-registration";
+import { guardLiffPage } from "@/components/liff/page-guard";
 import { AiChat } from "@/components/dashboard/ai-chat";
 import { ContactForm } from "@/components/liff/contact-form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { getRegistrationStatus } from "@/lib/data";
-import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 
 export default async function LiffAiChatPage() {
   const t = await getTranslations("liff.aiChat");
-  const lineUserId = await getLiffUserIdFromCookie();
-
-  if (!lineUserId) {
-    return (
-      <>
-        <LiffHeader title={t("title")} />
-        <main className="px-3 pb-3 pt-3">
-          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_AI_CHAT} />
-        </main>
-      </>
-    );
-  }
-
-  const registration = await getRegistrationStatus(lineUserId);
-  if (registration.state !== "active") {
-    return (
-      <>
-        <LiffHeader title={t("title")} />
-        <main className="px-3 pb-3 pt-3">
-          <NeedsRegistration status={registration.state} />
-        </main>
-      </>
-    );
-  }
-
-  const me = registration.employee;
+  const guard = await guardLiffPage({
+    title: t("title"),
+    liffId: process.env.NEXT_PUBLIC_LIFF_ID_AI_CHAT,
+  });
+  if (!guard.ok) return guard.view;
+  const me = guard.employee;
   // AI is gated to anyone who supervises others, or has the HR/executive role.
   const canUseAi = !!me.is_supervisor || me.role === "hr" || me.role === "executive";
 

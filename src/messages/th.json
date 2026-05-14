@@ -373,7 +373,8 @@
       "attendance": "ประวัติ",
       "leave": "ลา",
       "payslip": "สลิป",
-      "ai": "AI"
+      "ai": "AI",
+      "profile": "โปรไฟล์"
     },
     "register": {
       "title": "ลงทะเบียนพนักงานใหม่",

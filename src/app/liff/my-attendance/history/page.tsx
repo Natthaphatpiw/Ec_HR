@@ -1,40 +1,21 @@
 import { getTranslations } from "next-intl/server";
 import { Calendar, CheckCircle2, Clock } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
-import { LiffInit } from "@/components/liff/liff-init";
-import { NeedsRegistration } from "@/components/liff/needs-registration";
+import { guardLiffPage } from "@/components/liff/page-guard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getRegistrationStatus, listAttendanceForEmployee } from "@/lib/data";
-import { getLiffUserIdFromCookie } from "@/lib/liff-session";
+import { listAttendanceForEmployee } from "@/lib/data";
 import { formatDate, formatTime } from "@/lib/utils";
 
 export default async function AttendanceHistoryPage() {
   const t = await getTranslations("liff.myAttendance");
-  const lineUserId = await getLiffUserIdFromCookie();
-  if (!lineUserId) {
-    return (
-      <>
-        <LiffHeader title={t("hub.historyTitle")} />
-        <main className="px-4 pb-6 pt-3">
-          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE} />
-        </main>
-      </>
-    );
-  }
-  const registration = await getRegistrationStatus(lineUserId);
-  if (registration.state !== "active") {
-    return (
-      <>
-        <LiffHeader title={t("hub.historyTitle")} />
-        <main className="px-4 pb-6 pt-3">
-          <NeedsRegistration status={registration.state} />
-        </main>
-      </>
-    );
-  }
-  const attendance = await listAttendanceForEmployee(registration.employee.id);
+  const guard = await guardLiffPage({
+    title: t("hub.historyTitle"),
+    liffId: process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE,
+  });
+  if (!guard.ok) return guard.view;
+  const attendance = await listAttendanceForEmployee(guard.employee.id);
 
   const ontime = attendance.filter((a) => a.status === "ontime").length;
   const late = attendance.filter((a) => a.status === "late").length;

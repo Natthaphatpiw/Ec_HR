@@ -8,17 +8,19 @@ import {
   PlaneTakeoff,
   Receipt,
   TrendingUp,
+  User,
   Users,
 } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
 import { LiffInit } from "@/components/liff/liff-init";
 import { NeedsRegistration } from "@/components/liff/needs-registration";
+import { TrialBanner, TrialBlockedView } from "@/components/liff/trial-gate";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
-  getEmployeeByLineId,
   getEmployeeName,
   getLeaveBalance,
+  getOrgTrialStatus,
   getRegistrationStatus,
   listAttendanceForEmployee,
   listTeamForSupervisor,
@@ -53,6 +55,17 @@ export default async function LiffHome() {
   }
 
   const me = registration.employee;
+  const trial = await getOrgTrialStatus(me.org_id);
+  if (!trial.ok) {
+    return (
+      <>
+        <LiffHeader />
+        <main className="px-4 pb-6 pt-3">
+          <TrialBlockedView trial={trial} />
+        </main>
+      </>
+    );
+  }
   const [attendance, balance, team] = await Promise.all([
     listAttendanceForEmployee(me.id),
     getLeaveBalance(me.id),
@@ -64,6 +77,9 @@ export default async function LiffHome() {
     <>
       <LiffHeader />
       <main className="px-4 pb-6 pt-3">
+        <div className="mb-3">
+          <TrialBanner trial={trial} />
+        </div>
         <section className="mb-4 rounded-2xl bg-navy-900 p-5 text-white">
           <div className="flex items-center gap-3">
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-orange-400 text-lg font-semibold">
@@ -109,13 +125,14 @@ export default async function LiffHome() {
             desc="Annual · Sick"
           />
           <ActionTile href="/liff/request-ot" icon={TrendingUp} title="Request OT" desc="1.5x · 2x · 3x" />
-          <ActionTile href="/liff/payslip" icon={Receipt} title="Payslip" desc="Latest" />
+          <ActionTile href="/liff/payslip" icon={Receipt} title="Payslip" desc="SSO 2026" />
           <ActionTile
             href="/liff/my-attendance"
             icon={Calendar}
             title="My Attendance"
             desc={me.is_supervisor ? "Own + team schedule" : "This month"}
           />
+          <ActionTile href="/liff/profile" icon={User} title="Profile" desc="แก้ไขข้อมูล" />
           <ActionTile href="/liff/ai-chat" icon={MessageCircle} title="ForgeHR AI" desc="Ask anything" />
         </section>
 

@@ -1,19 +1,36 @@
 export type Role = "employee" | "supervisor" | "hr" | "executive";
 export type AttendanceType = "in" | "out";
 export type AttendanceStatus = "ontime" | "late" | "absent" | "early";
+export type AttendanceSource = "liff" | "web" | "line_bot" | "admin_correction";
 export type LeaveType = "annual" | "sick" | "maternity" | "personal";
 export type RequestStatus = "pending" | "approved" | "rejected";
-export type AccountStatus = "pending_review" | "active" | "inactive";
+export type AccountStatus = "pending_review" | "active" | "inactive" | "awaiting_supervisor";
 export type Locale = "en" | "th" | "zh";
+export type OrgTier = "free" | "starter" | "pro" | "enterprise";
+export type BusinessType = "factory" | "restaurant" | "retail" | "clinic" | "service" | "logistics" | "construction" | "office" | "other";
+export type EmploymentType = "full_time" | "part_time" | "contractor" | "intern" | "daily_wage" | "other";
+export type Gender = "male" | "female" | "other" | "prefer_not_to_say";
+export type MaritalStatus = "single" | "married" | "divorced" | "widowed" | "other";
+export type HomeLocationSource = "gps" | "maps_url" | "manual";
 
 export interface Organization {
   id: string;
   name: string;
+  business_name: string;
+  business_name_norm: string;
+  business_type: BusinessType | null;
   timezone: string;
   thai_tax_id: string | null;
   geofence_lat: number | null;
   geofence_lng: number | null;
   geofence_radius: number;
+  owner_employee_id: string | null;
+  tier: OrgTier;
+  seat_limit: number;
+  trial_started_at: string | null;
+  trial_ends_at: string | null;
+  is_active: boolean;
+  plan_notes: string | null;
   created_at: string;
 }
 
@@ -25,53 +42,137 @@ export interface Employee {
   name_th: string | null;
   name_en: string | null;
   name_zh: string | null;
+  nickname: string | null;
   role: Role;
   department: string | null;
   position: string | null;
+  job_title: string | null;
   shift_group: string | null;
   base_salary: number | null;
   bank_account: string | null;
   sso_number: string | null;
   account_status: AccountStatus;
-  phone?: string | null;
-  national_id?: string | null;
-  date_of_birth?: string | null;
-  address?: string | null;
-  emergency_contact?: string | null;
-  id_card_photo_url?: string | null;
-  bank_book_photo_url?: string | null;
-  profile_photo_url?: string | null;
-  rejection_reason?: string | null;
-  submitted_at?: string | null;
-  approved_at?: string | null;
-  approved_by_id?: string | null;
-  leave_supervisor_id?: string | null;
-  ot_supervisor_id?: string | null;
-  contact_supervisor_id?: string | null;
-  is_supervisor?: boolean;
-  subordinate_ids?: string[];
+  phone: string | null;
+  national_id: string | null;
+  date_of_birth: string | null;
+  gender: Gender | null;
+  nationality: string | null;
+  marital_status: MaritalStatus | null;
+  hire_date: string | null;
+  employment_type: EmploymentType;
+  address: string | null;
+  emergency_contact: string | null;
+  home_lat: number | null;
+  home_lng: number | null;
+  home_location_label: string | null;
+  home_location_source: HomeLocationSource | null;
+  id_card_photo_url: string | null;
+  bank_book_photo_url: string | null;
+  profile_photo_url: string | null;
+  line_picture_url: string | null;
+  line_display_name: string | null;
+  rejection_reason: string | null;
+  submitted_at: string | null;
+  approved_at: string | null;
+  approved_by_id: string | null;
+  leave_supervisor_id: string | null;
+  ot_supervisor_id: string | null;
+  contact_supervisor_id: string | null;
+  is_supervisor: boolean;
+  subordinate_ids: string[];
+  pdpa_consent_at: string | null;
+  metadata: Record<string, unknown>;
+  notes: string | null;
   created_at: string;
 }
 
+export interface SupervisorGrant {
+  leave: boolean;
+  overtime: boolean;
+  contact: boolean;
+}
+
+export interface SubordinateLink {
+  /** Free-form name typed by the supervisor — used for fuzzy lookup */
+  name: string;
+  /** Resolved employee id once a match is found in the same org */
+  employee_id?: string;
+  /** Permissions the supervisor will hold over this subordinate */
+  grant: SupervisorGrant;
+}
+
 export interface RegistrationInput {
+  /** LINE identity */
   line_user_id: string;
   display_name: string;
   picture_url?: string;
+  /** Tenancy: required — joins existing org or creates new one */
+  business_name: string;
+  business_type?: BusinessType;
+  /** Personal */
   name_th: string;
   name_en?: string;
   name_zh?: string;
-  date_of_birth: string;
-  national_id: string;
+  nickname?: string;
+  date_of_birth?: string;
+  national_id?: string;
   phone: string;
-  address: string;
-  emergency_contact: string;
-  department: string;
-  position: string;
+  gender?: Gender;
+  /** Contact */
+  address?: string;
+  emergency_contact?: string;
+  /** Job (all optional in SaaS — different businesses care about different fields) */
+  department?: string;
+  position?: string;
+  job_title?: string;
   shift_group?: string;
+  employment_type?: EmploymentType;
+  hire_date?: string;
+  base_salary?: number;
   bank_account?: string;
+  /** Home location (used by attendance for transparency, not enforcement) */
+  home_lat?: number;
+  home_lng?: number;
+  home_location_label?: string;
+  home_location_source?: HomeLocationSource;
+  /** Docs (optional) */
   id_card_photo_url?: string;
   bank_book_photo_url?: string;
   profile_photo_url?: string;
+  /** PDPA */
+  pdpa_consent: boolean;
+  /** Role-specific (employee branch) */
+  add_supervisor?: boolean;
+  supervisor_name?: string;
+  supervisor_grant?: SupervisorGrant;
+  /** Role-specific (supervisor branch) */
+  is_supervisor?: boolean;
+  subordinates?: SubordinateLink[];
+}
+
+export interface SocialSecurityConfig {
+  id: string;
+  country: string;
+  effective_from: string;
+  effective_to: string | null;
+  rate_pct: number;
+  wage_floor: number;
+  wage_ceiling: number;
+  max_contribution: number;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ProfileEditAudit {
+  id: string;
+  org_id: string;
+  target_id: string;
+  edited_by: string;
+  field: string;
+  old_value: string | null;
+  new_value: string | null;
+  reason: string | null;
+  created_at: string;
 }
 
 export interface Shift {

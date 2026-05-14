@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -14,12 +13,12 @@ import {
   Loader2,
   Locate,
   MapPin,
-  Phone,
+  Plus,
   Send,
   ShieldX,
   Trash2,
   UserCircle2,
-  UserPlus,
+  Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -39,10 +38,10 @@ import {
 import { initLiff } from "@/lib/liff-client";
 import { cn } from "@/lib/utils";
 import {
-  checkRegistrationState,
-  submitRegistration,
-  type RegistrationStateResponse,
-} from "@/app/liff/register/actions";
+  checkSupervisorRegistrationState,
+  submitSupervisorRegistration,
+  type SupervisorRegistrationStateResponse,
+} from "@/app/liff/register-supervisor/actions";
 
 const BUSINESS_TYPES = [
   { value: "factory", labelTh: "โรงงาน / โรงงานผลิต" },
@@ -58,14 +57,17 @@ const BUSINESS_TYPES = [
 
 const TOTAL_STEPS = 5;
 
-type StepKey = "company" | "personal" | "job" | "location" | "supervisor";
-const STEP_KEYS: StepKey[] = ["company", "personal", "job", "location", "supervisor"];
+type StepKey = "company" | "personal" | "job" | "location" | "team";
+const STEP_KEYS: StepKey[] = ["company", "personal", "job", "location", "team"];
 
-// Lightweight Google Maps URL → {lat, lng} parser. Accepts:
-//   https://www.google.com/maps?q=13.7,100.5
-//   https://maps.app.goo.gl/...   (we cannot resolve without a network call;
-//                                  ask the user to paste an "@lat,lng" or "?q=" link)
-//   https://www.google.com/maps/place/.../@13.7,100.5,17z/...
+interface SubordinateRow {
+  id: string;
+  name: string;
+  grantLeave: boolean;
+  grantOvertime: boolean;
+  grantContact: boolean;
+}
+
 function parseMapsUrl(raw: string): { lat: number; lng: number } | null {
   if (!raw) return null;
   const atMatch = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -77,9 +79,7 @@ function parseMapsUrl(raw: string): { lat: number; lng: number } | null {
   return null;
 }
 
-export function RegisterForm() {
-  const t = useTranslations("liff.register");
-
+export function SupervisorRegisterForm() {
   // LIFF
   const [liffReady, setLiffReady] = useState(false);
   const [lineUserId, setLineUserId] = useState("");
@@ -87,16 +87,15 @@ export function RegisterForm() {
   const [pictureUrl, setPictureUrl] = useState("");
   const [demo, setDemo] = useState(false);
 
-  const [stateCheck, setStateCheck] = useState<RegistrationStateResponse | null>(null);
+  const [stateCheck, setStateCheck] = useState<SupervisorRegistrationStateResponse | null>(null);
 
-  // Form state
   const [step, setStep] = useState(0);
   const [pending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
 
   // Step 0 — company
   const [businessName, setBusinessName] = useState("");
-  const [businessType, setBusinessType] = useState<string>("factory");
+  const [businessType, setBusinessType] = useState<string>("other");
 
   // Step 1 — personal
   const [nameTh, setNameTh] = useState("");
@@ -122,14 +121,10 @@ export function RegisterForm() {
   const [emergencyContact, setEmergencyContact] = useState("");
   const [mapsUrl, setMapsUrl] = useState("");
 
-  // Step 4 — supervisor
-  const [addSupervisor, setAddSupervisor] = useState(false);
-  const [supervisorName, setSupervisorName] = useState("");
-  const [grantLeave, setGrantLeave] = useState(true);
-  const [grantOvertime, setGrantOvertime] = useState(true);
-  const [grantContact, setGrantContact] = useState(true);
+  // Step 4 — team
+  const [hasTeam, setHasTeam] = useState(false);
+  const [subs, setSubs] = useState<SubordinateRow[]>([]);
 
-  // Final
   const [pdpaConsent, setPdpaConsent] = useState(false);
 
   // Optional profile photo
@@ -138,7 +133,10 @@ export function RegisterForm() {
 
   useEffect(() => {
     let cancelled = false;
-    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_REGISTER).then(async (res) => {
+    initLiff(
+      process.env.NEXT_PUBLIC_LIFF_ID_REGISTER_SUPERVISOR ??
+        process.env.NEXT_PUBLIC_LIFF_ID_REGISTER,
+    ).then(async (res) => {
       if (cancelled) return;
       setDemo(res.demoMode);
       setLiffReady(true);
@@ -150,7 +148,7 @@ export function RegisterForm() {
           setProfilePreview(res.profile.pictureUrl);
           setProfileUrl(res.profile.pictureUrl);
         }
-        const status = await checkRegistrationState(res.profile.userId);
+        const status = await checkSupervisorRegistrationState(res.profile.userId);
         if (!cancelled) setStateCheck(status);
       }
     });
@@ -158,6 +156,25 @@ export function RegisterForm() {
       cancelled = true;
     };
   }, []);
+
+  function addSubordinate() {
+    setSubs((rows) => [
+      ...rows,
+      {
+        id: `sub-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        name: "",
+        grantLeave: true,
+        grantOvertime: true,
+        grantContact: true,
+      },
+    ]);
+  }
+  function removeSubordinate(id: string) {
+    setSubs((rows) => rows.filter((r) => r.id !== id));
+  }
+  function patchSubordinate(id: string, patch: Partial<SubordinateRow>) {
+    setSubs((rows) => rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  }
 
   function validateStep(): string | null {
     if (step === 0) {
@@ -168,10 +185,12 @@ export function RegisterForm() {
       if (!/^[+\-\d\s]{6,}$/.test(phone.trim())) return "เบอร์โทรไม่ถูกต้อง";
       if (nationalId && !/^\d{13}$/.test(nationalId.trim())) return "เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก";
     }
-    // Step 2 and 3 are entirely optional for SaaS flexibility
     if (step === 4) {
-      if (addSupervisor && !supervisorName.trim())
-        return "กรุณากรอกชื่อหัวหน้า หรือยกเลิกการเพิ่มหัวหน้า";
+      if (hasTeam) {
+        for (const s of subs) {
+          if (!s.name.trim()) return "มีลูกน้องที่ยังไม่ได้กรอกชื่อ — ลบหรือกรอกให้ครบ";
+        }
+      }
       if (!pdpaConsent) return "โปรดยอมรับเงื่อนไข PDPA";
     }
     return null;
@@ -179,22 +198,15 @@ export function RegisterForm() {
 
   function next() {
     const err = validateStep();
-    if (err) {
-      toast.error(err);
-      return;
-    }
+    if (err) return toast.error(err);
     setStep((s) => Math.min(s + 1, TOTAL_STEPS - 1));
   }
-
   function back() {
     setStep((s) => Math.max(s - 1, 0));
   }
 
   function pickGps() {
-    if (!navigator.geolocation) {
-      toast.error("เบราว์เซอร์ไม่รองรับการแชร์ตำแหน่ง");
-      return;
-    }
+    if (!navigator.geolocation) return toast.error("เบราว์เซอร์ไม่รองรับการแชร์ตำแหน่ง");
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setHomeLat(String(pos.coords.latitude));
@@ -212,12 +224,7 @@ export function RegisterForm() {
 
   function applyMapsUrl() {
     const parsed = parseMapsUrl(mapsUrl);
-    if (!parsed) {
-      toast.error(
-        'ไม่พบพิกัดในลิงก์ โปรดวาง "lat,lng" หรือ URL ที่มี @lat,lng',
-      );
-      return;
-    }
+    if (!parsed) return toast.error('วาง URL ที่มี @lat,lng หรือ "lat,lng" ตรงๆ');
     setHomeLat(String(parsed.lat));
     setHomeLng(String(parsed.lng));
     setHomeLabel(mapsUrl);
@@ -227,14 +234,9 @@ export function RegisterForm() {
 
   function submit() {
     const err = validateStep();
-    if (err) {
-      toast.error(err);
-      return;
-    }
-    if (!lineUserId) {
-      toast.error("ไม่พบข้อมูล LINE กรุณาเปิดหน้านี้ในแอป LINE");
-      return;
-    }
+    if (err) return toast.error(err);
+    if (!lineUserId) return toast.error("ไม่พบข้อมูล LINE กรุณาเปิดหน้านี้ในแอป LINE");
+
     const fd = new FormData();
     fd.set("lineUserId", lineUserId);
     fd.set("displayName", displayName);
@@ -259,17 +261,27 @@ export function RegisterForm() {
     fd.set("address", address.trim());
     fd.set("emergencyContact", emergencyContact.trim());
     fd.set("profilePhotoUrl", profileUrl);
-    if (addSupervisor) {
-      fd.set("addSupervisor", "on");
-      fd.set("supervisorName", supervisorName.trim());
-      if (grantLeave) fd.set("supervisorGrantLeave", "on");
-      if (grantOvertime) fd.set("supervisorGrantOvertime", "on");
-      if (grantContact) fd.set("supervisorGrantContact", "on");
+    if (hasTeam) {
+      fd.set(
+        "subordinatesJson",
+        JSON.stringify(
+          subs
+            .filter((s) => s.name.trim())
+            .map((s) => ({
+              name: s.name.trim(),
+              grant: {
+                leave: s.grantLeave,
+                overtime: s.grantOvertime,
+                contact: s.grantContact,
+              },
+            })),
+        ),
+      );
     }
     if (pdpaConsent) fd.set("pdpaConsent", "on");
 
     startTransition(async () => {
-      const res = await submitRegistration(fd);
+      const res = await submitSupervisorRegistration(fd);
       if (!res.ok) {
         if (res.duplicate === "line_user_id") toast.error("บัญชี LINE นี้ลงทะเบียนไว้แล้ว");
         else if (res.duplicate === "national_id") toast.error("เลขบัตรประชาชนนี้มีในระบบแล้ว");
@@ -296,7 +308,7 @@ export function RegisterForm() {
       <Card>
         <CardContent className="flex items-center justify-center gap-2 p-8 text-sm text-navy-500">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>{t("lineProfile")}…</span>
+          <span>กำลังเชื่อมต่อ LINE…</span>
         </CardContent>
       </Card>
     );
@@ -342,75 +354,46 @@ export function RegisterForm() {
           )}
           {step === 1 && (
             <PersonalStep
-              nameTh={nameTh}
-              setNameTh={setNameTh}
-              nameEn={nameEn}
-              setNameEn={setNameEn}
-              nickname={nickname}
-              setNickname={setNickname}
-              phone={phone}
-              setPhone={setPhone}
-              dateOfBirth={dateOfBirth}
-              setDateOfBirth={setDateOfBirth}
-              nationalId={nationalId}
-              setNationalId={setNationalId}
+              nameTh={nameTh} setNameTh={setNameTh}
+              nameEn={nameEn} setNameEn={setNameEn}
+              nickname={nickname} setNickname={setNickname}
+              phone={phone} setPhone={setPhone}
+              dateOfBirth={dateOfBirth} setDateOfBirth={setDateOfBirth}
+              nationalId={nationalId} setNationalId={setNationalId}
             />
           )}
           {step === 2 && (
             <JobStep
-              department={department}
-              setDepartment={setDepartment}
-              position={position}
-              setPosition={setPosition}
-              hireDate={hireDate}
-              setHireDate={setHireDate}
-              baseSalary={baseSalary}
-              setBaseSalary={setBaseSalary}
-              bankAccount={bankAccount}
-              setBankAccount={setBankAccount}
+              department={department} setDepartment={setDepartment}
+              position={position} setPosition={setPosition}
+              hireDate={hireDate} setHireDate={setHireDate}
+              baseSalary={baseSalary} setBaseSalary={setBaseSalary}
+              bankAccount={bankAccount} setBankAccount={setBankAccount}
             />
           )}
           {step === 3 && (
             <LocationStep
-              homeLat={homeLat}
-              homeLng={homeLng}
-              homeLabel={homeLabel}
-              homeSource={homeSource}
-              mapsUrl={mapsUrl}
-              setMapsUrl={setMapsUrl}
-              pickGps={pickGps}
-              applyMapsUrl={applyMapsUrl}
+              homeLat={homeLat} homeLng={homeLng}
+              homeLabel={homeLabel} homeSource={homeSource}
+              mapsUrl={mapsUrl} setMapsUrl={setMapsUrl}
+              pickGps={pickGps} applyMapsUrl={applyMapsUrl}
               clearLocation={() => {
-                setHomeLat("");
-                setHomeLng("");
-                setHomeLabel("");
-                setHomeSource("");
-                setMapsUrl("");
+                setHomeLat(""); setHomeLng(""); setHomeLabel(""); setHomeSource(""); setMapsUrl("");
               }}
-              address={address}
-              setAddress={setAddress}
-              emergencyContact={emergencyContact}
-              setEmergencyContact={setEmergencyContact}
+              address={address} setAddress={setAddress}
+              emergencyContact={emergencyContact} setEmergencyContact={setEmergencyContact}
             />
           )}
           {step === 4 && (
-            <SupervisorStep
-              addSupervisor={addSupervisor}
-              setAddSupervisor={setAddSupervisor}
-              supervisorName={supervisorName}
-              setSupervisorName={setSupervisorName}
-              grantLeave={grantLeave}
-              setGrantLeave={setGrantLeave}
-              grantOvertime={grantOvertime}
-              setGrantOvertime={setGrantOvertime}
-              grantContact={grantContact}
-              setGrantContact={setGrantContact}
-              pdpaConsent={pdpaConsent}
-              setPdpaConsent={setPdpaConsent}
-              profilePreview={profilePreview}
-              setProfilePreview={setProfilePreview}
-              profileUrl={profileUrl}
-              setProfileUrl={setProfileUrl}
+            <TeamStep
+              hasTeam={hasTeam} setHasTeam={setHasTeam}
+              subs={subs}
+              addSubordinate={addSubordinate}
+              removeSubordinate={removeSubordinate}
+              patchSubordinate={patchSubordinate}
+              pdpaConsent={pdpaConsent} setPdpaConsent={setPdpaConsent}
+              profilePreview={profilePreview} setProfilePreview={setProfilePreview}
+              profileUrl={profileUrl} setProfileUrl={setProfileUrl}
             />
           )}
         </CardContent>
@@ -440,7 +423,7 @@ export function RegisterForm() {
 }
 
 // =========================================================================
-// Step components
+// Steps (reused shape with the employee form, kept local to avoid coupling)
 // =========================================================================
 
 function StepIndicator({ step, total, stepNameKey }: { step: number; total: number; stepNameKey: StepKey }) {
@@ -449,7 +432,7 @@ function StepIndicator({ step, total, stepNameKey }: { step: number; total: numb
     personal: "ข้อมูลส่วนตัว",
     job: "ตำแหน่งและเงินเดือน",
     location: "ที่อยู่และตำแหน่ง",
-    supervisor: "หัวหน้าและความยินยอม",
+    team: "ลูกทีมและความยินยอม",
   };
   return (
     <div className="space-y-2">
@@ -514,14 +497,13 @@ function CompanyStep(p: {
     <div className="space-y-4">
       <div className="rounded-xl bg-orange-50 px-3 py-2.5 text-[12px] text-orange-700">
         <Building2 className="mr-1.5 inline h-3.5 w-3.5" />
-        ใส่ชื่อบริษัท / ธุรกิจที่คุณทำงาน — หากชื่อนี้ยังไม่เคยมีในระบบ จะสร้างองค์กรใหม่ให้
-        ทดลองใช้ฟรี 10 คน × 30 วัน
+        หากชื่อนี้ยังไม่เคยมีในระบบ จะสร้างองค์กรใหม่ให้ — คุณจะเป็น "เจ้าของ" และทดลองใช้ฟรี 10 คน × 30 วัน
       </div>
-      <Field label="ชื่อบริษัท / ธุรกิจ (ตัวหลัก)">
+      <Field label="ชื่อบริษัท / ธุรกิจ">
         <Input
           value={p.businessName}
           onChange={(e) => p.setBusinessName(e.target.value)}
-          placeholder="เช่น ร้านกาแฟลุงตู่, บจก. ไทยออโต้, คลินิกหมอเก่ง"
+          placeholder="เช่น ร้านกาแฟลุงตู่"
           required
         />
       </Field>
@@ -544,18 +526,12 @@ function CompanyStep(p: {
 }
 
 function PersonalStep(p: {
-  nameTh: string;
-  setNameTh: (v: string) => void;
-  nameEn: string;
-  setNameEn: (v: string) => void;
-  nickname: string;
-  setNickname: (v: string) => void;
-  phone: string;
-  setPhone: (v: string) => void;
-  dateOfBirth: string;
-  setDateOfBirth: (v: string) => void;
-  nationalId: string;
-  setNationalId: (v: string) => void;
+  nameTh: string; setNameTh: (v: string) => void;
+  nameEn: string; setNameEn: (v: string) => void;
+  nickname: string; setNickname: (v: string) => void;
+  phone: string; setPhone: (v: string) => void;
+  dateOfBirth: string; setDateOfBirth: (v: string) => void;
+  nationalId: string; setNationalId: (v: string) => void;
 }) {
   return (
     <div className="space-y-4">
@@ -563,7 +539,7 @@ function PersonalStep(p: {
         <Input value={p.nameTh} onChange={(e) => p.setNameTh(e.target.value)} required />
       </Field>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="ชื่อภาษาอังกฤษ (ถ้ามี)">
+        <Field label="ชื่อภาษาอังกฤษ">
           <Input value={p.nameEn} onChange={(e) => p.setNameEn(e.target.value)} />
         </Field>
         <Field label="ชื่อเล่น">
@@ -595,7 +571,6 @@ function PersonalStep(p: {
             maxLength={13}
             value={p.nationalId}
             onChange={(e) => p.setNationalId(e.target.value.replace(/\D/g, ""))}
-            placeholder="1234567890123"
           />
         </Field>
       </div>
@@ -604,35 +579,26 @@ function PersonalStep(p: {
 }
 
 function JobStep(p: {
-  department: string;
-  setDepartment: (v: string) => void;
-  position: string;
-  setPosition: (v: string) => void;
-  hireDate: string;
-  setHireDate: (v: string) => void;
-  baseSalary: string;
-  setBaseSalary: (v: string) => void;
-  bankAccount: string;
-  setBankAccount: (v: string) => void;
+  department: string; setDepartment: (v: string) => void;
+  position: string; setPosition: (v: string) => void;
+  hireDate: string; setHireDate: (v: string) => void;
+  baseSalary: string; setBaseSalary: (v: string) => void;
+  bankAccount: string; setBankAccount: (v: string) => void;
 }) {
   return (
     <div className="space-y-4">
       <div className="rounded-xl bg-navy-50 px-3 py-2.5 text-[12px] text-navy-600">
-        ทุกฟิลด์ในขั้นนี้เป็นทางเลือก — ไม่ระบุก็ได้ ใส่เพิ่มในหน้าโปรไฟล์ภายหลัง
+        ทุกฟิลด์เป็นทางเลือก — สามารถมาเพิ่ม / แก้ในหน้าโปรไฟล์ภายหลัง
       </div>
       <div className="grid grid-cols-2 gap-3">
         <Field label="แผนก / ทีม">
-          <Input
-            value={p.department}
-            onChange={(e) => p.setDepartment(e.target.value)}
-            placeholder="เช่น ครัว, ฝ่ายขาย"
-          />
+          <Input value={p.department} onChange={(e) => p.setDepartment(e.target.value)} />
         </Field>
         <Field label="ตำแหน่ง">
           <Input
             value={p.position}
             onChange={(e) => p.setPosition(e.target.value)}
-            placeholder="เช่น พนักงานเสิร์ฟ"
+            placeholder="เช่น ผู้จัดการร้าน"
           />
         </Field>
       </div>
@@ -646,48 +612,38 @@ function JobStep(p: {
             inputMode="decimal"
             value={p.baseSalary}
             onChange={(e) => p.setBaseSalary(e.target.value)}
-            placeholder="15000"
           />
         </Field>
       </div>
-      <Field label="เลขบัญชีธนาคาร (ถ้าต้องการรับเงินผ่านระบบ)">
+      <Field label="เลขบัญชีธนาคาร">
         <Input
           inputMode="numeric"
           value={p.bankAccount}
           onChange={(e) => p.setBankAccount(e.target.value)}
-          placeholder="123-4-56789-0"
         />
       </Field>
       <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 text-[11px] leading-relaxed text-navy-500">
-        ระบบคำนวณประกันสังคมให้อัตโนมัติเมื่อกำหนดเงินเดือน (กฎใหม่ 2569: 5% ของฐานเงินเดือน
-        สูงสุด 875 บาท/เดือน)
+        ระบบคำนวณประกันสังคมให้อัตโนมัติเมื่อกำหนดเงินเดือน (กฎ 2569: 5% × ฐาน, สูงสุด 875 บาท/เดือน)
       </div>
     </div>
   );
 }
 
 function LocationStep(p: {
-  homeLat: string;
-  homeLng: string;
-  homeLabel: string;
-  homeSource: string;
-  mapsUrl: string;
-  setMapsUrl: (v: string) => void;
-  pickGps: () => void;
-  applyMapsUrl: () => void;
+  homeLat: string; homeLng: string;
+  homeLabel: string; homeSource: string;
+  mapsUrl: string; setMapsUrl: (v: string) => void;
+  pickGps: () => void; applyMapsUrl: () => void;
   clearLocation: () => void;
-  address: string;
-  setAddress: (v: string) => void;
-  emergencyContact: string;
-  setEmergencyContact: (v: string) => void;
+  address: string; setAddress: (v: string) => void;
+  emergencyContact: string; setEmergencyContact: (v: string) => void;
 }) {
   const hasLoc = p.homeLat && p.homeLng;
   return (
     <div className="space-y-4">
       <div className="rounded-xl bg-navy-50 px-3 py-2.5 text-[12px] text-navy-600">
-        ระบุพิกัด "บ้าน / ที่ทำงานประจำ" เพื่อบันทึกในตอนเข้า-ออกงาน (ไม่ใช้บังคับตำแหน่ง)
+        ระบุพิกัด "บ้าน / ที่ทำงานประจำ" เพื่อบันทึกตอนเข้า-ออกงาน (ไม่ใช้บังคับ)
       </div>
-
       {hasLoc ? (
         <Card className="border-emerald-200 bg-emerald-50/40">
           <CardContent className="flex items-center gap-3 p-3">
@@ -730,98 +686,103 @@ function LocationStep(p: {
           </div>
         </div>
       )}
-
       <Field label="ที่อยู่ปัจจุบัน (ถ้ามี)">
         <Textarea
           rows={2}
           value={p.address}
           onChange={(e) => p.setAddress(e.target.value)}
-          placeholder="99/9 ถ. … ต. … อ. … จ. … 10000"
         />
       </Field>
-      <Field label="ผู้ติดต่อฉุกเฉิน (ถ้ามี)">
+      <Field label="ผู้ติดต่อฉุกเฉิน">
         <Textarea
           rows={2}
           value={p.emergencyContact}
           onChange={(e) => p.setEmergencyContact(e.target.value)}
-          placeholder="แม่ / 081-000-0000"
         />
       </Field>
-      <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 text-[11px] leading-relaxed text-navy-500">
-        <Phone className="mr-1 inline h-3.5 w-3.5 text-navy-400" />
-        ข้อมูลผู้ติดต่อฉุกเฉินจะถูกใช้เมื่อเกิดเหตุระหว่างทำงานเท่านั้น
-      </div>
     </div>
   );
 }
 
-function SupervisorStep(p: {
-  addSupervisor: boolean;
-  setAddSupervisor: (v: boolean) => void;
-  supervisorName: string;
-  setSupervisorName: (v: string) => void;
-  grantLeave: boolean;
-  setGrantLeave: (v: boolean) => void;
-  grantOvertime: boolean;
-  setGrantOvertime: (v: boolean) => void;
-  grantContact: boolean;
-  setGrantContact: (v: boolean) => void;
-  pdpaConsent: boolean;
-  setPdpaConsent: (v: boolean) => void;
-  profilePreview: string;
-  setProfilePreview: (v: string) => void;
-  profileUrl: string;
-  setProfileUrl: (v: string) => void;
+function TeamStep(p: {
+  hasTeam: boolean; setHasTeam: (v: boolean) => void;
+  subs: SubordinateRow[];
+  addSubordinate: () => void;
+  removeSubordinate: (id: string) => void;
+  patchSubordinate: (id: string, patch: Partial<SubordinateRow>) => void;
+  pdpaConsent: boolean; setPdpaConsent: (v: boolean) => void;
+  profilePreview: string; setProfilePreview: (v: string) => void;
+  profileUrl: string; setProfileUrl: (v: string) => void;
 }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between rounded-xl border border-navy-100 bg-navy-50/40 px-3 py-3">
         <div className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4 text-orange-500" />
+          <Users className="h-4 w-4 text-orange-500" />
           <div>
-            <div className="text-sm font-semibold text-navy-900">เพิ่มหัวหน้าของฉัน</div>
+            <div className="text-sm font-semibold text-navy-900">มีลูกน้องในทีม</div>
             <div className="text-[11px] text-navy-500">
-              เลือกชื่อหัวหน้าที่อยู่ในระบบ บริษัทเดียวกัน
+              เลือกชื่อลูกน้องที่อยู่ในระบบบริษัทเดียวกัน — เพิ่มทีหลังก็ได้
             </div>
           </div>
         </div>
-        <Switch checked={p.addSupervisor} onCheckedChange={p.setAddSupervisor} />
+        <Switch checked={p.hasTeam} onCheckedChange={p.setHasTeam} />
       </div>
 
-      {p.addSupervisor && (
+      {p.hasTeam && (
         <Card>
           <CardContent className="space-y-3 p-4">
-            <Field label="ชื่อหัวหน้า (ต้องตรงกับชื่อในระบบ บริษัทเดียวกัน)">
-              <Input
-                value={p.supervisorName}
-                onChange={(e) => p.setSupervisorName(e.target.value)}
-                placeholder="เช่น สมหญิง รักงาน หรือชื่อเล่น"
-              />
-            </Field>
-            <div className="text-[11px] font-semibold text-navy-600">
-              หัวหน้าคนนี้มีสิทธิ์อนุมัติเรื่องอะไรบ้าง?
-            </div>
-            <PermissionRow
-              label="อนุมัติการลา"
-              desc="ลาป่วย, ลาพักร้อน, ลากิจ"
-              checked={p.grantLeave}
-              onChange={p.setGrantLeave}
-            />
-            <PermissionRow
-              label="อนุมัติการขอ OT"
-              desc="ขอทำงานล่วงเวลา"
-              checked={p.grantOvertime}
-              onChange={p.setGrantOvertime}
-            />
-            <PermissionRow
-              label="อนุมัติเรื่องนัดหมาย / ติดต่อทั่วไป"
-              desc="ขอเข้าพบ ปรึกษาส่วนตัว"
-              checked={p.grantContact}
-              onChange={p.setGrantContact}
-            />
-            <div className="rounded-md bg-orange-50 px-3 py-2 text-[11px] text-orange-700">
-              หากไม่ติ๊กข้อใดเลย ระบบจะไม่ผูกหัวหน้านี้กับสิทธิ์อนุมัติใดๆ
-            </div>
+            {p.subs.length === 0 && (
+              <div className="rounded-md bg-navy-50 px-3 py-2 text-[11px] text-navy-500">
+                ยังไม่มีลูกน้องในรายการ — กดปุ่ม "เพิ่มลูกน้อง" ด้านล่าง
+              </div>
+            )}
+            {p.subs.map((row, idx) => (
+              <div key={row.id} className="space-y-2 rounded-lg border border-navy-100 p-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-[11px] font-semibold uppercase tracking-wider text-navy-500">
+                    ลูกน้อง #{idx + 1}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => p.removeSubordinate(row.id)}
+                    className="rounded-full p-1 text-red-500 hover:bg-red-50"
+                    aria-label="remove"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+                <Field label="ชื่อลูกน้อง (ต้องตรงกับชื่อในระบบ)">
+                  <Input
+                    value={row.name}
+                    onChange={(e) => p.patchSubordinate(row.id, { name: e.target.value })}
+                    placeholder="เช่น สมชาย ใจดี"
+                  />
+                </Field>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px]">สิทธิ์ที่คุณจะอนุมัติให้</Label>
+                  <PermissionMini
+                    label="ลา"
+                    checked={row.grantLeave}
+                    onChange={(v) => p.patchSubordinate(row.id, { grantLeave: v })}
+                  />
+                  <PermissionMini
+                    label="OT"
+                    checked={row.grantOvertime}
+                    onChange={(v) => p.patchSubordinate(row.id, { grantOvertime: v })}
+                  />
+                  <PermissionMini
+                    label="ติดต่อ / นัดพบ"
+                    checked={row.grantContact}
+                    onChange={(v) => p.patchSubordinate(row.id, { grantContact: v })}
+                  />
+                </div>
+              </div>
+            ))}
+            <Button type="button" variant="outline" size="sm" onClick={p.addSubordinate}>
+              <Plus className="h-3.5 w-3.5" />
+              เพิ่มลูกน้อง
+            </Button>
           </CardContent>
         </Card>
       )}
@@ -851,30 +812,25 @@ function SupervisorStep(p: {
         />
         <span className="text-[12px] leading-relaxed text-navy-700">
           ฉันยินยอมให้บริษัทเก็บและประมวลผลข้อมูลส่วนบุคคลตาม PDPA
-          เพื่อใช้บริหาร HR (เข้า-ออกงาน ลา OT เงินเดือน) — สามารถถอนการยินยอมได้ทุกเมื่อ
+          เพื่อใช้บริหาร HR — สามารถถอนการยินยอมได้ทุกเมื่อ
         </span>
       </label>
     </div>
   );
 }
 
-function PermissionRow({
+function PermissionMini({
   label,
-  desc,
   checked,
   onChange,
 }: {
   label: string;
-  desc: string;
   checked: boolean;
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center justify-between gap-3 rounded-lg border border-navy-100 bg-white px-3 py-2.5">
-      <div>
-        <div className="text-sm font-medium text-navy-900">{label}</div>
-        <div className="text-[11px] text-navy-500">{desc}</div>
-      </div>
+    <label className="flex items-center justify-between rounded-md bg-navy-50 px-2.5 py-1.5">
+      <span className="text-xs text-navy-700">{label}</span>
       <Switch checked={checked} onCheckedChange={onChange} />
     </label>
   );
@@ -980,19 +936,15 @@ function PendingReview({ employee }: { employee: ResultEmployee }) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-orange-50">
           <Hourglass className="h-7 w-7 text-orange-500" />
         </div>
-        <div>
-          <h3 className="text-base font-semibold text-navy-900">ใบสมัครอยู่ระหว่างตรวจสอบ</h3>
-          <p className="mt-1 text-sm text-navy-500">
-            ระบบจะแจ้งผลทาง LINE เมื่อ HR / หัวหน้าตรวจสอบเสร็จ
-          </p>
-        </div>
-        <div className="grid grid-cols-2 gap-2 rounded-lg border border-navy-100 bg-navy-50/40 p-3 text-left text-xs">
-          <Row label="ชื่อ" value={employee.name} />
-          <Row label="แผนก/ตำแหน่ง" value={`${employee.department ?? "—"} · ${employee.position ?? "—"}`} />
+        <h3 className="text-base font-semibold text-navy-900">ใบสมัครอยู่ระหว่างตรวจสอบ</h3>
+        <p className="text-sm text-navy-500">
+          ระบบจะแจ้งผลทาง LINE เมื่อพิจารณาเสร็จ
           {employee.submittedAt && (
-            <Row label="ส่งเมื่อ" value={new Date(employee.submittedAt).toLocaleString("th-TH")} />
+            <>
+              <br />ส่งเมื่อ {new Date(employee.submittedAt).toLocaleString("th-TH")}
+            </>
           )}
-        </div>
+        </p>
       </CardContent>
     </Card>
   );
@@ -1005,12 +957,10 @@ function AlreadyActive({ employee }: { employee: ResultEmployee }) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
           <CheckCircle2 className="h-7 w-7 text-emerald-600" />
         </div>
-        <div>
-          <h3 className="text-base font-semibold text-navy-900">ลงทะเบียนเรียบร้อยแล้ว</h3>
-          <p className="mt-1 text-sm text-navy-500">
-            {employee.name} · {employee.department ?? "—"}
-          </p>
-        </div>
+        <h3 className="text-base font-semibold text-navy-900">ลงทะเบียนเรียบร้อยแล้ว</h3>
+        <p className="text-sm text-navy-500">
+          {employee.name} · {employee.department ?? "—"}
+        </p>
         <Button asChild size="lg" className="w-full">
           <a href="/liff">
             เปิดหน้าหลัก
@@ -1029,25 +979,14 @@ function Rejected({ employee }: { employee: ResultEmployee }) {
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-red-50">
           <ShieldX className="h-7 w-7 text-red-600" />
         </div>
-        <div>
-          <h3 className="text-base font-semibold text-navy-900">ใบสมัครไม่ได้รับการอนุมัติ</h3>
-          {employee.rejectionReason && (
-            <div className="mt-3 rounded-lg border border-red-100 bg-red-50 p-3 text-left text-xs text-red-800">
-              <div className="mb-1 font-semibold">เหตุผล</div>
-              {employee.rejectionReason}
-            </div>
-          )}
-        </div>
+        <h3 className="text-base font-semibold text-navy-900">ใบสมัครไม่ได้รับการอนุมัติ</h3>
+        {employee.rejectionReason && (
+          <div className="rounded-lg border border-red-100 bg-red-50 p-3 text-left text-xs text-red-800">
+            <div className="mb-1 font-semibold">เหตุผล</div>
+            {employee.rejectionReason}
+          </div>
+        )}
       </CardContent>
     </Card>
-  );
-}
-
-function Row({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
-  return (
-    <div className="col-span-2 flex items-baseline justify-between gap-3">
-      <span className="text-navy-500">{label}</span>
-      <span className={cn("text-right text-navy-900", valueClass)}>{value}</span>
-    </div>
   );
 }

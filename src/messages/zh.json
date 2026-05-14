@@ -373,7 +373,8 @@
       "attendance": "记录",
       "leave": "请假",
       "payslip": "工资单",
-      "ai": "AI"
+      "ai": "AI",
+      "profile": "个人资料"
     },
     "register": {
       "title": "新员工注册",

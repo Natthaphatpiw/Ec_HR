@@ -7,13 +7,16 @@ import {
   LEAVE_REQUESTS,
   NOTIFICATIONS,
   ORGANIZATION,
+  ORGANIZATIONS,
   OVERTIME_REQUESTS,
   PAYROLLS,
   PERFORMANCE_REVIEWS,
+  PROFILE_EDIT_AUDIT,
   SCHEDULE_ASSIGNMENTS,
   SCHEDULE_CHANGES,
   SCHEDULE_ENTRIES,
   SHIFTS,
+  SOCIAL_SECURITY_CONFIGS,
 } from "./demo-data";
 import { hasSupabaseConfig, supabaseAdmin } from "./supabase/admin";
 import type {
@@ -21,9 +24,12 @@ import type {
   ActionTokenAction,
   ActionTokenKind,
   AttendanceLog,
+  AttendanceType,
+  BusinessType,
   ContactRequest,
   Employee,
   EmployeeShift,
+  HomeLocationSource,
   LeaveRequest,
   LeaveType,
   Notification,
@@ -31,6 +37,7 @@ import type {
   OvertimeRequest,
   Payroll,
   PerformanceReview,
+  ProfileEditAudit,
   RegistrationInput,
   RequestStatus,
   ScheduleAssignment,
@@ -38,9 +45,14 @@ import type {
   ScheduleEntry,
   ScheduleEntryType,
   Shift,
+  SocialSecurityConfig,
+  SubordinateLink,
+  SupervisorGrant,
 } from "./types";
 
 const ORG_ID = "11111111-1111-1111-1111-111111111111";
+const TRIAL_DAYS = 30;
+const TRIAL_SEAT_LIMIT = 10;
 
 // =========================================================================
 // Mode switch — production hits Supabase, demo uses in-memory arrays.
@@ -71,19 +83,128 @@ function unwrap<T>(label: string, res: { data: T | null; error: { message: strin
 }
 
 // =========================================================================
-// Organization
+// Organization (multi-tenant)
 // =========================================================================
 
-export async function getOrganization(): Promise<Organization> {
-  if (isDemo()) return ORGANIZATION;
+export function normalizeBusinessName(raw: string): string {
+  return raw.toLowerCase().trim().replace(/\s+/g, " ");
+}
+
+export async function getOrganization(orgId?: string): Promise<Organization> {
+  const id = orgId ?? ORG_ID;
+  if (isDemo()) return ORGANIZATIONS.find((o) => o.id === id) ?? ORGANIZATION;
   const sb = supabaseAdmin();
   const { data, error } = await sb
     .from("organizations")
     .select("*")
-    .eq("id", ORG_ID)
+    .eq("id", id)
     .maybeSingle();
   if (error) throw new Error(`getOrganization: ${error.message}`);
   return (data as Organization) ?? ORGANIZATION;
+}
+
+export async function findOrganizationByBusinessName(name: string): Promise<Organization | undefined> {
+  const norm = normalizeBusinessName(name);
+  if (!norm) return undefined;
+  if (isDemo()) return ORGANIZATIONS.find((o) => o.business_name_norm === norm);
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("organizations")
+    .select("*")
+    .eq("business_name_norm", norm)
+    .maybeSingle();
+  if (error) throw new Error(`findOrganizationByBusinessName: ${error.message}`);
+  return (data as Organization) ?? undefined;
+}
+
+export async function createOrganization(input: {
+  business_name: string;
+  business_type?: BusinessType;
+  timezone?: string;
+}): Promise<Organization> {
+  const now = new Date();
+  const trialEnds = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+  const row: Organization = {
+    id: newId("org"),
+    name: input.business_name,
+    business_name: input.business_name,
+    business_name_norm: normalizeBusinessName(input.business_name),
+    business_type: input.business_type ?? "other",
+    timezone: input.timezone ?? "Asia/Bangkok",
+    thai_tax_id: null,
+    geofence_lat: null,
+    geofence_lng: null,
+    geofence_radius: 150,
+    owner_employee_id: null,
+    tier: "free",
+    seat_limit: TRIAL_SEAT_LIMIT,
+    trial_started_at: now.toISOString(),
+    trial_ends_at: trialEnds.toISOString(),
+    is_active: true,
+    plan_notes: null,
+    created_at: now.toISOString(),
+  };
+  if (isDemo()) {
+    ORGANIZATIONS.push(row);
+    return row;
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("organizations")
+    .insert({
+      name: row.name,
+      business_name: row.business_name,
+      business_name_norm: row.business_name_norm,
+      business_type: row.business_type,
+      timezone: row.timezone,
+      geofence_radius: row.geofence_radius,
+      tier: row.tier,
+      seat_limit: row.seat_limit,
+      trial_started_at: row.trial_started_at,
+      trial_ends_at: row.trial_ends_at,
+      is_active: row.is_active,
+    })
+    .select("*")
+    .single();
+  if (error) throw new Error(`createOrganization: ${error.message}`);
+  return data as Organization;
+}
+
+export interface OrgTrialStatus {
+  ok: boolean;
+  org: Organization;
+  reason?: "expired" | "seats_full" | "deactivated";
+  daysLeft: number;
+  seatsUsed: number;
+  seatsLimit: number;
+}
+
+export async function getOrgTrialStatus(orgId: string): Promise<OrgTrialStatus> {
+  const org = await getOrganization(orgId);
+  const seatsUsed = (await listEmployeesForOrg(orgId)).filter(
+    (e) => e.account_status === "active" || e.account_status === "pending_review",
+  ).length;
+  const seatsLimit = org.seat_limit ?? TRIAL_SEAT_LIMIT;
+  const trialEnds = org.trial_ends_at ? new Date(org.trial_ends_at).getTime() : Infinity;
+  const now = Date.now();
+  const daysLeft = Math.max(0, Math.ceil((trialEnds - now) / (24 * 60 * 60 * 1000)));
+
+  if (!org.is_active) {
+    return { ok: false, org, reason: "deactivated", daysLeft, seatsUsed, seatsLimit };
+  }
+  if (org.tier === "free" && trialEnds < now) {
+    return { ok: false, org, reason: "expired", daysLeft, seatsUsed, seatsLimit };
+  }
+  return { ok: true, org, daysLeft, seatsUsed, seatsLimit };
+}
+
+export async function canAcceptNewSeat(orgId: string): Promise<{ ok: boolean; reason?: "expired" | "seats_full" | "deactivated"; trial: OrgTrialStatus }> {
+  const trial = await getOrgTrialStatus(orgId);
+  if (!trial.ok) return { ok: false, reason: trial.reason, trial };
+  if (trial.seatsUsed >= trial.seatsLimit) {
+    return { ok: false, reason: "seats_full", trial };
+  }
+  return { ok: true, trial };
 }
 
 // =========================================================================
@@ -96,6 +217,30 @@ export async function listEmployees(): Promise<Employee[]> {
   const { data, error } = await sb.from("employees").select("*").order("employee_code");
   if (error) throw new Error(`listEmployees: ${error.message}`);
   return (data ?? []) as Employee[];
+}
+
+export async function listEmployeesForOrg(orgId: string): Promise<Employee[]> {
+  if (isDemo()) return EMPLOYEES.filter((e) => e.org_id === orgId);
+  const sb = supabaseAdmin();
+  const { data, error } = await sb.from("employees").select("*").eq("org_id", orgId);
+  if (error) throw new Error(`listEmployeesForOrg: ${error.message}`);
+  return (data ?? []) as Employee[];
+}
+
+/** Fuzzy "same person" match within an org — tolerant of whitespace/case. */
+export async function findEmployeeByNameInOrg(
+  orgId: string,
+  name: string,
+): Promise<Employee | undefined> {
+  const norm = name.trim().toLowerCase();
+  if (!norm) return undefined;
+  const rows = await listEmployeesForOrg(orgId);
+  return rows.find((e) => {
+    const candidates = [e.name_th, e.name_en, e.name_zh, e.nickname, e.employee_code]
+      .filter((v): v is string => !!v)
+      .map((s) => s.trim().toLowerCase());
+    return candidates.some((c) => c === norm || c.includes(norm) || norm.includes(c));
+  });
 }
 
 export async function getEmployeeById(id: string): Promise<Employee | undefined> {
@@ -143,16 +288,32 @@ export async function getEmployeeByNationalId(nationalId: string): Promise<Emplo
   return (data as Employee) ?? undefined;
 }
 
-export async function listHrEmployees(): Promise<Employee[]> {
-  if (isDemo()) return EMPLOYEES.filter((e) => e.role === "hr" && e.line_user_id);
+export async function listHrEmployees(orgId?: string): Promise<Employee[]> {
+  if (isDemo()) {
+    return EMPLOYEES.filter(
+      (e) => e.role === "hr" && e.line_user_id && (orgId ? e.org_id === orgId : true),
+    );
+  }
   const sb = supabaseAdmin();
-  const { data, error } = await sb
-    .from("employees")
-    .select("*")
-    .eq("role", "hr")
-    .not("line_user_id", "is", null);
+  let q = sb.from("employees").select("*").eq("role", "hr").not("line_user_id", "is", null);
+  if (orgId) q = q.eq("org_id", orgId);
+  const { data, error } = await q;
   if (error) throw new Error(`listHrEmployees: ${error.message}`);
   return (data ?? []) as Employee[];
+}
+
+/**
+ * Notification fallback for new tenants: the first registrant of a brand-new
+ * tenant is both employee and "boss" — there's no HR. In that case, every
+ * supervisor in the org becomes a notify target. If still empty, the owner.
+ */
+export async function listApprovalAdminsForOrg(orgId: string): Promise<Employee[]> {
+  const hr = await listHrEmployees(orgId);
+  if (hr.length > 0) return hr;
+  const all = await listEmployeesForOrg(orgId);
+  const sups = all.filter((e) => e.is_supervisor && e.line_user_id);
+  if (sups.length > 0) return sups;
+  return all.filter((e) => e.line_user_id);
 }
 
 export async function listTeamForSupervisor(supervisorId: string): Promise<Employee[]> {
@@ -205,18 +366,149 @@ export async function getSupervisorForEmployee(
 }
 
 // =========================================================================
-// Registration (employees row with account_status)
+// Registration (multi-tenant SaaS)
 // =========================================================================
 
 export interface RegisterResult {
   ok: boolean;
   message: string;
   employee?: Employee;
+  organization?: Organization;
   duplicate?: "line_user_id" | "national_id";
+  trial?: OrgTrialStatus;
+  unresolvedSupervisorName?: string;
+  unresolvedSubordinateNames?: string[];
 }
 
+function makeNewEmployeeRow(
+  orgId: string,
+  input: RegistrationInput,
+  base: {
+    role: Employee["role"];
+    is_supervisor: boolean;
+  },
+): Omit<Employee, "id"> {
+  const now = new Date().toISOString();
+  return {
+    org_id: orgId,
+    line_user_id: input.line_user_id,
+    line_display_name: input.display_name ?? null,
+    line_picture_url: input.picture_url ?? null,
+    employee_code: null,
+    name_th: input.name_th,
+    name_en: input.name_en ?? null,
+    name_zh: input.name_zh ?? null,
+    nickname: input.nickname ?? null,
+    role: base.role,
+    department: input.department ?? null,
+    position: input.position ?? null,
+    job_title: input.job_title ?? null,
+    shift_group: input.shift_group ?? null,
+    base_salary: input.base_salary ?? null,
+    bank_account: input.bank_account ?? null,
+    sso_number: null,
+    account_status: "pending_review",
+    phone: input.phone,
+    national_id: input.national_id ?? null,
+    date_of_birth: input.date_of_birth ?? null,
+    gender: input.gender ?? null,
+    nationality: "TH",
+    marital_status: null,
+    hire_date: input.hire_date ?? null,
+    employment_type: input.employment_type ?? "full_time",
+    address: input.address ?? null,
+    emergency_contact: input.emergency_contact ?? null,
+    home_lat: input.home_lat ?? null,
+    home_lng: input.home_lng ?? null,
+    home_location_label: input.home_location_label ?? null,
+    home_location_source: input.home_location_source ?? null,
+    id_card_photo_url: input.id_card_photo_url ?? null,
+    bank_book_photo_url: input.bank_book_photo_url ?? null,
+    profile_photo_url: input.profile_photo_url ?? null,
+    rejection_reason: null,
+    submitted_at: now,
+    approved_at: null,
+    approved_by_id: null,
+    leave_supervisor_id: null,
+    ot_supervisor_id: null,
+    contact_supervisor_id: null,
+    is_supervisor: base.is_supervisor,
+    subordinate_ids: [],
+    pdpa_consent_at: input.pdpa_consent ? now : null,
+    metadata: {},
+    notes: null,
+    created_at: now,
+  };
+}
+
+async function resolveTenant(input: RegistrationInput): Promise<Organization> {
+  if (!input.business_name?.trim()) {
+    throw new Error("business_name is required");
+  }
+  const found = await findOrganizationByBusinessName(input.business_name);
+  if (found) return found;
+  return createOrganization({
+    business_name: input.business_name.trim(),
+    business_type: input.business_type,
+  });
+}
+
+async function persistEmployee(row: Omit<Employee, "id">): Promise<Employee> {
+  if (isDemo()) {
+    const employee: Employee = { id: newId("emp"), ...row };
+    EMPLOYEES.push(employee);
+    return employee;
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb.from("employees").insert(row).select("*").single();
+  if (error) throw new Error(`persistEmployee: ${error.message}`);
+  return data as Employee;
+}
+
+async function updateEmployeeRow(
+  id: string,
+  patch: Partial<Employee>,
+): Promise<Employee | undefined> {
+  if (isDemo()) {
+    const e = EMPLOYEES.find((x) => x.id === id);
+    if (!e) return undefined;
+    Object.assign(e, patch);
+    return e;
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("employees")
+    .update(patch)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw new Error(`updateEmployeeRow: ${error.message}`);
+  return data as Employee;
+}
+
+function grantToFkPatch(supervisorId: string, grant: SupervisorGrant): Partial<Employee> {
+  return {
+    leave_supervisor_id: grant.leave ? supervisorId : null,
+    ot_supervisor_id: grant.overtime ? supervisorId : null,
+    contact_supervisor_id: grant.contact ? supervisorId : null,
+  };
+}
+
+function unionSubordinates(prev: string[] | undefined, ...ids: string[]): string[] {
+  const set = new Set([...(prev ?? []), ...ids]);
+  return Array.from(set);
+}
+
+/**
+ * Employee registration entry point. Behavior:
+ *   1. Resolve (or create) the tenant by business_name
+ *   2. Enforce trial seat cap
+ *   3. Insert the new employee row
+ *   4. If add_supervisor: lookup supervisor by name within the same org
+ *      → wire up the chosen grants (leave/ot/contact)
+ *      → block the registration if the supervisor name didn't match
+ */
 export async function registerEmployee(input: RegistrationInput): Promise<RegisterResult> {
-  // Dedup checks (same in both modes)
   const existingByLine = await getEmployeeByLineId(input.line_user_id);
   if (existingByLine) {
     return {
@@ -226,48 +518,309 @@ export async function registerEmployee(input: RegistrationInput): Promise<Regist
       employee: existingByLine,
     };
   }
-  const existingByNid = await getEmployeeByNationalId(input.national_id);
-  if (existingByNid) {
-    return { ok: false, message: "This national ID is already in our records.", duplicate: "national_id" };
+  if (input.national_id) {
+    const dup = await getEmployeeByNationalId(input.national_id);
+    if (dup) return { ok: false, message: "This national ID is already in our records.", duplicate: "national_id" };
   }
 
-  const newRow: Omit<Employee, "id"> & { id?: string } = {
-    org_id: ORG_ID,
-    line_user_id: input.line_user_id,
-    employee_code: null,
-    name_th: input.name_th,
-    name_en: input.name_en ?? null,
-    name_zh: input.name_zh ?? null,
+  const org = await resolveTenant(input);
+  const seatCheck = await canAcceptNewSeat(org.id);
+  if (!seatCheck.ok) {
+    return {
+      ok: false,
+      message:
+        seatCheck.reason === "seats_full"
+          ? "ทดลองใช้ครบโควต้า 10 คนแล้ว — ติดต่อทีมงานเพื่ออัพเกรด"
+          : seatCheck.reason === "expired"
+          ? "ครบกำหนดทดลองใช้ 30 วัน — ติดต่อทีมงานเพื่ออัพเกรด"
+          : "บริษัทนี้ถูกระงับการใช้งาน",
+      trial: seatCheck.trial,
+      organization: org,
+    };
+  }
+
+  // Resolve supervisor name BEFORE writing — block if user typed a name we
+  // can't find. The same-org constraint enforces tenant isolation.
+  let supervisor: Employee | undefined;
+  if (input.add_supervisor && input.supervisor_name?.trim()) {
+    supervisor = await findEmployeeByNameInOrg(org.id, input.supervisor_name);
+    if (!supervisor) {
+      return {
+        ok: false,
+        message: `ไม่พบหัวหน้าชื่อ "${input.supervisor_name}" ในบริษัท ${org.business_name} — โปรดตรวจชื่ออีกครั้งหรือยกเลิกการเพิ่มหัวหน้า`,
+        unresolvedSupervisorName: input.supervisor_name,
+        organization: org,
+      };
+    }
+  }
+
+  const newRow = makeNewEmployeeRow(org.id, input, {
     role: "employee",
-    department: input.department,
-    position: input.position,
-    shift_group: input.shift_group ?? null,
-    base_salary: null,
-    bank_account: input.bank_account ?? null,
-    sso_number: null,
-    account_status: "pending_review",
-    phone: input.phone,
-    national_id: input.national_id,
-    date_of_birth: input.date_of_birth,
-    address: input.address,
-    emergency_contact: input.emergency_contact,
-    id_card_photo_url: input.id_card_photo_url ?? null,
-    bank_book_photo_url: input.bank_book_photo_url ?? null,
-    profile_photo_url: input.profile_photo_url ?? null,
-    submitted_at: new Date().toISOString(),
-    created_at: new Date().toISOString(),
-  };
+    is_supervisor: false,
+  });
+  if (supervisor && input.supervisor_grant) {
+    Object.assign(newRow, grantToFkPatch(supervisor.id, input.supervisor_grant));
+  }
+  const employee = await persistEmployee(newRow);
 
-  if (isDemo()) {
-    const employee: Employee = { id: newId("emp"), ...newRow } as Employee;
-    EMPLOYEES.push(employee);
-    return { ok: true, message: "Application submitted.", employee };
+  // Add the new employee to the supervisor's subordinate list so they show up
+  // in /liff/team and the schedule UI.
+  if (supervisor) {
+    await updateEmployeeRow(supervisor.id, {
+      is_supervisor: true,
+      subordinate_ids: unionSubordinates(supervisor.subordinate_ids, employee.id),
+    });
   }
 
+  // If this is the very first registrant of a brand-new org, promote them as
+  // owner so they have something to anchor settings to.
+  if (!org.owner_employee_id) {
+    if (isDemo()) {
+      const o = ORGANIZATIONS.find((x) => x.id === org.id);
+      if (o) o.owner_employee_id = employee.id;
+    } else {
+      const sb = supabaseAdmin();
+      await sb.from("organizations").update({ owner_employee_id: employee.id }).eq("id", org.id);
+    }
+  }
+
+  return {
+    ok: true,
+    message: "Application submitted.",
+    employee,
+    organization: org,
+    trial: seatCheck.trial,
+  };
+}
+
+/**
+ * Supervisor registration entry point — symmetric to registerEmployee but
+ * the caller acts as a future approver for any subordinates they list.
+ */
+export async function registerSupervisor(input: RegistrationInput): Promise<RegisterResult> {
+  if (input.line_user_id) {
+    const existingByLine = await getEmployeeByLineId(input.line_user_id);
+    if (existingByLine) {
+      return {
+        ok: false,
+        message: "This LINE account is already registered.",
+        duplicate: "line_user_id",
+        employee: existingByLine,
+      };
+    }
+  }
+  if (input.national_id) {
+    const dup = await getEmployeeByNationalId(input.national_id);
+    if (dup) return { ok: false, message: "This national ID is already in our records.", duplicate: "national_id" };
+  }
+
+  const org = await resolveTenant(input);
+  const seatCheck = await canAcceptNewSeat(org.id);
+  if (!seatCheck.ok) {
+    return {
+      ok: false,
+      message:
+        seatCheck.reason === "seats_full"
+          ? "ทดลองใช้ครบโควต้า 10 คนแล้ว — ติดต่อทีมงานเพื่ออัพเกรด"
+          : seatCheck.reason === "expired"
+          ? "ครบกำหนดทดลองใช้ 30 วัน — ติดต่อทีมงานเพื่ออัพเกรด"
+          : "บริษัทนี้ถูกระงับการใช้งาน",
+      trial: seatCheck.trial,
+      organization: org,
+    };
+  }
+
+  // Resolve EVERY subordinate name BEFORE writing — block if any didn't match.
+  // Empty subordinate list is fine (supervisor can add team later in profile).
+  const resolved: Array<{ link: SubordinateLink; employee: Employee }> = [];
+  const unresolved: string[] = [];
+  for (const link of input.subordinates ?? []) {
+    if (!link.name.trim()) continue;
+    const match = await findEmployeeByNameInOrg(org.id, link.name);
+    if (!match) {
+      unresolved.push(link.name);
+      continue;
+    }
+    resolved.push({ link, employee: match });
+  }
+  if (unresolved.length > 0) {
+    return {
+      ok: false,
+      message: `ไม่พบลูกน้องชื่อ ${unresolved
+        .map((n) => `"${n}"`)
+        .join(", ")} ในบริษัท ${org.business_name} — แก้ไขชื่อหรือเอาออกก่อนส่ง`,
+      unresolvedSubordinateNames: unresolved,
+      organization: org,
+    };
+  }
+
+  const newRow = makeNewEmployeeRow(org.id, input, {
+    role: "supervisor",
+    is_supervisor: true,
+  });
+  newRow.subordinate_ids = resolved.map((r) => r.employee.id);
+  const supervisor = await persistEmployee(newRow);
+
+  // Wire the new supervisor as the FK on each resolved subordinate, only for
+  // the permission types the supervisor asked for.
+  for (const { link, employee } of resolved) {
+    const patch = grantToFkPatch(supervisor.id, link.grant);
+    // Don't overwrite existing FK if the registering supervisor didn't ask for
+    // that permission type — null in the patch means "leave whatever's there".
+    const merged: Partial<Employee> = {};
+    if (link.grant.leave) merged.leave_supervisor_id = supervisor.id;
+    if (link.grant.overtime) merged.ot_supervisor_id = supervisor.id;
+    if (link.grant.contact) merged.contact_supervisor_id = supervisor.id;
+    Object.assign(patch, merged);
+    if (Object.keys(merged).length > 0) {
+      await updateEmployeeRow(employee.id, merged);
+    }
+  }
+
+  if (!org.owner_employee_id) {
+    if (isDemo()) {
+      const o = ORGANIZATIONS.find((x) => x.id === org.id);
+      if (o) o.owner_employee_id = supervisor.id;
+    } else {
+      const sb = supabaseAdmin();
+      await sb.from("organizations").update({ owner_employee_id: supervisor.id }).eq("id", org.id);
+    }
+  }
+
+  return {
+    ok: true,
+    message: "Application submitted.",
+    employee: supervisor,
+    organization: org,
+    trial: seatCheck.trial,
+  };
+}
+
+// =========================================================================
+// Profile editing (self + supervisor-of-target)
+// =========================================================================
+
+export interface ProfileEditableFields {
+  name_th?: string;
+  name_en?: string;
+  name_zh?: string;
+  nickname?: string;
+  phone?: string;
+  address?: string;
+  emergency_contact?: string;
+  bank_account?: string;
+  date_of_birth?: string | null;
+  gender?: Employee["gender"];
+  marital_status?: Employee["marital_status"];
+  hire_date?: string | null;
+  employment_type?: Employee["employment_type"];
+  department?: string;
+  position?: string;
+  job_title?: string;
+  shift_group?: string;
+  base_salary?: number | null;
+  home_lat?: number | null;
+  home_lng?: number | null;
+  home_location_label?: string | null;
+  home_location_source?: HomeLocationSource | null;
+  profile_photo_url?: string | null;
+  notes?: string | null;
+}
+
+export type ProfileEditPermission = "self" | "supervisor" | "hr" | "denied";
+
+export async function getProfileEditPermission(
+  actorId: string,
+  targetId: string,
+): Promise<ProfileEditPermission> {
+  if (actorId === targetId) return "self";
+  const actor = await getEmployeeById(actorId);
+  const target = await getEmployeeById(targetId);
+  if (!actor || !target) return "denied";
+  if (actor.org_id !== target.org_id) return "denied";
+  if (actor.role === "hr") return "hr";
+  const isLead =
+    target.leave_supervisor_id === actorId ||
+    target.ot_supervisor_id === actorId ||
+    target.contact_supervisor_id === actorId ||
+    (actor.subordinate_ids ?? []).includes(target.id);
+  return isLead ? "supervisor" : "denied";
+}
+
+export async function updateEmployeeProfile(
+  actorId: string,
+  targetId: string,
+  patch: ProfileEditableFields,
+  reason?: string,
+): Promise<{ ok: boolean; message: string; employee?: Employee }> {
+  const permission = await getProfileEditPermission(actorId, targetId);
+  if (permission === "denied") return { ok: false, message: "ไม่มีสิทธิ์แก้ไขข้อมูลคนนี้" };
+  const before = await getEmployeeById(targetId);
+  if (!before) return { ok: false, message: "ไม่พบพนักงาน" };
+
+  // Strip undefined keys so we don't accidentally null fields out
+  const cleaned: Partial<Employee> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if (v === undefined) continue;
+    (cleaned as Record<string, unknown>)[k] = v;
+  }
+
+  const updated = await updateEmployeeRow(targetId, cleaned);
+  if (!updated) return { ok: false, message: "อัปเดตไม่สำเร็จ" };
+
+  // Audit each changed field
+  for (const key of Object.keys(cleaned)) {
+    const oldVal = (before as unknown as Record<string, unknown>)[key];
+    const newVal = (updated as unknown as Record<string, unknown>)[key];
+    if (oldVal === newVal) continue;
+    const audit: ProfileEditAudit = {
+      id: newId("audit"),
+      org_id: before.org_id,
+      target_id: targetId,
+      edited_by: actorId,
+      field: key,
+      old_value: oldVal == null ? null : String(oldVal),
+      new_value: newVal == null ? null : String(newVal),
+      reason: reason ?? null,
+      created_at: new Date().toISOString(),
+    };
+    if (isDemo()) {
+      PROFILE_EDIT_AUDIT.push(audit);
+    } else {
+      const sb = supabaseAdmin();
+      await sb.from("profile_edit_audit").insert({
+        org_id: audit.org_id,
+        target_id: audit.target_id,
+        edited_by: audit.edited_by,
+        field: audit.field,
+        old_value: audit.old_value,
+        new_value: audit.new_value,
+        reason: audit.reason,
+      });
+    }
+  }
+
+  return { ok: true, message: "บันทึกแล้ว", employee: updated };
+}
+
+export async function listProfileEditsForTarget(
+  targetId: string,
+  limit = 20,
+): Promise<ProfileEditAudit[]> {
+  if (isDemo()) {
+    return PROFILE_EDIT_AUDIT.filter((a) => a.target_id === targetId)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at))
+      .slice(0, limit);
+  }
   const sb = supabaseAdmin();
-  const { data, error } = await sb.from("employees").insert(newRow).select("*").single();
-  if (error) return { ok: false, message: `registerEmployee failed: ${error.message}` };
-  return { ok: true, message: "Application submitted.", employee: data as Employee };
+  const { data, error } = await sb
+    .from("profile_edit_audit")
+    .select("*")
+    .eq("target_id", targetId)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw new Error(`listProfileEditsForTarget: ${error.message}`);
+  return (data ?? []) as ProfileEditAudit[];
 }
 
 export async function getRegistrationStatus(lineUserId: string): Promise<
@@ -278,7 +831,8 @@ export async function getRegistrationStatus(lineUserId: string): Promise<
 > {
   const e = await getEmployeeByLineId(lineUserId);
   if (!e) return { state: "new" };
-  if (e.account_status === "pending_review") return { state: "pending", employee: e };
+  if (e.account_status === "pending_review" || e.account_status === "awaiting_supervisor")
+    return { state: "pending", employee: e };
   if (e.account_status === "inactive") return { state: "rejected", employee: e };
   return { state: "active", employee: e };
 }
@@ -1358,4 +1912,180 @@ export async function getDepartmentBreakdown(): Promise<{ department: string; co
     groups.set(k, (groups.get(k) ?? 0) + 1);
   }
   return Array.from(groups.entries()).map(([department, count]) => ({ department, count }));
+}
+
+// =========================================================================
+// Thai Social Security (auto-calc on payslip)
+// =========================================================================
+
+export async function getActiveSsoConfig(
+  country = "TH",
+  asOf: Date = new Date(),
+): Promise<SocialSecurityConfig | undefined> {
+  const day = asOf.toISOString().slice(0, 10);
+  if (isDemo()) {
+    return SOCIAL_SECURITY_CONFIGS.find(
+      (c) =>
+        c.country === country &&
+        c.effective_from <= day &&
+        (!c.effective_to || c.effective_to >= day),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("social_security_config")
+    .select("*")
+    .eq("country", country)
+    .lte("effective_from", day)
+    .or(`effective_to.is.null,effective_to.gte.${day}`)
+    .order("effective_from", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`getActiveSsoConfig: ${error.message}`);
+  return (data as SocialSecurityConfig) ?? undefined;
+}
+
+export interface SsoBreakdown {
+  configId: string | null;
+  ratePct: number;
+  base: number;
+  contribution: number;
+  ceiling: number;
+  floor: number;
+  capped: boolean;
+}
+
+export async function calcEmployeeSso(
+  salary: number | null | undefined,
+  asOf: Date = new Date(),
+): Promise<SsoBreakdown> {
+  const cfg = await getActiveSsoConfig("TH", asOf);
+  if (!cfg || !salary || salary <= 0) {
+    return {
+      configId: cfg?.id ?? null,
+      ratePct: cfg?.rate_pct ?? 0,
+      base: 0,
+      contribution: 0,
+      ceiling: cfg?.wage_ceiling ?? 0,
+      floor: cfg?.wage_floor ?? 0,
+      capped: false,
+    };
+  }
+  const base = Math.min(Math.max(salary, cfg.wage_floor), cfg.wage_ceiling);
+  const raw = Math.round((base * cfg.rate_pct) / 100);
+  const contribution = Math.min(raw, cfg.max_contribution);
+  return {
+    configId: cfg.id,
+    ratePct: cfg.rate_pct,
+    base,
+    contribution,
+    ceiling: cfg.wage_ceiling,
+    floor: cfg.wage_floor,
+    capped: salary >= cfg.wage_ceiling,
+  };
+}
+
+// =========================================================================
+// Attendance v2 (no geofence gating, in→out pairing, optional reason)
+// =========================================================================
+
+export async function getLastAttendanceLog(employeeId: string): Promise<AttendanceLog | undefined> {
+  if (isDemo()) {
+    return ATTENDANCE_LOGS.filter((l) => l.employee_id === employeeId).sort((a, b) =>
+      b.timestamp.localeCompare(a.timestamp),
+    )[0];
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("attendance_logs")
+    .select("*")
+    .eq("employee_id", employeeId)
+    .order("timestamp", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`getLastAttendanceLog: ${error.message}`);
+  return (data as AttendanceLog) ?? undefined;
+}
+
+export interface RecordAttendanceInput {
+  employee_id: string;
+  type: AttendanceType;
+  latitude?: number | null;
+  longitude?: number | null;
+  reason?: string | null;
+  source?: AttendanceLog["status"] extends string ? "liff" | "web" | "line_bot" : "liff";
+}
+
+export interface RecordAttendanceResult {
+  ok: boolean;
+  message: string;
+  log?: AttendanceLog;
+  /** When ok=false because of double-clock-in, surface the open session so UI can prompt to clock out */
+  openSession?: AttendanceLog;
+}
+
+export async function recordAttendance(
+  input: RecordAttendanceInput,
+): Promise<RecordAttendanceResult> {
+  const last = await getLastAttendanceLog(input.employee_id);
+
+  // Rule: cannot clock IN twice in a row — must clock OUT first
+  if (input.type === "in" && last && last.type === "in") {
+    return {
+      ok: false,
+      message:
+        "คุณยังกดออกงานครั้งก่อนยังไม่ครบ กดออกงานก่อนถึงจะกดเข้างานใหม่ได้",
+      openSession: last,
+    };
+  }
+  // Rule: cannot clock OUT without a matching IN (would orphan the record).
+  // Allow it WITH a reason so users who forgot can still close out the day.
+  if (input.type === "out" && (!last || last.type === "out")) {
+    if (!input.reason?.trim()) {
+      return {
+        ok: false,
+        message:
+          "ยังไม่พบการเข้างานที่ยังเปิดอยู่ — โปรดกดเข้างานก่อน หรือใส่เหตุผลเพื่อบันทึกย้อนหลัง",
+      };
+    }
+  }
+
+  const now = new Date().toISOString();
+  // Status is informational only (no geofence enforcement) — we treat anything
+  // marked with a reason as "late/manual" so reports can pick it up.
+  const status: AttendanceLog["status"] = input.reason ? "late" : "ontime";
+
+  const row: AttendanceLog = {
+    id: newId("att"),
+    employee_id: input.employee_id,
+    timestamp: now,
+    type: input.type,
+    latitude: input.latitude ?? null,
+    longitude: input.longitude ?? null,
+    ip_address: null,
+    status,
+    photo_url: null,
+  };
+
+  if (isDemo()) {
+    ATTENDANCE_LOGS.unshift(row);
+    return { ok: true, message: "บันทึกแล้ว", log: row };
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("attendance_logs")
+    .insert({
+      employee_id: row.employee_id,
+      timestamp: row.timestamp,
+      type: row.type,
+      latitude: row.latitude,
+      longitude: row.longitude,
+      status: row.status,
+      reason: input.reason ?? null,
+      source: "liff",
+    })
+    .select("*")
+    .single();
+  if (error) return { ok: false, message: `recordAttendance: ${error.message}` };
+  return { ok: true, message: "บันทึกแล้ว", log: data as AttendanceLog };
 }

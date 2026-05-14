@@ -10,10 +10,12 @@ import type {
   OvertimeRequest,
   Payroll,
   PerformanceReview,
+  ProfileEditAudit,
   ScheduleAssignment,
   ScheduleChange,
   ScheduleEntry,
   Shift,
+  SocialSecurityConfig,
 } from "./types";
 
 const ORG_ID = "11111111-1111-1111-1111-111111111111";
@@ -21,22 +23,105 @@ const SHIFT_MORNING = "22222222-2222-2222-2222-222222222201";
 const SHIFT_EVENING = "22222222-2222-2222-2222-222222222202";
 const SHIFT_NIGHT = "22222222-2222-2222-2222-222222222203";
 
-export const ORGANIZATION: Organization = {
-  id: ORG_ID,
-  name: "ThaiAuto Factory",
-  timezone: "Asia/Bangkok",
-  thai_tax_id: "1234567890123",
-  geofence_lat: 13.740198598326677,
-  geofence_lng: 100.56227944249513,
-  geofence_radius: 150,
-  created_at: "2025-01-01T00:00:00Z",
-};
+// SaaS roots are populated in-memory. New tenants registering at runtime will
+// be appended; the seed org is the existing demo factory but bumped to
+// "enterprise" so demo flows never trip the trial gate.
+export const ORGANIZATIONS: Organization[] = [
+  {
+    id: ORG_ID,
+    name: "ThaiAuto Factory",
+    business_name: "ThaiAuto Factory",
+    business_name_norm: "thaiauto factory",
+    business_type: "factory",
+    timezone: "Asia/Bangkok",
+    thai_tax_id: "1234567890123",
+    geofence_lat: 13.740198598326677,
+    geofence_lng: 100.56227944249513,
+    geofence_radius: 150,
+    owner_employee_id: "33333333-3333-3333-3333-333333333308",
+    tier: "enterprise",
+    seat_limit: 999,
+    trial_started_at: "2025-01-01T00:00:00Z",
+    trial_ends_at: "2030-12-31T23:59:59Z",
+    is_active: true,
+    plan_notes: "Demo tenant (seeded)",
+    created_at: "2025-01-01T00:00:00Z",
+  },
+];
+
+// Backwards-compatibility export — many call sites still import the original
+// `ORGANIZATION` singleton. Keep it pointing at the first row so dashboard
+// stats/UI keep rendering unchanged.
+export const ORGANIZATION: Organization = ORGANIZATIONS[0];
 
 export const SHIFTS: Shift[] = [
   { id: SHIFT_MORNING, org_id: ORG_ID, name: "Morning Shift", start_time: "08:00:00", end_time: "17:00:00", break_minutes: 60 },
   { id: SHIFT_EVENING, org_id: ORG_ID, name: "Evening Shift", start_time: "16:00:00", end_time: "01:00:00", break_minutes: 60 },
   { id: SHIFT_NIGHT, org_id: ORG_ID, name: "Night Shift", start_time: "00:00:00", end_time: "08:00:00", break_minutes: 60 },
 ];
+
+function demoEmployeeDefaults(): Pick<
+  Employee,
+  | "nickname"
+  | "job_title"
+  | "phone"
+  | "national_id"
+  | "date_of_birth"
+  | "gender"
+  | "nationality"
+  | "marital_status"
+  | "hire_date"
+  | "employment_type"
+  | "address"
+  | "emergency_contact"
+  | "home_lat"
+  | "home_lng"
+  | "home_location_label"
+  | "home_location_source"
+  | "id_card_photo_url"
+  | "bank_book_photo_url"
+  | "profile_photo_url"
+  | "line_picture_url"
+  | "line_display_name"
+  | "rejection_reason"
+  | "submitted_at"
+  | "approved_at"
+  | "approved_by_id"
+  | "pdpa_consent_at"
+  | "metadata"
+  | "notes"
+> {
+  return {
+    nickname: null,
+    job_title: null,
+    phone: null,
+    national_id: null,
+    date_of_birth: null,
+    gender: null,
+    nationality: "TH",
+    marital_status: null,
+    hire_date: null,
+    employment_type: "full_time",
+    address: null,
+    emergency_contact: null,
+    home_lat: null,
+    home_lng: null,
+    home_location_label: null,
+    home_location_source: null,
+    id_card_photo_url: null,
+    bank_book_photo_url: null,
+    profile_photo_url: null,
+    line_picture_url: null,
+    line_display_name: null,
+    rejection_reason: null,
+    submitted_at: null,
+    approved_at: null,
+    approved_by_id: null,
+    pdpa_consent_at: "2025-01-01T00:00:00Z",
+    metadata: {},
+    notes: null,
+  };
+}
 
 export const EMPLOYEES: Employee[] = [
   {
@@ -61,6 +146,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: false,
     subordinate_ids: [],
     created_at: "2024-06-01T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333302",
@@ -84,6 +170,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: true,
     subordinate_ids: ["33333333-3333-3333-3333-333333333301", "33333333-3333-3333-3333-333333333303", "33333333-3333-3333-3333-333333333307", "33333333-3333-3333-3333-333333333310"],
     created_at: "2023-03-15T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333303",
@@ -107,6 +194,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: false,
     subordinate_ids: [],
     created_at: "2024-08-10T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333304",
@@ -130,6 +218,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: true,
     subordinate_ids: ["33333333-3333-3333-3333-333333333002", "33333333-3333-3333-3333-333333333005", "33333333-3333-3333-3333-333333333006", "33333333-3333-3333-3333-333333333009"],
     created_at: "2022-09-01T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333305",
@@ -153,6 +242,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: false,
     subordinate_ids: [],
     created_at: "2024-01-05T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333306",
@@ -176,6 +266,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: true,
     subordinate_ids: ["33333333-3333-3333-3333-333333333301", "33333333-3333-3333-3333-333333333303", "33333333-3333-3333-3333-333333333307", "33333333-3333-3333-3333-333333333310"],
     created_at: "2022-11-20T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333307",
@@ -199,6 +290,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: false,
     subordinate_ids: [],
     created_at: "2025-02-14T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333308",
@@ -222,6 +314,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: true,
     subordinate_ids: ["33333333-3333-3333-3333-333333333002", "33333333-3333-3333-3333-333333333006"],
     created_at: "2020-01-01T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333309",
@@ -245,6 +338,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: false,
     subordinate_ids: [],
     created_at: "2024-07-01T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
   {
     id: "33333333-3333-3333-3333-333333333310",
@@ -268,6 +362,7 @@ export const EMPLOYEES: Employee[] = [
     is_supervisor: false,
     subordinate_ids: [],
     created_at: "2025-04-12T00:00:00Z",
+    ...demoEmployeeDefaults(),
   },
 ];
 
@@ -492,32 +587,44 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
   },
 ];
 
-export const PAYROLLS: Payroll[] = workingEmployees.flatMap((e) => [
-  {
-    id: `payroll-${e.employee_code}-2026-04`,
-    employee_id: e.id,
-    month_year: "2026-04",
-    base_pay: e.base_salary ?? 0,
-    ot_pay: 4500,
-    ssf_deduction: 750,
-    tax_deduction: 1200,
-    net_pay: (e.base_salary ?? 0) + 4500 - 750 - 1200,
-    payslip_pdf_url: null,
-    created_at: "2026-04-30T18:00:00Z",
-  },
-  {
-    id: `payroll-${e.employee_code}-2026-05`,
-    employee_id: e.id,
-    month_year: "2026-05",
-    base_pay: e.base_salary ?? 0,
-    ot_pay: 3200,
-    ssf_deduction: 750,
-    tax_deduction: 1100,
-    net_pay: (e.base_salary ?? 0) + 3200 - 750 - 1100,
-    payslip_pdf_url: null,
-    created_at: "2026-05-08T18:00:00Z",
-  },
-]);
+// Mirror the Thai SSO 2026 phase-1 ceiling so demo payslips already reflect
+// the new rule (max 875 THB / month for salaries ≥ 17,500).
+function demoSsf(salary: number): number {
+  if (!salary || salary <= 0) return 0;
+  const base = Math.min(Math.max(salary, 1650), 17500);
+  return Math.round(base * 0.05);
+}
+
+export const PAYROLLS: Payroll[] = workingEmployees.flatMap((e) => {
+  const base = e.base_salary ?? 0;
+  const ssf = demoSsf(base);
+  return [
+    {
+      id: `payroll-${e.employee_code}-2026-04`,
+      employee_id: e.id,
+      month_year: "2026-04",
+      base_pay: base,
+      ot_pay: 4500,
+      ssf_deduction: ssf,
+      tax_deduction: 1200,
+      net_pay: base + 4500 - ssf - 1200,
+      payslip_pdf_url: null,
+      created_at: "2026-04-30T18:00:00Z",
+    },
+    {
+      id: `payroll-${e.employee_code}-2026-05`,
+      employee_id: e.id,
+      month_year: "2026-05",
+      base_pay: base,
+      ot_pay: 3200,
+      ssf_deduction: ssf,
+      tax_deduction: 1100,
+      net_pay: base + 3200 - ssf - 1100,
+      payslip_pdf_url: null,
+      created_at: "2026-05-08T18:00:00Z",
+    },
+  ];
+});
 
 export const PERFORMANCE_REVIEWS: PerformanceReview[] = [
   { id: "perf-001", employee_id: "33333333-3333-3333-3333-333333333301", review_date: todayMinus(30), kpi_score: 92, notes: "Excellent performance on production line" },
@@ -614,3 +721,48 @@ export const SCHEDULE_ASSIGNMENTS: ScheduleAssignment[] = [];
 export const SCHEDULE_CHANGES: ScheduleChange[] = [];
 
 export const ACTION_TOKENS: ActionToken[] = [];
+
+// =========================================================================
+// Multi-tenant + 2026 SSO additions
+// =========================================================================
+
+export const SOCIAL_SECURITY_CONFIGS: SocialSecurityConfig[] = [
+  {
+    id: "sso-th-phase1",
+    country: "TH",
+    effective_from: "2026-01-01",
+    effective_to: "2028-12-31",
+    rate_pct: 5,
+    wage_floor: 1650,
+    wage_ceiling: 17500,
+    max_contribution: 875,
+    notes: "Section 33 — Phase 1 (2026-2028)",
+    created_at: "2025-12-11T00:00:00Z",
+  },
+  {
+    id: "sso-th-phase2",
+    country: "TH",
+    effective_from: "2029-01-01",
+    effective_to: "2031-12-31",
+    rate_pct: 5,
+    wage_floor: 1650,
+    wage_ceiling: 20000,
+    max_contribution: 1000,
+    notes: "Section 33 — Phase 2 (2029-2031)",
+    created_at: "2025-12-11T00:00:00Z",
+  },
+  {
+    id: "sso-th-phase3",
+    country: "TH",
+    effective_from: "2032-01-01",
+    effective_to: null,
+    rate_pct: 5,
+    wage_floor: 1650,
+    wage_ceiling: 23000,
+    max_contribution: 1150,
+    notes: "Section 33 — Phase 3 (2032 onwards)",
+    created_at: "2025-12-11T00:00:00Z",
+  },
+];
+
+export const PROFILE_EDIT_AUDIT: ProfileEditAudit[] = [];

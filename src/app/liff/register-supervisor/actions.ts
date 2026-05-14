@@ -3,7 +3,7 @@
 import {
   getRegistrationStatus,
   listApprovalAdminsForOrg,
-  registerEmployee,
+  registerSupervisor,
 } from "@/lib/data";
 import { notifyHrOfRegistration } from "@/lib/line/approvals";
 import type {
@@ -12,10 +12,11 @@ import type {
   Gender,
   HomeLocationSource,
   RegistrationInput,
+  SubordinateLink,
   SupervisorGrant,
 } from "@/lib/types";
 
-export interface RegistrationStateResponse {
+export interface SupervisorRegistrationStateResponse {
   state: "new" | "pending" | "active" | "rejected";
   employee?: {
     name: string;
@@ -26,7 +27,7 @@ export interface RegistrationStateResponse {
   };
 }
 
-function publicEmployee(e: Employee): RegistrationStateResponse["employee"] {
+function publicEmployee(e: Employee): SupervisorRegistrationStateResponse["employee"] {
   return {
     name: e.name_th ?? e.name_en ?? "",
     department: e.department,
@@ -36,20 +37,20 @@ function publicEmployee(e: Employee): RegistrationStateResponse["employee"] {
   };
 }
 
-export async function checkRegistrationState(
+export async function checkSupervisorRegistrationState(
   lineUserId: string,
-): Promise<RegistrationStateResponse> {
+): Promise<SupervisorRegistrationStateResponse> {
   if (!lineUserId) return { state: "new" };
   const status = await getRegistrationStatus(lineUserId);
   if (status.state === "new") return { state: "new" };
   return { state: status.state, employee: publicEmployee(status.employee) };
 }
 
-export interface SubmitResult {
+export interface SupervisorSubmitResult {
   ok: boolean;
   message: string;
   duplicate?: "line_user_id" | "national_id";
-  unresolvedSupervisorName?: string;
+  unresolvedSubordinateNames?: string[];
 }
 
 function required(value: FormDataEntryValue | null, name: string): string {
@@ -90,18 +91,39 @@ function parseHomeSource(raw: string | undefined): HomeLocationSource | undefine
   return (allowed as string[]).includes(raw) ? (raw as HomeLocationSource) : undefined;
 }
 
-function parseSupervisorGrant(formData: FormData): SupervisorGrant {
-  return {
-    leave: formData.get("supervisorGrantLeave") === "on",
-    overtime: formData.get("supervisorGrantOvertime") === "on",
-    contact: formData.get("supervisorGrantContact") === "on",
-  };
+function parseSubordinates(formData: FormData): SubordinateLink[] {
+  // The form sends subordinates as JSON in a single hidden field so we don't
+  // have to dance around dynamic FormData keys.
+  const raw = String(formData.get("subordinatesJson") ?? "");
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .map((row): SubordinateLink | null => {
+        if (!row || typeof row !== "object") return null;
+        const r = row as Record<string, unknown>;
+        const name = typeof r.name === "string" ? r.name : "";
+        if (!name.trim()) return null;
+        const g = (r.grant as Record<string, unknown>) ?? {};
+        const grant: SupervisorGrant = {
+          leave: !!g.leave,
+          overtime: !!g.overtime,
+          contact: !!g.contact,
+        };
+        return { name, grant };
+      })
+      .filter((x): x is SubordinateLink => x !== null);
+  } catch {
+    return [];
+  }
 }
 
-export async function submitRegistration(formData: FormData): Promise<SubmitResult> {
+export async function submitSupervisorRegistration(
+  formData: FormData,
+): Promise<SupervisorSubmitResult> {
   let input: RegistrationInput;
   try {
-    const addSupervisor = formData.get("addSupervisor") === "on";
     input = {
       line_user_id:       required(formData.get("lineUserId"), "lineUserId"),
       display_name:       String(formData.get("displayName") ?? "").trim(),
@@ -110,7 +132,6 @@ export async function submitRegistration(formData: FormData): Promise<SubmitResu
       business_type:      parseBusinessType(optional(formData.get("businessType"))),
       name_th:            required(formData.get("nameTh"), "name_th"),
       name_en:            optional(formData.get("nameEn")),
-      name_zh:            optional(formData.get("nameZh")),
       nickname:           optional(formData.get("nickname")),
       date_of_birth:      optional(formData.get("dateOfBirth")),
       national_id:        optional(formData.get("nationalId")),
@@ -122,7 +143,6 @@ export async function submitRegistration(formData: FormData): Promise<SubmitResu
       position:           optional(formData.get("position")),
       job_title:          optional(formData.get("jobTitle")),
       shift_group:        optional(formData.get("shiftGroup")),
-      employment_type:    undefined,
       hire_date:          optional(formData.get("hireDate")),
       base_salary:        optionalNumber(formData.get("baseSalary")),
       bank_account:       optional(formData.get("bankAccount")),
@@ -130,13 +150,10 @@ export async function submitRegistration(formData: FormData): Promise<SubmitResu
       home_lng:           optionalNumber(formData.get("homeLng")),
       home_location_label: optional(formData.get("homeLocationLabel")),
       home_location_source: parseHomeSource(optional(formData.get("homeLocationSource"))),
-      id_card_photo_url:   optional(formData.get("idCardPhotoUrl")),
-      bank_book_photo_url: optional(formData.get("bankBookPhotoUrl")),
       profile_photo_url:   optional(formData.get("profilePhotoUrl")),
       pdpa_consent:       formData.get("pdpaConsent") === "on",
-      add_supervisor:     addSupervisor,
-      supervisor_name:    addSupervisor ? optional(formData.get("supervisorName")) : undefined,
-      supervisor_grant:   addSupervisor ? parseSupervisorGrant(formData) : undefined,
+      is_supervisor:      true,
+      subordinates:       parseSubordinates(formData),
     };
   } catch (err) {
     return { ok: false, message: (err as Error).message };
@@ -152,20 +169,21 @@ export async function submitRegistration(formData: FormData): Promise<SubmitResu
     return { ok: false, message: "โปรดยอมรับเงื่อนไข PDPA ก่อนสมัคร" };
   }
 
-  const result = await registerEmployee(input);
+  const result = await registerSupervisor(input);
   if (!result.ok || !result.employee) {
     return {
       ok: false,
       message: result.message,
       duplicate: result.duplicate,
-      unresolvedSupervisorName: result.unresolvedSupervisorName,
+      unresolvedSubordinateNames: result.unresolvedSubordinateNames,
     };
   }
 
-  // Notify approval admins of the tenant (HR if any, else any supervisor)
   const admins = await listApprovalAdminsForOrg(result.employee.org_id);
-  if (admins.length > 0) {
-    await notifyHrOfRegistration(result.employee.id, admins);
+  // Exclude self from the notification list
+  const externalAdmins = admins.filter((a) => a.id !== result.employee!.id);
+  if (externalAdmins.length > 0) {
+    await notifyHrOfRegistration(result.employee.id, externalAdmins);
   }
 
   return { ok: true, message: "Application submitted." };

@@ -1,46 +1,26 @@
 import { getTranslations } from "next-intl/server";
 import { Activity, Clock, MapPin, PlaneTakeoff, Users } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
-import { LiffInit } from "@/components/liff/liff-init";
-import { NeedsRegistration } from "@/components/liff/needs-registration";
+import { guardLiffPage } from "@/components/liff/page-guard";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   getEmployeeName,
-  getRegistrationStatus,
   listAttendanceLogs,
   listLeaveRequests,
   listTeamForSupervisor,
 } from "@/lib/data";
-import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 import { formatTime } from "@/lib/utils";
 
 export default async function LiffTeamPage() {
   const t = await getTranslations("liff.team");
-  const lineUserId = await getLiffUserIdFromCookie();
-  if (!lineUserId) {
-    return (
-      <>
-        <LiffHeader title={t("title")} />
-        <main className="px-4 pb-6 pt-3">
-          <LiffInit liffId={process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE} />
-        </main>
-      </>
-    );
-  }
-  const registration = await getRegistrationStatus(lineUserId);
-  if (registration.state !== "active") {
-    return (
-      <>
-        <LiffHeader title={t("title")} />
-        <main className="px-4 pb-6 pt-3">
-          <NeedsRegistration status={registration.state} />
-        </main>
-      </>
-    );
-  }
-  const me = registration.employee;
+  const guard = await guardLiffPage({
+    title: t("title"),
+    liffId: process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE,
+  });
+  if (!guard.ok) return guard.view;
+  const me = guard.employee;
   if (!me.is_supervisor) {
     return (
       <>

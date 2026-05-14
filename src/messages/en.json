@@ -373,7 +373,8 @@
       "attendance": "History",
       "leave": "Leave",
       "payslip": "Payslip",
-      "ai": "AI"
+      "ai": "AI",
+      "profile": "Profile"
     },
     "register": {
       "title": "New Employee Registration",
