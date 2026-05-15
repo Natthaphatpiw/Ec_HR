@@ -33,7 +33,7 @@ export function LandingFinalCta() {
           <div className="grid gap-8 p-8 sm:p-12 lg:grid-cols-12 lg:items-center lg:gap-12">
             <div className="lg:col-span-7">
               <div className="text-xs font-semibold uppercase tracking-wider text-orange-300">
-                LinForge HR · Starter
+                EC AIHR · Starter
               </div>
               <div className="mt-3 flex items-baseline gap-3">
                 <span className="text-6xl font-bold tracking-tight text-white sm:text-7xl">$100</span>

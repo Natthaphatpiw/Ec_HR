@@ -35,7 +35,7 @@ export function AiChat({
     {
       role: "assistant",
       content:
-        "Hi, I'm ForgeHR Assistant. I can read live attendance, leave, payroll, and shift data for ThaiAuto Factory. Ask me anything.",
+        "Hi, I'm EC AIHR Assistant. I can read live attendance, leave, payroll, and shift data for your organization. Ask me anything.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -81,7 +81,7 @@ export function AiChat({
         {loading && (
           <div className="flex items-center gap-3 px-2 text-sm text-navy-500">
             <Loader2 className="h-4 w-4 animate-spin" />
-            ForgeHR is thinking...
+            EC AIHR is thinking...
           </div>
         )}
       </div>

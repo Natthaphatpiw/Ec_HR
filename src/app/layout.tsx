@@ -27,35 +27,50 @@ const notoSC = Noto_Sans_SC({
 
 export const metadata: Metadata = {
   title: {
-    default: "LinForge HR — LINE-First HR for Modern Factories",
-    template: "%s · LinForge HR",
+    default: "EC AIHR — LINE-First HR SaaS for Every Business",
+    template: "%s · EC AIHR",
   },
   description:
-    "The only HR system your factory needs — built entirely on LINE. Clock-in, leave, payroll, and AI assistant inside the app your team opens every day.",
+    "The HR system your team already knows how to use — built entirely on LINE. Clock-in, leave, payroll, and AI assistant inside the app your team opens every day. By eCloudtec Thailand.",
   keywords: [
     "LINE HR",
-    "factory HR Thailand",
+    "HR SaaS Thailand",
     "LINE OA HR",
     "LIFF HR",
     "Thai labor law payroll",
-    "geofence clock-in",
     "shift scheduling",
-    "Mastra AI HR",
+    "AI HR assistant",
+    "eCloudtec Thailand",
+    "EC AIHR",
   ],
-  authors: [{ name: "LinForge" }],
+  authors: [{ name: "eCloudtec Thailand" }],
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+  icons: {
+    icon: "/brand/ecaihr-logo.png",
+    apple: "/brand/ecaihr-logo.png",
+    shortcut: "/brand/ecaihr-logo.png",
+  },
   openGraph: {
-    title: "LinForge HR — LINE-First HR for Modern Factories",
+    title: "EC AIHR — LINE-First HR SaaS for Every Business",
     description:
-      "Clock-in, leave, payroll, and AI assistant — all inside LINE. Built for factories in Thailand, Taiwan, and Southeast Asia.",
+      "Clock-in, leave, payroll, and AI assistant — all inside LINE. By eCloudtec Thailand.",
     type: "website",
-    siteName: "LinForge HR",
+    siteName: "EC AIHR",
+    images: [
+      {
+        url: "/brand/ecaihr-logo.png",
+        width: 2172,
+        height: 724,
+        alt: "EC AIHR by eCloudtec Thailand",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "LinForge HR — LINE-First HR for Modern Factories",
+    title: "EC AIHR — LINE-First HR SaaS for Every Business",
     description:
-      "Clock-in, leave, payroll, and AI assistant — all inside LINE. Built for factories.",
+      "Clock-in, leave, payroll, and AI assistant — all inside LINE. By eCloudtec Thailand.",
+    images: ["/brand/ecaihr-logo.png"],
   },
 };
 

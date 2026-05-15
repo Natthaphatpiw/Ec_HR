@@ -36,7 +36,7 @@ export function LandingAiSpotlight() {
           <div className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/40 bg-orange-400/10 px-3 py-1 text-xs font-semibold text-orange-200">
               <Sparkles className="h-3 w-3" />
-              ForgeHR AI · Claude Sonnet 4.6
+              EC AIHR · Claude Sonnet 4.6
             </div>
             <h2 className="text-3xl font-semibold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
               AI ที่เข้าใจ HR คนไทย
@@ -70,7 +70,7 @@ export function LandingAiSpotlight() {
               <div className="relative overflow-hidden rounded-[36px] border-2 border-orange-300/40 bg-white shadow-card">
                 <img
                   src="/screens/ai-chat.png"
-                  alt="หน้าแชทกับ AI Assistant ของ ForgeHR"
+                  alt="หน้าแชทกับ AI Assistant ของ EC AIHR"
                   width={320}
                   height={693}
                   className="h-[640px] w-[300px] object-cover"

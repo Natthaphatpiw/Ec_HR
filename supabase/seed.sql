@@ -1,4 +1,4 @@
--- LinForge HR — Seed / Mock Data
+-- EC AIHR (eCloudtec Thailand) — Seed / Mock Data
 -- Run after schema.sql. Safe to re-run after TRUNCATE.
 
 -- Organization

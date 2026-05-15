@@ -98,7 +98,7 @@ export function TrialBlockedView({ trial }: { trial: OrgTrialStatus }) {
               บริษัท <b>{trial.org.business_name}</b> ใช้ครบ {trial.seatsLimit} คนแล้ว — อัพเกรดเพื่อเพิ่มที่นั่ง
             </>
           )}
-          {isDeactivated && <>บัญชีนี้ถูกปิดใช้งาน — ติดต่อทีมงาน LinForge HR</>}
+          {isDeactivated && <>บัญชีนี้ถูกปิดใช้งาน — ติดต่อทีมงาน eCloudtec Thailand</>}
         </p>
         <div className="rounded-md bg-white px-3 py-2 text-[11px] text-navy-600">
           ติดต่อ <b>devecloudtec@gmail.com</b> เพื่อย้ายแพ็คเกจ

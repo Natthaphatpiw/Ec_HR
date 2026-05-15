@@ -126,7 +126,7 @@ export default async function DashboardOverviewPage() {
               </p>
               <Button variant="outline" size="sm" className="border-orange-300 text-orange-700 hover:bg-orange-100">
                 <Sparkles className="h-3.5 w-3.5" />
-                Ask ForgeHR Assistant
+                Ask EC AIHR Assistant
               </Button>
             </CardContent>
           </Card>

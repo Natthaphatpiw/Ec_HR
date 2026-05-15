@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "LinForge HR",
-    "tagline": "LINE-First HR for Modern Factories"
+    "name": "EC AIHR",
+    "tagline": "LINE-First HR SaaS — by eCloudtec Thailand"
   },
   "common": {
     "tryDemo": "Try Demo Inside LINE",
@@ -105,7 +105,7 @@
         "desc": "Minimum leave days, OT rates, holiday pay, and tax forms updated for Thai law."
       },
       "ai": {
-        "title": "ForgeHR Assistant",
+        "title": "EC AIHR Assistant",
         "desc": "Claude-powered agent reads live data: \"Who is late today?\", \"Generate May payroll\", \"Suggest schedule for next week\"."
       }
     },
@@ -338,7 +338,7 @@
       "download": "Download"
     },
     "aiChat": {
-      "title": "ForgeHR Assistant",
+      "title": "EC AIHR Assistant",
       "placeholder": "Ask anything — payroll, schedule, leave balance.",
       "send": "Send",
       "suggestions": [
@@ -363,7 +363,7 @@
       "department": "Department",
       "position": "Position",
       "submit": "Bind Account",
-      "success": "Account bound successfully. Welcome to LinForge HR.",
+      "success": "Account bound successfully. Welcome to EC AIHR.",
       "notFound": "Employee code not found. Please contact HR.",
       "alreadyBound": "This LINE account is already linked to another employee."
     },

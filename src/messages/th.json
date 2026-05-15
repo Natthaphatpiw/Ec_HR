@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "LinForge HR",
-    "tagline": "ระบบ HR ที่ทำงานทั้งหมดบน LINE"
+    "name": "EC AIHR",
+    "tagline": "ระบบ HR บน LINE — โดย eCloudtec Thailand"
   },
   "common": {
     "tryDemo": "ทดลองใช้ใน LINE",
@@ -105,7 +105,7 @@
         "desc": "วันลาขั้นต่ำ อัตรา OT ค่าทำงานวันหยุด แบบฟอร์มภาษี อัปเดตตามกฎหมายไทย"
       },
       "ai": {
-        "title": "ForgeHR Assistant",
+        "title": "EC AIHR Assistant",
         "desc": "ผู้ช่วย Claude อ่านข้อมูลสด: \"วันนี้ใครมาสาย?\", \"คำนวณเงินเดือนพ.ค.\", \"แนะนำตารางกะอาทิตย์หน้า\""
       }
     },
@@ -338,7 +338,7 @@
       "download": "ดาวน์โหลด"
     },
     "aiChat": {
-      "title": "ผู้ช่วย ForgeHR",
+      "title": "ผู้ช่วย EC AIHR",
       "placeholder": "ถามอะไรก็ได้ — เงินเดือน ตารางกะ สิทธิลา",
       "send": "ส่ง",
       "suggestions": [
@@ -363,7 +363,7 @@
       "department": "แผนก",
       "position": "ตำแหน่ง",
       "submit": "ผูกบัญชี",
-      "success": "ผูกบัญชีสำเร็จ ยินดีต้อนรับสู่ LinForge HR",
+      "success": "ผูกบัญชีสำเร็จ ยินดีต้อนรับสู่ EC AIHR",
       "notFound": "ไม่พบรหัสพนักงาน กรุณาติดต่อ HR",
       "alreadyBound": "บัญชี LINE นี้ผูกกับพนักงานคนอื่นแล้ว"
     },

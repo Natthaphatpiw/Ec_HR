@@ -8,7 +8,7 @@ export default function AiAssistantPage() {
   return (
     <>
       <DashboardTopbar
-        title="ForgeHR Assistant"
+        title="EC AIHR Assistant"
         subtitle="Mastra AI agent · Claude Sonnet 4.6 · Reads live HR data"
       />
       <main className="flex-1 px-6 py-6">
@@ -22,7 +22,7 @@ export default function AiAssistantPage() {
                       <Sparkles className="h-4 w-4" />
                     </div>
                     <div>
-                      <CardTitle className="text-base">ForgeHR Assistant</CardTitle>
+                      <CardTitle className="text-base">EC AIHR Assistant</CardTitle>
                       <CardDescription className="text-xs">
                         Org: ThaiAuto Factory · Channel: dashboard
                       </CardDescription>

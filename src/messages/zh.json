@@ -1,7 +1,7 @@
 {
   "brand": {
-    "name": "LinForge HR",
-    "tagline": "全部基于 LINE 的工厂人力资源系统"
+    "name": "EC AIHR",
+    "tagline": "基于 LINE 的人力资源 SaaS — 由 eCloudtec Thailand 出品"
   },
   "common": {
     "tryDemo": "在 LINE 中试用",
@@ -105,7 +105,7 @@
         "desc": "最低假期天数、加班费率、节假日工资和税表,均按泰国法律更新。"
       },
       "ai": {
-        "title": "ForgeHR 助手",
+        "title": "EC AIHR 助手",
         "desc": "Claude 驱动的代理读取实时数据:\"今天谁迟到了?\"、\"生成 5 月薪酬\"、\"建议下周排班\"。"
       }
     },
@@ -338,7 +338,7 @@
       "download": "下载"
     },
     "aiChat": {
-      "title": "ForgeHR 助手",
+      "title": "EC AIHR 助手",
       "placeholder": "随便问 — 薪酬、班次、假期余额。",
       "send": "发送",
       "suggestions": [
@@ -363,7 +363,7 @@
       "department": "部门",
       "position": "职位",
       "submit": "绑定账户",
-      "success": "账户绑定成功。欢迎使用 LinForge HR。",
+      "success": "账户绑定成功。欢迎使用 EC AIHR。",
       "notFound": "未找到员工编号。请联系 HR。",
       "alreadyBound": "此 LINE 账户已关联到另一员工。"
     },

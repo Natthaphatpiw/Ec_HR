@@ -1,4 +1,4 @@
-# LinForge HR — Image Prompts (English)
+# EC AIHR — Image Prompts (English)
 
 Marketing image library where **text is baked into the image** (in-image
 typography). Every visual answers 5 questions in the first 10 seconds:
@@ -35,7 +35,7 @@ typography). Every visual answers 5 questions in the first 10 seconds:
 [Middle 60%] Phone / screenshot mockup as the hero, centered
 [Around it]  3 feature callouts connected with thin orange dashed lines
 [Bottom 15%] CTA pill button + tagline + URL
-[Corner]    "LinForge HR" logo + tiny "Powered by LINE OA"
+[Corner]    "EC AIHR" logo + tiny "Powered by LINE OA"
 ```
 
 ### A1 — Hero Ad: "Leave, OT, Clock-in — all inside LINE"
@@ -65,7 +65,7 @@ LAYOUT (top to bottom):
       "AI answers HR questions 24/7"
 - BOTTOM (15%): A solid orange pill button "Start 30-day free trial" in
   white text. Below in small navy text: "No app install · Live in 5 min".
-  Bottom-right corner: small navy text "LinForge HR".
+  Bottom-right corner: small navy text "EC AIHR".
 
 STYLE: Clean, minimal, premium B2B SaaS. Strict color palette: navy
 #0F172A, orange #FB923C, white. NO EMOJI, NO PEOPLE. Render all English
@@ -74,7 +74,7 @@ text with perfect letterforms — no garbled characters. 8K, sharp.
 
 **Caption:**
 > Still chasing leave forms in Excel and personal LINE messages?
-> LinForge HR moves your entire HR stack into the LINE chat your team
+> EC AIHR moves your entire HR stack into the LINE chat your team
 > already opens every day. Leave, OT, clock-in, payslip, schedule +
 > AI co-pilot — from $100/month. 30-day free trial, no card required.
 
@@ -237,7 +237,7 @@ LAYOUT:
     "I forgot to clock in!"
   Drawn entirely in monoline navy strokes on white background.
 
-  RIGHT (60%): A photorealistic phone mockup showing the ForgeHR AI
+  RIGHT (60%): A photorealistic phone mockup showing the EC AIHR
   chat screen answering the same questions, with a green check badge
   floating top-right of the phone. The phone has a soft orange glow.
 
@@ -254,14 +254,14 @@ EMOJI. English text precise. 8K.
 
 ## TEMPLATE G — Comparison Table
 
-### G1 — "Excel vs LinForge HR"
+### G1 — "Excel vs EC AIHR"
 
 ```
 A SaaS comparison ad, 1080×1080 square, designed in the style of a
 clean SaaS landing-page comparison table.
 
 LAYOUT:
-- TOP 12%: Bold navy headline: "Why teams ditch Excel for LinForge HR"
+- TOP 12%: Bold navy headline: "Why teams ditch Excel for EC AIHR"
 
 - MIDDLE 75%: A two-column comparison table with rounded corners.
 
@@ -273,7 +273,7 @@ LAYOUT:
     "No audit log"
     "Re-train every new hire"
 
-  RIGHT COLUMN — header "LinForge HR" with a small emerald check icon
+  RIGHT COLUMN — header "EC AIHR" with a small emerald check icon
   and navy background, white text:
     "Submit via LINE in 30 seconds"
     "Flex card alerts instantly"

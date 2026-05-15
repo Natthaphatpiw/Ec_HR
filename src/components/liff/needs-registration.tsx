@@ -7,7 +7,7 @@ export function NeedsRegistration({ status }: { status?: "new" | "pending" | "re
   const title =
     status === "pending"   ? "ใบสมัครอยู่ระหว่างพิจารณา" :
     status === "rejected"  ? "ใบสมัครไม่ผ่านการพิจารณา" :
-    "ยินดีต้อนรับสู่ LinForge HR";
+    "ยินดีต้อนรับสู่ EC AIHR";
   const body =
     status === "pending"  ? "ฝ่าย HR / หัวหน้าจะแจ้งผลทาง LINE เมื่อพิจารณาเสร็จ" :
     status === "rejected" ? "ติดต่อ HR หรือหัวหน้าเพื่ออุทธรณ์" :

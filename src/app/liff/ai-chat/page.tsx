@@ -43,7 +43,7 @@ export default async function LiffAiChatPage() {
               <>
                 <div className="mb-2 flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
                   <Sparkles className="h-3.5 w-3.5" />
-                  <span>ForgeHR Assistant · Claude Sonnet 4.6</span>
+                  <span>EC AIHR Assistant · Claude Sonnet 4.6</span>
                 </div>
                 <AiChat channel="liff" employeeId={me.id} compact />
               </>

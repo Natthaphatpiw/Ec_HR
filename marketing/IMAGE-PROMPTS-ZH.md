@@ -1,4 +1,4 @@
-# LinForge HR — 营销图片提示词(中文)
+# EC AIHR — 营销图片提示词(中文)
 
 适用于 Facebook 广告、微信视频号、小红书、领英、LINE OA 的图片提示词库。
 **每张图都包含图内文字(in-image typography)**,让观众在 10 秒内回答 5 个问题:
@@ -34,7 +34,7 @@
 [中部 60%]   手机/截图 mockup 为主角,居中放
 [环绕 mockup]  3 个功能 callout 卡片,用细橙色虚线连接到手机
 [底部 15%]   CTA 胶囊按钮 + 小标语 + URL
-[角落]       "LinForge HR" 品牌标 + 极小字"Powered by LINE OA"
+[角落]       "EC AIHR" 品牌标 + 极小字"Powered by LINE OA"
 ```
 
 ### A1 — 首页广告:"请假、加班、打卡 — 全在 LINE 里"
@@ -67,7 +67,7 @@ LAYOUT (top to bottom):
 - BOTTOM (15%): A solid orange pill button with white text:
     "免费试用 30 天"
   Below in small navy text: "无需下载 App · 5 分钟上线"
-  Bottom-right corner: small navy text "LinForge HR".
+  Bottom-right corner: small navy text "EC AIHR".
 
 STYLE: Clean, minimal, premium B2B SaaS. Strict palette: navy #0F172A,
 orange #FB923C, white. NO EMOJI, NO PEOPLE. Render all Simplified Chinese
@@ -77,7 +77,7 @@ characters. 8K, sharp focus.
 
 **配文:**
 > 还在用 Excel 和私人微信群追踪员工请假吗?
-> LinForge HR 把整套 HR 流程搬进团队天天打开的 LINE。
+> EC AIHR 把整套 HR 流程搬进团队天天打开的 LINE。
 > 请假、加班、打卡、工资条、排班 + AI 助手 — 每月 $100 起。
 > 30 天免费试用,无需绑卡。
 
@@ -237,7 +237,7 @@ LAYOUT:
     "我忘记打卡了怎么办?"
   Drawn entirely in monoline navy strokes on white background.
 
-  RIGHT (60%): A photorealistic phone mockup showing the ForgeHR AI
+  RIGHT (60%): A photorealistic phone mockup showing the EC AIHR
   chat screen answering the same questions in Simplified Chinese, with
   a green check badge floating top-right. Soft orange glow halo.
 
@@ -254,7 +254,7 @@ NO EMOJI. Chinese text precise. 8K.
 
 ## 模板 G — 对比表
 
-### G1 — "Excel vs LinForge HR"
+### G1 — "Excel vs EC AIHR"
 
 ```
 A SaaS comparison ad, 1080×1080 square, designed like a clean SaaS
@@ -262,7 +262,7 @@ landing-page comparison table.
 
 LAYOUT:
 - TOP 12%: Bold navy Chinese headline:
-    "为什么团队放弃 Excel 选择 LinForge HR"
+    "为什么团队放弃 Excel 选择 EC AIHR"
 
 - MIDDLE 75%: A two-column comparison table with rounded corners.
 
@@ -273,7 +273,7 @@ LAYOUT:
     "无审计日志"
     "新员工要重新培训"
 
-  RIGHT COLUMN — header "LinForge HR" with small emerald check icon,
+  RIGHT COLUMN — header "EC AIHR" with small emerald check icon,
   navy background, white text:
     "LINE 内 30 秒提交"
     "Flex 卡片实时提醒"

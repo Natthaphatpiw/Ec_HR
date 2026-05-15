@@ -74,7 +74,7 @@ export function DashboardSidebar() {
         <div className="rounded-xl bg-navy-50 p-4">
           <div className="text-xs font-semibold text-navy-900">Powered by Mastra</div>
           <p className="mt-1 text-[11px] leading-relaxed text-navy-500">
-            ForgeHR Assistant uses Claude Sonnet 4.6 to read live data. Try the AI tab.
+            EC AIHR Assistant uses Claude Sonnet 4.6 to read live data. Try the AI tab.
           </p>
         </div>
       </div>

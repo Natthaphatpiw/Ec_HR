@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { LiffBottomNav } from "@/components/liff/bottom-nav";
 
 export const metadata: Metadata = {
-  title: "LinForge HR · LIFF",
+  title: "EC AIHR · LIFF",
 };
 
 export default function LiffLayout({ children }: { children: React.ReactNode }) {

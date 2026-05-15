@@ -12,7 +12,7 @@ export function LandingFooter() {
           <div className="md:col-span-5">
             <BrandMark href="/" />
             <p className="mt-4 max-w-sm text-sm text-navy-500">
-              LinForge HR — built entirely on LINE for factories in Thailand, Taiwan, and Southeast Asia.
+              EC AIHR — built entirely on LINE for businesses in Thailand and Southeast Asia. A product of eCloudtec Thailand.
             </p>
           </div>
           <FooterColumn title={t("product")}>
@@ -35,8 +35,8 @@ export function LandingFooter() {
           </FooterColumn>
         </div>
         <div className="mt-10 flex flex-col items-start justify-between gap-3 border-t border-navy-100 pt-8 text-sm text-navy-500 md:flex-row md:items-center">
-          <span>© 2026 LinForge Co., Ltd. {t("rights")}</span>
-          <span>Made for factory floors · Bangkok · Taipei</span>
+          <span>© 2026 eCloudtec Thailand. {t("rights")}</span>
+          <span>Made in Bangkok · for every Thai business</span>
         </div>
       </div>
     </footer>

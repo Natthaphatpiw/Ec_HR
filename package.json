@@ -1,8 +1,8 @@
 {
-  "name": "linforge-hr",
+  "name": "ec-aihr",
   "version": "1.1.0",
   "private": true,
-  "description": "LinForge HR - LINE-First HR SaaS for Factories",
+  "description": "EC AIHR - LINE-First HR SaaS by eCloudtec Thailand",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

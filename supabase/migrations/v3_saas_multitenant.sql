@@ -1,4 +1,4 @@
--- LinForge HR — Migration v3: Multi-tenant SaaS
+-- EC AIHR (eCloudtec Thailand) — Migration v3: Multi-tenant SaaS
 -- Run this in Supabase SQL Editor AFTER schema.sql + seed.sql.
 -- Safe to re-run: every statement uses IF NOT EXISTS or guarded blocks.
 --

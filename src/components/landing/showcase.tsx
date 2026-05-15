@@ -90,7 +90,7 @@ const SLIDES: FeatureSlide[] = [
       "พัฒนาบน Claude Sonnet 4.6 + Mastra agent framework",
     ],
     image: "/screens/ai-chat.png",
-    alt: "แชทกับผู้ช่วย AI ForgeHR",
+    alt: "แชทกับผู้ช่วย AI EC AIHR",
     icon: Sparkles,
     flip: true,
   },

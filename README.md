@@ -1,6 +1,7 @@
-# LinForge HR
+# EC AIHR
 
-> The LINE-First HR system for medium-to-large factories in Thailand, Taiwan, and Southeast Asia.
+> The LINE-First HR SaaS by **eCloudtec Thailand** — designed to fit any Thai business: restaurants,
+> retail, clinics, factories, offices, logistics, construction, and more.
 > Clock-in, leave, payroll, shifts, and an AI assistant — all running inside the LINE app your team
 > already uses every day.
 
@@ -173,7 +174,7 @@ same tool list — the tool signatures are already Mastra-compatible.
 | `/dashboard/leave`            | Leave + OT approval queue                                   |
 | `/dashboard/payroll`          | Monthly run + previews + Thai-compliant calculation         |
 | `/dashboard/reports`          | Punctuality, OT, KPI trends + PDF/Excel export              |
-| `/dashboard/ai-assistant`     | Full-page ForgeHR chat with tool-call inspection            |
+| `/dashboard/ai-assistant`     | Full-page EC AIHR chat with tool-call inspection            |
 | `/dashboard/settings`         | Factory profile, geofence editor, holidays, roles           |
 | `/dashboard/setup`            | First-time admin onboarding (org create + LINE OA bind)     |
 
@@ -187,7 +188,7 @@ same tool list — the tool signatures are already Mastra-compatible.
 | `/liff/request-leave`  | Leave request form + balance                           |
 | `/liff/request-ot`     | OT request form + Thai labor-law calc                  |
 | `/liff/payslip`        | Latest + past payslips, PDF viewer                     |
-| `/liff/ai-chat`        | Chat with ForgeHR Assistant inside LINE                |
+| `/liff/ai-chat`        | Chat with EC AIHR Assistant inside LINE                |
 | `/liff/team`           | Supervisor view: team attendance today                 |
 | `/liff/onboard`        | Bind LINE user ID to an `employees` row                |
 
@@ -200,7 +201,7 @@ same tool list — the tool signatures are already Mastra-compatible.
 
 ---
 
-## ForgeHR Assistant — agent tools
+## EC AIHR Assistant — agent tools
 
 Defined in `src/lib/mastra/tools.ts`. All eight tools are registered with the Anthropic API as
 tool definitions, so Claude can call them autonomously. Each one reads from the same data layer
@@ -366,4 +367,4 @@ supabase/
 
 ## License
 
-Proprietary. © 2026 LinForge Co., Ltd.
+Proprietary. © 2026 eCloudtec Thailand.

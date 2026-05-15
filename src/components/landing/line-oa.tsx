@@ -65,7 +65,7 @@ export function LandingLineOa() {
             <div className="relative mx-auto w-fit overflow-hidden rounded-[36px] border-2 border-navy-900 bg-white shadow-card">
               <Image
                 src="/screens/feature-line-card.png"
-                alt="LINE Official Account Rich Menu ของ LinForge HR แสดง 6 ฟีเจอร์: ขอลางาน, ขอ OT, สลิปเงินเดือน, ประวัติ/ตารางงาน, เข้า-ออกงาน, ติดต่อหัวหน้า/AI"
+                alt="LINE Official Account Rich Menu ของ EC AIHR แสดง 6 ฟีเจอร์: ขอลางาน, ขอ OT, สลิปเงินเดือน, ประวัติ/ตารางงาน, เข้า-ออกงาน, ติดต่อหัวหน้า/AI"
                 width={360}
                 height={780}
                 className="h-[640px] w-[300px] object-cover sm:h-[700px] sm:w-[320px]"

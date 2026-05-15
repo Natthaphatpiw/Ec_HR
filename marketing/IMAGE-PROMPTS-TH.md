@@ -1,4 +1,4 @@
-# LinForge HR — Image Prompts (ภาษาไทย)
+# EC AIHR — Image Prompts (ภาษาไทย)
 
 ชุด prompt สำหรับสร้างภาพ marketing ที่ **มีข้อความฝังในภาพ** (in-image typography)
 ตอบ 5 คำถามใน 10 วินาทีแรก:
@@ -30,7 +30,7 @@
 [Middle 60%]  Phone/Screenshot mockup เป็นพระเอก กลางภาพ
 [Right/Left of mockup]  3 feature callouts คั่นด้วย thin orange line
 [Bottom 15%]  CTA pill button + tagline เล็ก + URL
-[Corner]  โลโก้ "LinForge HR" + tiny "Powered by LINE OA"
+[Corner]  โลโก้ "EC AIHR" + tiny "Powered by LINE OA"
 ```
 
 ### A1 — Hero Ad: "ลา OT เช็คอิน — จบในแชท LINE"
@@ -56,7 +56,7 @@ LAYOUT (top to bottom):
   Each card connects to the phone with a thin orange dashed line.
 - Bottom 15%: A solid orange pill button reading "ทดลองใช้ฟรี 30 วัน" in
   white text. Below it small navy text: "ไม่ต้องโหลดแอป · 5 นาทีพร้อมใช้".
-  Bottom-right corner: small navy logo text "LinForge HR".
+  Bottom-right corner: small navy logo text "EC AIHR".
 
 STYLE: Crisp, minimal, B2B SaaS premium. Color palette strictly navy
 #0F172A, orange #FB923C, white. NO EMOJI, NO PEOPLE. Use real Thai
@@ -65,7 +65,7 @@ typography, no garbled text. 8K render quality.
 
 **Caption คู่กัน:**
 > หัวหน้ายังต้องตามใบลาผ่าน LINE ส่วนตัว Excel กับโทรศัพท์อยู่อีกหรือ?
-> LinForge HR ย้ายงาน HR ทั้งระบบเข้ามาอยู่ในแชท LINE ที่ทีมคุณเปิดทุกวันแล้ว
+> EC AIHR ย้ายงาน HR ทั้งระบบเข้ามาอยู่ในแชท LINE ที่ทีมคุณเปิดทุกวันแล้ว
 > ลา OT เช็คอิน สลิป ตารางงาน + AI ช่วยคิด — เริ่มต้น $100/เดือน
 > 👉 ทดลองฟรี 30 วัน · ไม่ต้องผูกบัตร
 
@@ -224,7 +224,7 @@ LAYOUT:
     "ลืมกดเข้างานทำไง?"
   Drawn in monoline navy strokes on white background.
 
-  RIGHT (60%): A photorealistic phone mockup showing the ForgeHR AI
+  RIGHT (60%): A photorealistic phone mockup showing the EC AIHR
   chat screen answering the same questions, with a green check badge
   floating top-right. The phone has a soft orange glow halo.
 
@@ -241,14 +241,14 @@ Realistic Thai text. 8K.
 
 ## TEMPLATE G — Comparison Table (vs Excel)
 
-### G1 — "Excel vs LinForge HR"
+### G1 — "Excel vs EC AIHR"
 
 ```
 A SaaS comparison ad, 1080×1080 square, designed like a clean SaaS
 landing-page comparison table.
 
 LAYOUT:
-- Top 12%: Thai headline "ทำไมเลิกใช้ Excel แล้วเปลี่ยนมา LinForge HR" in bold navy.
+- Top 12%: Thai headline "ทำไมเลิกใช้ Excel แล้วเปลี่ยนมา EC AIHR" in bold navy.
 
 - Middle 75%: A two-column comparison table with rounded corners.
 
@@ -260,7 +260,7 @@ LAYOUT:
     "ไม่มี audit log"
     "พนักงานต้องสอนทุกครั้ง"
 
-  COLUMN 2 — header "LinForge HR" with a small emerald check icon,
+  COLUMN 2 — header "EC AIHR" with a small emerald check icon,
   navy background, white text:
     "พนักงานกรอกผ่าน LINE ใน 30 วินาที"
     "Flex card แจ้งเตือนทันที"

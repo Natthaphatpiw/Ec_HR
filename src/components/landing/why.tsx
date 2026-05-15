@@ -58,7 +58,7 @@ export function LandingWhy() {
       <div className="container-page">
         <div className="mx-auto max-w-3xl text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-navy-50 px-3 py-1 text-xs font-semibold text-navy-700">
-            ทำไมต้อง LinForge HR
+            ทำไมต้อง EC AIHR
           </div>
           <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">
             ระบบ HR หลายเจ้า — เลือกของเราเพราะอะไร

@@ -19,7 +19,7 @@ import type { ActionTokenKind } from "@/lib/types";
 export const runtime = "nodejs";
 
 export async function GET() {
-  return NextResponse.json({ ok: true, service: "linforge-hr.line.webhook" });
+  return NextResponse.json({ ok: true, service: "ec-aihr.line.webhook" });
 }
 
 export async function POST(req: Request) {

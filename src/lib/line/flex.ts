@@ -7,7 +7,7 @@ import type {
 } from "../types";
 
 // =========================================================================
-// Design tokens — match the LinForge palette. No emojis anywhere.
+// Design tokens — match the EC AIHR palette. No emojis anywhere.
 // =========================================================================
 
 const COLOR_NAVY        = "#0F172A";

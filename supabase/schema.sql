@@ -1,4 +1,4 @@
--- LinForge HR — Database Schema
+-- EC AIHR (eCloudtec Thailand) — Database Schema
 -- Run in Supabase SQL Editor in this exact order.
 
 -- 1. Organizations (Factories)

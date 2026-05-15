@@ -133,7 +133,7 @@ export default async function LiffHome() {
             desc={me.is_supervisor ? "Own + team schedule" : "This month"}
           />
           <ActionTile href="/liff/profile" icon={User} title="Profile" desc="แก้ไขข้อมูล" />
-          <ActionTile href="/liff/ai-chat" icon={MessageCircle} title="ForgeHR AI" desc="Ask anything" />
+          <ActionTile href="/liff/ai-chat" icon={MessageCircle} title="EC AIHR" desc="Ask anything" />
         </section>
 
         {lastIn && (
