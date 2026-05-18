@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { CheckCircle2, MessageCircle } from "lucide-react";
+import { ScrollReveal } from "./scroll-reveal";
 
 const MENU_ITEMS = [
   { label: "ขอลางาน", sub: "ดูโควต้าคงเหลือทันที" },
@@ -15,7 +16,7 @@ export function LandingLineOa() {
     <section className="border-b border-navy-100 bg-white py-20 sm:py-24">
       <div className="container-page">
         <div className="grid gap-12 lg:grid-cols-12 lg:items-center lg:gap-16">
-          <div className="lg:col-span-6 order-2 space-y-6 lg:order-1">
+          <ScrollReveal direction="right" className="lg:col-span-6 order-2 space-y-6 lg:order-1">
             <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
               <MessageCircle className="h-3 w-3" />
               ทำงานจาก LINE 100% — ไม่มีแอปแยก
@@ -58,11 +59,11 @@ export function LandingLineOa() {
                 </span>
               </div>
             </div>
-          </div>
+          </ScrollReveal>
 
-          <div className="relative order-1 lg:col-span-6 lg:order-2">
-            <div className="pointer-events-none absolute inset-x-12 top-8 hidden h-[80%] rounded-[40px] bg-gradient-to-br from-orange-200 to-emerald-200 opacity-40 blur-3xl lg:block" />
-            <div className="relative mx-auto w-fit overflow-hidden rounded-[36px] border-2 border-navy-900 bg-white shadow-card">
+          <ScrollReveal direction="left" delay={200} className="relative order-1 lg:col-span-6 lg:order-2">
+            <div className="pointer-events-none absolute inset-x-12 top-8 hidden h-[80%] rounded-[40px] bg-gradient-to-br from-orange-200 to-emerald-200 opacity-40 blur-3xl lg:block animate-blob" />
+            <div className="relative mx-auto w-fit overflow-hidden rounded-[36px] border-2 border-navy-900 bg-white shadow-card animate-float">
               <Image
                 src="/screens/feature-line-card.png"
                 alt="LINE Official Account Rich Menu ของ EC AIHR แสดง 6 ฟีเจอร์: ขอลางาน, ขอ OT, สลิปเงินเดือน, ประวัติ/ตารางงาน, เข้า-ออกงาน, ติดต่อหัวหน้า/AI"
@@ -71,7 +72,7 @@ export function LandingLineOa() {
                 className="h-[640px] w-[300px] object-cover sm:h-[700px] sm:w-[320px]"
               />
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

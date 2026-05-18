@@ -1,6 +1,7 @@
 import { LandingHeader } from "@/components/landing/header";
 import { LandingHero } from "@/components/landing/hero";
 import { LandingLineOa } from "@/components/landing/line-oa";
+import { LandingGettingStarted } from "@/components/landing/getting-started";
 import { LandingPainSolution } from "@/components/landing/pain-solution";
 import { LandingShowcase } from "@/components/landing/showcase";
 import { LandingAiSpotlight } from "@/components/landing/ai-spotlight";
@@ -15,6 +16,7 @@ export default function HomePage() {
       <LandingHeader />
       <LandingHero />
       <LandingLineOa />
+      <LandingGettingStarted />
       <LandingPainSolution />
       <LandingShowcase />
       <LandingAiSpotlight />

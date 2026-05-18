@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { CalendarRange, Camera, ClipboardList, MapPin, MessageSquare, Sparkles, Users } from "lucide-react";
+import { ScrollReveal } from "./scroll-reveal";
 
 interface FeatureSlide {
   badge: string;
@@ -113,16 +114,18 @@ export function LandingShowcase() {
   return (
     <section className="border-b border-navy-100 bg-navy-50/40 py-20 sm:py-24" id="features">
       <div className="container-page">
-        <div className="mx-auto max-w-3xl text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white px-3 py-1 text-xs font-semibold text-navy-700">
-            7 ฟีเจอร์หลัก ใน 1 LINE OA
+        <ScrollReveal>
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-navy-200 bg-white px-3 py-1 text-xs font-semibold text-navy-700">
+              7 ฟีเจอร์หลัก ใน 1 LINE OA
+            </div>
+            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">
+              ทุกอย่างที่ทีม HR ทำซ้ำ ๆ ทุกวัน
+              <br />
+              <span className="text-orange-500">ย้ายเข้ามาอยู่บน LINE ที่พนักงานคุ้นมือ</span>
+            </h2>
           </div>
-          <h2 className="mt-4 text-3xl font-semibold tracking-tight text-navy-900 sm:text-4xl">
-            ทุกอย่างที่ทีม HR ทำซ้ำ ๆ ทุกวัน
-            <br />
-            <span className="text-orange-500">ย้ายเข้ามาอยู่บน LINE ที่พนักงานคุ้นมือ</span>
-          </h2>
-        </div>
+        </ScrollReveal>
 
         <div className="mt-16 space-y-20">
           {SLIDES.map((slide) => (
@@ -139,7 +142,7 @@ function Slide({ slide }: { slide: FeatureSlide }) {
   const flipClass = slide.flip ? "lg:flex-row-reverse" : "lg:flex-row";
   return (
     <article className={`flex flex-col gap-10 lg:items-center lg:gap-16 ${flipClass}`}>
-      <div className="flex-1 space-y-5">
+      <ScrollReveal direction={slide.flip ? "left" : "right"} className="flex-1 space-y-5">
         <div className="inline-flex items-center gap-2 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">
           <Icon className="h-3.5 w-3.5" />
           {slide.badge}
@@ -156,11 +159,11 @@ function Slide({ slide }: { slide: FeatureSlide }) {
             </li>
           ))}
         </ul>
-      </div>
+      </ScrollReveal>
 
-      <div className="relative flex-1">
-        <div className="absolute inset-x-12 -top-4 hidden h-full rounded-[40px] bg-gradient-to-br from-orange-100 to-navy-100 opacity-50 blur-2xl lg:block" />
-        <div className="relative mx-auto w-fit overflow-hidden rounded-[36px] border-2 border-navy-900 bg-white shadow-card">
+      <ScrollReveal direction={slide.flip ? "right" : "left"} delay={150} className="relative flex-1">
+        <div className="absolute inset-x-12 -top-4 hidden h-full rounded-[40px] bg-gradient-to-br from-orange-100 to-navy-100 opacity-50 blur-2xl lg:block animate-blob" />
+        <div className="relative mx-auto w-fit overflow-hidden rounded-[36px] border-2 border-navy-900 bg-white shadow-card transition-transform hover:-translate-y-1 hover:shadow-card animate-float">
           <Image
             src={slide.image}
             alt={slide.alt}
@@ -169,7 +172,7 @@ function Slide({ slide }: { slide: FeatureSlide }) {
             className="h-[560px] w-[260px] object-cover sm:h-[600px] sm:w-[280px]"
           />
         </div>
-      </div>
+      </ScrollReveal>
     </article>
   );
 }

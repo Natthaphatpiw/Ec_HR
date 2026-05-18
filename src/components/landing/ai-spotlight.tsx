@@ -1,4 +1,5 @@
 import { BrainCircuit, Languages, LineChart, MessagesSquare, ShieldCheck, Sparkles } from "lucide-react";
+import { ScrollReveal } from "./scroll-reveal";
 
 const CAPABILITIES = [
   {
@@ -27,13 +28,13 @@ export function LandingAiSpotlight() {
   return (
     <section className="relative overflow-hidden border-b border-navy-100 bg-navy-900 py-20 text-white sm:py-24">
       <div className="absolute inset-0 opacity-20" aria-hidden>
-        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-400 blur-3xl" />
-        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-orange-500 blur-3xl" />
+        <div className="absolute -left-32 top-0 h-96 w-96 rounded-full bg-orange-400 blur-3xl animate-blob" />
+        <div className="absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-orange-500 blur-3xl animate-blob [animation-delay:-6s]" />
       </div>
 
       <div className="container-page relative">
         <div className="grid gap-12 lg:grid-cols-12 lg:gap-16">
-          <div className="lg:col-span-7 space-y-6">
+          <ScrollReveal direction="right" className="lg:col-span-7 space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/40 bg-orange-400/10 px-3 py-1 text-xs font-semibold text-orange-200">
               <Sparkles className="h-3 w-3" />
               EC AIHR · Claude Sonnet 4.6
@@ -62,12 +63,13 @@ export function LandingAiSpotlight() {
               <ShieldCheck className="h-4 w-4 text-orange-300" />
               <span>ข้อมูลแยก tenant ต่อบริษัท · RLS policies ใน Supabase · audit log ครบ</span>
             </div>
-          </div>
+          </ScrollReveal>
 
-          <div className="lg:col-span-5">
+          <ScrollReveal direction="left" delay={200} className="lg:col-span-5">
             <div className="relative mx-auto w-fit">
-              <div className="absolute inset-0 -m-4 rounded-[40px] bg-orange-400/20 blur-2xl" />
-              <div className="relative overflow-hidden rounded-[36px] border-2 border-orange-300/40 bg-white shadow-card">
+              <div className="absolute inset-0 -m-4 rounded-[40px] bg-orange-400/20 blur-2xl animate-blob" />
+              <div className="relative overflow-hidden rounded-[36px] border-2 border-orange-300/40 bg-white shadow-card animate-float">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/screens/ai-chat.png"
                   alt="หน้าแชทกับ AI Assistant ของ EC AIHR"
@@ -77,7 +79,7 @@ export function LandingAiSpotlight() {
                 />
               </div>
             </div>
-          </div>
+          </ScrollReveal>
         </div>
       </div>
     </section>

@@ -8,6 +8,7 @@ import {
   Sparkles,
   Wrench,
 } from "lucide-react";
+import { ScrollReveal } from "./scroll-reveal";
 
 const REASONS = [
   {
@@ -69,17 +70,18 @@ export function LandingWhy() {
         </div>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {REASONS.map((r) => (
-            <div
+          {REASONS.map((r, i) => (
+            <ScrollReveal
               key={r.title}
-              className="rounded-2xl border border-navy-100 bg-white p-5 transition-colors hover:border-orange-200 hover:bg-orange-50/30"
+              delay={(i % 4) * 80}
+              className="group rounded-2xl border border-navy-100 bg-white p-5 transition-all hover:-translate-y-1 hover:border-orange-200 hover:bg-orange-50/30 hover:shadow-card"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy-900 text-orange-400">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-navy-900 text-orange-400 transition-transform group-hover:scale-110 group-hover:rotate-6">
                 <r.icon className="h-5 w-5" />
               </div>
               <h3 className="mt-4 text-sm font-semibold text-navy-900">{r.title}</h3>
               <p className="mt-1 text-xs leading-relaxed text-navy-500">{r.body}</p>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </div>
