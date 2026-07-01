@@ -9,6 +9,7 @@ import {
   Camera,
   CheckCircle2,
   ChevronRight,
+  Copy,
   Hourglass,
   Loader2,
   Locate,
@@ -36,6 +37,7 @@ import {
 } from "@/components/ui/select";
 
 import { initLiff } from "@/lib/liff-client";
+import { buildInviteQrPath, buildInviteUrl } from "@/lib/invite";
 import { cn } from "@/lib/utils";
 import {
   checkSupervisorRegistrationState,
@@ -92,6 +94,13 @@ export function SupervisorRegisterForm() {
   const [step, setStep] = useState(0);
   const [pending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
+  // Set when a brand-new company owner is auto-activated — shows the QR/link
+  // success screen to share with the team.
+  const [ownerInvite, setOwnerInvite] = useState<{
+    token: string;
+    url: string;
+    businessName: string;
+  } | null>(null);
 
   // Step 0 — company
   const [businessName, setBusinessName] = useState("");
@@ -288,6 +297,16 @@ export function SupervisorRegisterForm() {
         else toast.error(res.message);
         return;
       }
+      // Brand-new company: owner auto-activated → show the invite QR/link screen.
+      if (res.activated && res.inviteToken) {
+        toast.success("เปิดบริษัทสำเร็จ");
+        setOwnerInvite({
+          token: res.inviteToken,
+          url: res.inviteUrl ?? "",
+          businessName: res.businessName ?? businessName,
+        });
+        return;
+      }
       toast.success("ส่งใบสมัครเรียบร้อย");
       setSubmitted(true);
       setStateCheck({
@@ -314,6 +333,15 @@ export function SupervisorRegisterForm() {
     );
   }
 
+  if (ownerInvite) {
+    return (
+      <OwnerInviteSuccess
+        token={ownerInvite.token}
+        url={ownerInvite.url}
+        businessName={ownerInvite.businessName}
+      />
+    );
+  }
   if (stateCheck?.state === "active") return <AlreadyActive employee={stateCheck.employee!} />;
   if (stateCheck?.state === "pending" || submitted) {
     return (
@@ -927,6 +955,75 @@ interface ResultEmployee {
   position: string | null;
   submittedAt?: string | null;
   rejectionReason?: string | null;
+}
+
+function OwnerInviteSuccess({
+  token,
+  url,
+  businessName,
+}: {
+  token: string;
+  url: string;
+  businessName: string;
+}) {
+  const qr = buildInviteQrPath(token);
+  const shareUrl = url || buildInviteUrl(token);
+  const [copied, setCopied] = useState(false);
+
+  function copy() {
+    if (!navigator.clipboard) {
+      toast.error("อุปกรณ์ไม่รองรับการคัดลอก");
+      return;
+    }
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setCopied(true);
+      toast.success("คัดลอกลิงก์แล้ว");
+      setTimeout(() => setCopied(false), 2000);
+    });
+  }
+
+  return (
+    <Card>
+      <CardContent className="space-y-4 p-6 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
+          <CheckCircle2 className="h-7 w-7 text-emerald-600" />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-navy-900">เปิดบริษัทสำเร็จ</h3>
+          <p className="mt-1 text-sm text-navy-500">
+            {businessName} — ให้พนักงานสแกน QR หรือเปิดลิงก์นี้เพื่อเข้าร่วมทีม
+          </p>
+        </div>
+
+        <div className="mx-auto w-fit rounded-2xl border border-navy-100 bg-white p-3 shadow-soft">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={qr} alt="invite QR" width={216} height={216} className="h-[216px] w-[216px]" />
+        </div>
+
+        <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 text-left">
+          <div className="text-[11px] uppercase tracking-wider text-navy-500">ลิงก์คำเชิญ</div>
+          <div className="mt-1 break-all text-xs text-navy-700">{shareUrl}</div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-2">
+          <Button type="button" size="lg" variant="outline" onClick={copy}>
+            <Copy className="h-4 w-4" />
+            {copied ? "คัดลอกแล้ว" : "คัดลอกลิงก์"}
+          </Button>
+          <Button asChild size="lg">
+            <a href="/liff">
+              เข้าใช้งานระบบ
+              <ChevronRight className="h-4 w-4" />
+            </a>
+          </Button>
+        </div>
+
+        <p className="text-[11px] text-navy-400">
+          เปิดลิงก์นี้อีกครั้งได้ที่หน้า "เชิญพนักงานเข้าทีม" ในระบบ
+        </p>
+      </CardContent>
+    </Card>
+  );
 }
 
 function PendingReview({ employee }: { employee: ResultEmployee }) {

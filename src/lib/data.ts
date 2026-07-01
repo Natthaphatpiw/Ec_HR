@@ -8,6 +8,7 @@ import {
   NOTIFICATIONS,
   ORGANIZATION,
   ORGANIZATIONS,
+  ORG_INVITES,
   OVERTIME_REQUESTS,
   PAYROLLS,
   PERFORMANCE_REVIEWS,
@@ -34,6 +35,7 @@ import type {
   LeaveType,
   Notification,
   Organization,
+  OrgInvite,
   OvertimeRequest,
   Payroll,
   PerformanceReview,
@@ -101,6 +103,24 @@ export async function getOrganization(orgId?: string): Promise<Organization> {
     .maybeSingle();
   if (error) throw new Error(`getOrganization: ${error.message}`);
   return (data as Organization) ?? ORGANIZATION;
+}
+
+/**
+ * Strict org lookup by id — returns undefined for an unknown id instead of
+ * falling back to the demo ORGANIZATION singleton like getOrganization does.
+ * Used by the invite-redemption path so a bad token can never silently
+ * register someone into the demo tenant.
+ */
+export async function getOrganizationById(id: string): Promise<Organization | undefined> {
+  if (isDemo()) return ORGANIZATIONS.find((o) => o.id === id);
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("organizations")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw new Error(`getOrganizationById: ${error.message}`);
+  return (data as Organization) ?? undefined;
 }
 
 export async function findOrganizationByBusinessName(name: string): Promise<Organization | undefined> {
@@ -317,29 +337,31 @@ export async function listApprovalAdminsForOrg(orgId: string): Promise<Employee[
 }
 
 export async function listTeamForSupervisor(supervisorId: string): Promise<Employee[]> {
-  // Source of truth: employees.subordinate_ids on the supervisor's row.
-  // Falls back to the reverse-lookup on the 3 approval-supervisor pointers
-  // for rows where subordinate_ids hasn't been backfilled yet.
+  // Team = UNION of the supervisor's subordinate_ids roster AND anyone whose
+  // leave/ot/contact approval pointer targets them. Unioning (rather than
+  // preferring one) keeps the board correct even if subordinate_ids is
+  // incomplete (e.g. a lost-update race left an id off the array).
   const supervisor = await getEmployeeById(supervisorId);
   const explicit = supervisor?.subordinate_ids ?? [];
+  const byFk = (e: Employee) =>
+    e.leave_supervisor_id === supervisorId ||
+    e.ot_supervisor_id === supervisorId ||
+    e.contact_supervisor_id === supervisorId;
 
   if (isDemo()) {
-    if (explicit.length > 0) {
-      return EMPLOYEES.filter((e) => explicit.includes(e.id));
+    const dedup = new Map<string, Employee>();
+    for (const e of EMPLOYEES) {
+      if (explicit.includes(e.id) || byFk(e)) dedup.set(e.id, e);
     }
-    return EMPLOYEES.filter(
-      (e) =>
-        e.leave_supervisor_id === supervisorId ||
-        e.ot_supervisor_id === supervisorId ||
-        e.contact_supervisor_id === supervisorId,
-    );
+    return Array.from(dedup.values());
   }
 
   const sb = supabaseAdmin();
+  const dedup = new Map<string, Employee>();
   if (explicit.length > 0) {
     const { data, error } = await sb.from("employees").select("*").in("id", explicit);
     if (error) throw new Error(`listTeamForSupervisor (subordinate_ids): ${error.message}`);
-    return (data ?? []) as Employee[];
+    for (const e of (data ?? []) as Employee[]) dedup.set(e.id, e);
   }
   const { data, error } = await sb
     .from("employees")
@@ -348,7 +370,8 @@ export async function listTeamForSupervisor(supervisorId: string): Promise<Emplo
       `leave_supervisor_id.eq.${supervisorId},ot_supervisor_id.eq.${supervisorId},contact_supervisor_id.eq.${supervisorId}`,
     );
   if (error) throw new Error(`listTeamForSupervisor: ${error.message}`);
-  return (data ?? []) as Employee[];
+  for (const e of (data ?? []) as Employee[]) dedup.set(e.id, e);
+  return Array.from(dedup.values());
 }
 
 export async function getSupervisorForEmployee(
@@ -366,6 +389,177 @@ export async function getSupervisorForEmployee(
 }
 
 // =========================================================================
+// Org invites (supervisor-first registration)
+// =========================================================================
+
+function newInviteToken(): string {
+  const bytes = new Uint8Array(16);
+  if (typeof crypto !== "undefined" && "getRandomValues" in crypto) {
+    crypto.getRandomValues(bytes);
+  } else {
+    for (let i = 0; i < bytes.length; i++) bytes[i] = Math.floor(Math.random() * 256);
+  }
+  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+export interface CreateInviteInput {
+  orgId: string;
+  supervisorId: string;
+  grant?: SupervisorGrant;
+  role?: Employee["role"];
+  expiresAt?: string | null;
+  maxUses?: number | null;
+}
+
+export async function createOrgInvite(input: CreateInviteInput): Promise<OrgInvite> {
+  const grant = input.grant ?? { leave: true, overtime: true, contact: true };
+  const now = new Date().toISOString();
+  const row: OrgInvite = {
+    id: newId("invite"),
+    org_id: input.orgId,
+    token: newInviteToken(),
+    created_by: input.supervisorId,
+    set_supervisor_id: input.supervisorId,
+    role_to_grant: input.role ?? "employee",
+    grant_leave: grant.leave,
+    grant_overtime: grant.overtime,
+    grant_contact: grant.contact,
+    expires_at: input.expiresAt ?? null,
+    max_uses: input.maxUses ?? null,
+    use_count: 0,
+    is_active: true,
+    revoked_at: null,
+    created_at: now,
+  };
+  if (isDemo()) {
+    ORG_INVITES.push(row);
+    return row;
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("org_invites")
+    .insert({
+      org_id: row.org_id,
+      token: row.token,
+      created_by: row.created_by,
+      set_supervisor_id: row.set_supervisor_id,
+      role_to_grant: row.role_to_grant,
+      grant_leave: row.grant_leave,
+      grant_overtime: row.grant_overtime,
+      grant_contact: row.grant_contact,
+      expires_at: row.expires_at,
+      max_uses: row.max_uses,
+    })
+    .select("*")
+    .single();
+  if (error) throw new Error(`createOrgInvite: ${error.message}`);
+  return data as OrgInvite;
+}
+
+/** The supervisor's existing active reusable invite, or a freshly-created one. */
+export async function getOrCreateReusableInvite(
+  orgId: string,
+  supervisorId: string,
+): Promise<OrgInvite> {
+  if (isDemo()) {
+    const existing = ORG_INVITES.find(
+      (i) => i.org_id === orgId && i.set_supervisor_id === supervisorId && i.is_active,
+    );
+    return existing ?? createOrgInvite({ orgId, supervisorId });
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("org_invites")
+    .select("*")
+    .eq("org_id", orgId)
+    .eq("set_supervisor_id", supervisorId)
+    .eq("is_active", true)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw new Error(`getOrCreateReusableInvite: ${error.message}`);
+  return (data as OrgInvite) ?? createOrgInvite({ orgId, supervisorId });
+}
+
+/** Revoke the supervisor's active invite(s) and mint a fresh one. */
+export async function regenerateReusableInvite(
+  orgId: string,
+  supervisorId: string,
+): Promise<OrgInvite> {
+  if (isDemo()) {
+    for (const i of ORG_INVITES) {
+      if (i.org_id === orgId && i.set_supervisor_id === supervisorId && i.is_active) {
+        i.is_active = false;
+        i.revoked_at = new Date().toISOString();
+      }
+    }
+    return createOrgInvite({ orgId, supervisorId });
+  }
+  const sb = supabaseAdmin();
+  await sb
+    .from("org_invites")
+    .update({ is_active: false, revoked_at: new Date().toISOString() })
+    .eq("org_id", orgId)
+    .eq("set_supervisor_id", supervisorId)
+    .eq("is_active", true);
+  return createOrgInvite({ orgId, supervisorId });
+}
+
+export interface ResolvedInvite {
+  invite: OrgInvite;
+  org: Organization;
+  supervisor?: Employee;
+}
+
+/**
+ * Validate + resolve a public invite token. Returns undefined when the token
+ * is unknown, revoked, expired, exhausted (use_count >= max_uses), or its org
+ * no longer exists.
+ */
+export async function getOrgInviteByToken(token: string): Promise<ResolvedInvite | undefined> {
+  const norm = token.trim();
+  if (!norm) return undefined;
+  let invite: OrgInvite | undefined;
+  if (isDemo()) {
+    invite = ORG_INVITES.find((i) => i.token === norm);
+  } else {
+    const sb = supabaseAdmin();
+    const { data, error } = await sb
+      .from("org_invites")
+      .select("*")
+      .eq("token", norm)
+      .maybeSingle();
+    if (error) throw new Error(`getOrgInviteByToken: ${error.message}`);
+    invite = (data as OrgInvite) ?? undefined;
+  }
+  if (!invite || !invite.is_active) return undefined;
+  if (invite.expires_at && new Date(invite.expires_at).getTime() < Date.now()) return undefined;
+  if (invite.max_uses != null && invite.use_count >= invite.max_uses) return undefined;
+  const org = await getOrganizationById(invite.org_id);
+  if (!org) return undefined;
+  const supervisor = invite.set_supervisor_id
+    ? await getEmployeeById(invite.set_supervisor_id)
+    : undefined;
+  return { invite, org, supervisor };
+}
+
+async function consumeOrgInvite(inviteId: string): Promise<void> {
+  if (isDemo()) {
+    const inv = ORG_INVITES.find((i) => i.id === inviteId);
+    if (inv) inv.use_count += 1;
+    return;
+  }
+  const sb = supabaseAdmin();
+  const { data } = await sb
+    .from("org_invites")
+    .select("use_count")
+    .eq("id", inviteId)
+    .maybeSingle();
+  const current = (data?.use_count as number | undefined) ?? 0;
+  await sb.from("org_invites").update({ use_count: current + 1 }).eq("id", inviteId);
+}
+
+// =========================================================================
 // Registration (multi-tenant SaaS)
 // =========================================================================
 
@@ -374,10 +568,62 @@ export interface RegisterResult {
   message: string;
   employee?: Employee;
   organization?: Organization;
+  /** The supervisor an invited employee was auto-linked to (for notifications). */
+  supervisor?: Employee;
+  /** Reusable company invite minted when a brand-new org owner is activated. */
+  invite?: OrgInvite;
+  /** True when the registrant was auto-activated (brand-new company owner). */
+  activated?: boolean;
   duplicate?: "line_user_id" | "national_id";
   trial?: OrgTrialStatus;
   unresolvedSupervisorName?: string;
   unresolvedSubordinateNames?: string[];
+}
+
+/** Next global employee code (EMP001, EMP002, …). Codes are globally unique. */
+async function nextEmployeeCode(): Promise<string> {
+  const all = await listEmployees();
+  const codes = all
+    .map((e) => e.employee_code)
+    .filter((c): c is string => !!c && /^EMP\d+$/.test(c))
+    .map((c) => parseInt(c.slice(3), 10));
+  const max = codes.length ? Math.max(...codes) : 0;
+  return `EMP${String(max + 1).padStart(3, "0")}`;
+}
+
+/**
+ * Activate the first registrant of a brand-new org as its owner. Nobody else
+ * exists to approve them, so a business owner registering their own company is
+ * auto-approved: status→active, gets an employee code, and becomes the org's
+ * owner_employee_id. Required for the supervisor-first flow (an inactive owner
+ * could never reach guardLiffPage-gated pages to invite their team).
+ *
+ * SECURITY: refuses to activate when the org already has ANY other non-inactive
+ * member. Only registerSupervisor calls this, and only for a freshly-CREATED
+ * org, but this guard is the last line of defense against seizing ownership of
+ * an established tenant (e.g. a legacy/seeded org whose owner_employee_id is
+ * NULL). Returns undefined (no activation) when it declines.
+ */
+async function activateOwner(employeeId: string, orgId: string): Promise<Employee | undefined> {
+  const others = (await listEmployeesForOrg(orgId)).filter(
+    (e) => e.id !== employeeId && e.account_status !== "inactive",
+  );
+  if (others.length > 0) return undefined;
+  const now = new Date().toISOString();
+  const updated = await updateEmployeeRow(employeeId, {
+    account_status: "active",
+    employee_code: await nextEmployeeCode(),
+    approved_at: now,
+    approved_by_id: employeeId,
+  });
+  if (isDemo()) {
+    const o = ORGANIZATIONS.find((x) => x.id === orgId);
+    if (o) o.owner_employee_id = employeeId;
+  } else {
+    const sb = supabaseAdmin();
+    await sb.from("organizations").update({ owner_employee_id: employeeId }).eq("id", orgId);
+  }
+  return updated;
 }
 
 function makeNewEmployeeRow(
@@ -441,17 +687,9 @@ function makeNewEmployeeRow(
   };
 }
 
-async function resolveTenant(input: RegistrationInput): Promise<Organization> {
-  if (!input.business_name?.trim()) {
-    throw new Error("business_name is required");
-  }
-  const found = await findOrganizationByBusinessName(input.business_name);
-  if (found) return found;
-  return createOrganization({
-    business_name: input.business_name.trim(),
-    business_type: input.business_type,
-  });
-}
+// Tenant resolution for registration is inlined in registerSupervisor
+// (find-first, create-only-after-validation) so a failed registration never
+// leaves an orphan organization that a later same-name registrant could claim.
 
 async function persistEmployee(row: Omit<Employee, "id">): Promise<Employee> {
   if (isDemo()) {
@@ -500,17 +738,98 @@ function unionSubordinates(prev: string[] | undefined, ...ids: string[]): string
 }
 
 /**
- * Employee registration entry point. Behavior:
- *   1. Resolve (or create) the tenant by business_name
- *   2. Enforce trial seat cap
- *   3. Insert the new employee row
- *   4. If add_supervisor: lookup supervisor by name within the same org
- *      → wire up the chosen grants (leave/ot/contact)
- *      → block the registration if the supervisor name didn't match
+ * Demo/fallback LINE profile id returned by initLiff when liff.init fails or no
+ * LIFF id is configured. Registration server actions reject it in production so
+ * a mis-initialized client can never persist a phantom employee.
+ */
+const DEMO_LINE_SENTINEL = "U1234567890abcdef1234567890abcdef";
+
+/**
+ * Atomically append an employee to a supervisor's subordinate roster and mark
+ * them a supervisor. Uses the add_subordinate() Postgres function (single
+ * UPDATE under the row lock) so concurrent invite redemptions can't lose an
+ * id to a read-modify-write race. Demo mode mutates the shared array directly
+ * (single-threaded, so no race).
+ */
+async function linkSubordinate(supervisorId: string, employeeId: string): Promise<void> {
+  if (isDemo()) {
+    const sup = EMPLOYEES.find((e) => e.id === supervisorId);
+    if (sup) {
+      sup.is_supervisor = true;
+      sup.subordinate_ids = unionSubordinates(sup.subordinate_ids, employeeId);
+    }
+    return;
+  }
+  const sb = supabaseAdmin();
+  const { error } = await sb.rpc("add_subordinate", {
+    p_supervisor: supervisorId,
+    p_new: employeeId,
+  });
+  if (error) throw new Error(`linkSubordinate: ${error.message}`);
+}
+
+interface PendingSubordinateGrant {
+  employee_id: string;
+  leave?: boolean;
+  overtime?: boolean;
+  contact?: boolean;
+}
+
+/**
+ * Apply subordinate approval grants that were DEFERRED at registration time.
+ * A supervisor who declares their team before being approved must not repoint
+ * an existing employee's approver to an unapproved outsider — the grants are
+ * stashed on metadata.pending_subordinate_grants and only wired here, once the
+ * supervisor is approved (account_status→active).
+ */
+async function applyPendingSubordinateGrants(supervisor: Employee | undefined): Promise<void> {
+  if (!supervisor) return;
+  const meta = (supervisor.metadata ?? {}) as Record<string, unknown>;
+  const pending = meta.pending_subordinate_grants as PendingSubordinateGrant[] | undefined;
+  if (!pending || pending.length === 0) return;
+
+  const linkedIds: string[] = [];
+  for (const g of pending) {
+    const merged: Partial<Employee> = {};
+    if (g.leave) merged.leave_supervisor_id = supervisor.id;
+    if (g.overtime) merged.ot_supervisor_id = supervisor.id;
+    if (g.contact) merged.contact_supervisor_id = supervisor.id;
+    if (Object.keys(merged).length > 0) {
+      await updateEmployeeRow(g.employee_id, merged);
+    }
+    linkedIds.push(g.employee_id);
+  }
+
+  const nextMeta = { ...meta };
+  delete nextMeta.pending_subordinate_grants;
+  await updateEmployeeRow(supervisor.id, {
+    is_supervisor: true,
+    subordinate_ids: unionSubordinates(supervisor.subordinate_ids, ...linkedIds),
+    metadata: nextMeta,
+  });
+}
+
+/**
+ * Employee registration entry point — INVITE-ONLY. Behavior:
+ *   1. Resolve the org + inviting supervisor from input.invite_token
+ *      (no business-name typing, no accidental new-tenant creation)
+ *   2. Enforce trial seat cap on the invited org
+ *   3. Insert the new employee row (account_status='pending_review')
+ *   4. Auto-link the employee to the inviting supervisor per the invite's
+ *      preset grants (leave/ot/contact FKs + subordinate_ids)
+ *   5. Increment the invite's use_count
+ * The inviting supervisor approves them afterwards via the existing LINE card.
  */
 export async function registerEmployee(input: RegistrationInput): Promise<RegisterResult> {
+  if (!isDemo() && input.line_user_id === DEMO_LINE_SENTINEL) {
+    return { ok: false, message: "ไม่พบข้อมูล LINE กรุณาเปิดหน้านี้ในแอป LINE อีกครั้ง" };
+  }
+
+  // A previously-REJECTED (inactive) row on this LINE id is allowed to
+  // re-apply (possibly into a different company via a new invite). Only an
+  // active/pending row is a true duplicate.
   const existingByLine = await getEmployeeByLineId(input.line_user_id);
-  if (existingByLine) {
+  if (existingByLine && existingByLine.account_status !== "inactive") {
     return {
       ok: false,
       message: "This LINE account is already registered.",
@@ -520,75 +839,76 @@ export async function registerEmployee(input: RegistrationInput): Promise<Regist
   }
   if (input.national_id) {
     const dup = await getEmployeeByNationalId(input.national_id);
-    if (dup) return { ok: false, message: "This national ID is already in our records.", duplicate: "national_id" };
+    if (dup && dup.id !== existingByLine?.id && dup.account_status !== "inactive") {
+      return { ok: false, message: "This national ID is already in our records.", duplicate: "national_id" };
+    }
   }
 
-  const org = await resolveTenant(input);
+  if (!input.invite_token?.trim()) {
+    return { ok: false, message: "ต้องใช้ลิงก์คำเชิญจากหัวหน้าเพื่อลงทะเบียน" };
+  }
+  const resolved = await getOrgInviteByToken(input.invite_token);
+  if (!resolved) {
+    return { ok: false, message: "ลิงก์คำเชิญไม่ถูกต้องหรือหมดอายุ — โปรดขอลิงก์ใหม่จากหัวหน้า" };
+  }
+  const org = resolved.org;
+
   const seatCheck = await canAcceptNewSeat(org.id);
   if (!seatCheck.ok) {
     return {
       ok: false,
       message:
         seatCheck.reason === "seats_full"
-          ? "ทดลองใช้ครบโควต้า 10 คนแล้ว — ติดต่อทีมงานเพื่ออัพเกรด"
+          ? "บริษัทนี้เต็มโควต้าที่นั่งแล้ว — แจ้งหัวหน้าเพื่ออัพเกรดแพ็กเกจ"
           : seatCheck.reason === "expired"
-          ? "ครบกำหนดทดลองใช้ 30 วัน — ติดต่อทีมงานเพื่ออัพเกรด"
+          ? "บริษัทนี้ครบกำหนดทดลองใช้แล้ว — แจ้งหัวหน้าเพื่ออัพเกรด"
           : "บริษัทนี้ถูกระงับการใช้งาน",
       trial: seatCheck.trial,
       organization: org,
     };
   }
 
-  // Resolve supervisor name BEFORE writing — block if user typed a name we
-  // can't find. The same-org constraint enforces tenant isolation.
-  let supervisor: Employee | undefined;
-  if (input.add_supervisor && input.supervisor_name?.trim()) {
-    supervisor = await findEmployeeByNameInOrg(org.id, input.supervisor_name);
-    if (!supervisor) {
-      return {
-        ok: false,
-        message: `ไม่พบหัวหน้าชื่อ "${input.supervisor_name}" ในบริษัท ${org.business_name} — โปรดตรวจชื่ออีกครั้งหรือยกเลิกการเพิ่มหัวหน้า`,
-        unresolvedSupervisorName: input.supervisor_name,
-        organization: org,
-      };
-    }
-  }
+  const supervisor = resolved.supervisor;
+  const grant: SupervisorGrant = {
+    leave: resolved.invite.grant_leave,
+    overtime: resolved.invite.grant_overtime,
+    contact: resolved.invite.grant_contact,
+  };
 
-  const newRow = makeNewEmployeeRow(org.id, input, {
-    role: "employee",
-    is_supervisor: false,
+  // makeNewEmployeeRow builds the full field set (status='pending_review',
+  // fresh submitted_at, cleared approval/rejection). Reuse it for both a brand
+  // new insert and a re-application over a rejected row (keeping its id / seat).
+  const row = makeNewEmployeeRow(org.id, input, {
+    role: resolved.invite.role_to_grant,
+    is_supervisor: resolved.invite.role_to_grant === "supervisor",
   });
-  if (supervisor && input.supervisor_grant) {
-    Object.assign(newRow, grantToFkPatch(supervisor.id, input.supervisor_grant));
-  }
-  const employee = await persistEmployee(newRow);
-
-  // Add the new employee to the supervisor's subordinate list so they show up
-  // in /liff/team and the schedule UI.
   if (supervisor) {
-    await updateEmployeeRow(supervisor.id, {
-      is_supervisor: true,
-      subordinate_ids: unionSubordinates(supervisor.subordinate_ids, employee.id),
-    });
+    Object.assign(row, grantToFkPatch(supervisor.id, grant));
   }
 
-  // If this is the very first registrant of a brand-new org, promote them as
-  // owner so they have something to anchor settings to.
-  if (!org.owner_employee_id) {
-    if (isDemo()) {
-      const o = ORGANIZATIONS.find((x) => x.id === org.id);
-      if (o) o.owner_employee_id = employee.id;
-    } else {
-      const sb = supabaseAdmin();
-      await sb.from("organizations").update({ owner_employee_id: employee.id }).eq("id", org.id);
-    }
+  const employee =
+    existingByLine && existingByLine.account_status === "inactive"
+      ? await updateEmployeeRow(existingByLine.id, row)
+      : await persistEmployee(row);
+  if (!employee) {
+    return { ok: false, message: "ลงทะเบียนไม่สำเร็จ กรุณาลองใหม่อีกครั้ง", organization: org };
   }
+
+  // Auto-link to the inviting supervisor so the joiner shows up on their team
+  // board and their leave/ot/contact requests route to that supervisor. Atomic
+  // append guards against concurrent redemptions of the same reusable invite.
+  if (supervisor) {
+    await linkSubordinate(supervisor.id, employee.id);
+  }
+
+  await consumeOrgInvite(resolved.invite.id);
 
   return {
     ok: true,
     message: "Application submitted.",
     employee,
     organization: org,
+    supervisor,
     trial: seatCheck.trial,
   };
 }
@@ -598,6 +918,9 @@ export async function registerEmployee(input: RegistrationInput): Promise<Regist
  * the caller acts as a future approver for any subordinates they list.
  */
 export async function registerSupervisor(input: RegistrationInput): Promise<RegisterResult> {
+  if (!isDemo() && input.line_user_id === DEMO_LINE_SENTINEL) {
+    return { ok: false, message: "ไม่พบข้อมูล LINE กรุณาเปิดหน้านี้ในแอป LINE อีกครั้ง" };
+  }
   if (input.line_user_id) {
     const existingByLine = await getEmployeeByLineId(input.line_user_id);
     if (existingByLine) {
@@ -614,7 +937,58 @@ export async function registerSupervisor(input: RegistrationInput): Promise<Regi
     if (dup) return { ok: false, message: "This national ID is already in our records.", duplicate: "national_id" };
   }
 
-  const org = await resolveTenant(input);
+  if (!input.business_name?.trim()) {
+    return { ok: false, message: "กรุณากรอกชื่อบริษัท / ธุรกิจ" };
+  }
+
+  // Resolve the tenant FIRST as a lookup only (do NOT create yet) so a failed
+  // registration never leaves an orphan org, and so we can distinguish a brand
+  // new company (created===true → owner auto-activation) from joining an
+  // existing one (stays pending_review, approved by the owner).
+  const existingOrg = await findOrganizationByBusinessName(input.business_name);
+
+  // A brand-new company has no members yet, so declaring a team by name is
+  // invalid there — the team joins via the invite link instead.
+  const declaredSubs = (input.subordinates ?? []).filter((l) => l.name.trim());
+  if (!existingOrg && declaredSubs.length > 0) {
+    return {
+      ok: false,
+      message: "บริษัทใหม่ยังไม่มีพนักงานให้เพิ่มเป็นลูกน้อง — ลบรายชื่อออก แล้วเชิญทีมภายหลังผ่านลิงก์คำเชิญ",
+      unresolvedSubordinateNames: declaredSubs.map((l) => l.name),
+    };
+  }
+
+  // Resolve EVERY declared subordinate name (existing org only) BEFORE any
+  // write — block if any didn't match.
+  const resolved: Array<{ link: SubordinateLink; employee: Employee }> = [];
+  if (existingOrg) {
+    const unresolved: string[] = [];
+    for (const link of declaredSubs) {
+      const match = await findEmployeeByNameInOrg(existingOrg.id, link.name);
+      if (!match) unresolved.push(link.name);
+      else resolved.push({ link, employee: match });
+    }
+    if (unresolved.length > 0) {
+      return {
+        ok: false,
+        message: `ไม่พบลูกน้องชื่อ ${unresolved
+          .map((n) => `"${n}"`)
+          .join(", ")} ในบริษัท ${existingOrg.business_name} — แก้ไขชื่อหรือเอาออกก่อนส่ง`,
+        unresolvedSubordinateNames: unresolved,
+        organization: existingOrg,
+      };
+    }
+  }
+
+  // Create the org only now that validation passed (no orphan on early return).
+  const created = !existingOrg;
+  const org =
+    existingOrg ??
+    (await createOrganization({
+      business_name: input.business_name.trim(),
+      business_type: input.business_type,
+    }));
+
   const seatCheck = await canAcceptNewSeat(org.id);
   if (!seatCheck.ok) {
     return {
@@ -630,69 +1004,55 @@ export async function registerSupervisor(input: RegistrationInput): Promise<Regi
     };
   }
 
-  // Resolve EVERY subordinate name BEFORE writing — block if any didn't match.
-  // Empty subordinate list is fine (supervisor can add team later in profile).
-  const resolved: Array<{ link: SubordinateLink; employee: Employee }> = [];
-  const unresolved: string[] = [];
-  for (const link of input.subordinates ?? []) {
-    if (!link.name.trim()) continue;
-    const match = await findEmployeeByNameInOrg(org.id, link.name);
-    if (!match) {
-      unresolved.push(link.name);
-      continue;
-    }
-    resolved.push({ link, employee: match });
-  }
-  if (unresolved.length > 0) {
-    return {
-      ok: false,
-      message: `ไม่พบลูกน้องชื่อ ${unresolved
-        .map((n) => `"${n}"`)
-        .join(", ")} ในบริษัท ${org.business_name} — แก้ไขชื่อหรือเอาออกก่อนส่ง`,
-      unresolvedSubordinateNames: unresolved,
-      organization: org,
-    };
-  }
-
   const newRow = makeNewEmployeeRow(org.id, input, {
     role: "supervisor",
     is_supervisor: true,
   });
   newRow.subordinate_ids = resolved.map((r) => r.employee.id);
+  // Defer the actual approval-FK rewiring on existing employees until this
+  // supervisor is APPROVED — never repoint a real employee's approver to an
+  // unapproved outsider. Stash the intended grants on metadata; approveRegistration
+  // applies them. (A brand-new org has no resolved subordinates, so this is empty.)
+  if (resolved.length > 0) {
+    newRow.metadata = {
+      ...(newRow.metadata ?? {}),
+      pending_subordinate_grants: resolved.map((r) => ({
+        employee_id: r.employee.id,
+        leave: !!r.link.grant.leave,
+        overtime: !!r.link.grant.overtime,
+        contact: !!r.link.grant.contact,
+      })),
+    };
+  }
   const supervisor = await persistEmployee(newRow);
 
-  // Wire the new supervisor as the FK on each resolved subordinate, only for
-  // the permission types the supervisor asked for.
-  for (const { link, employee } of resolved) {
-    const patch = grantToFkPatch(supervisor.id, link.grant);
-    // Don't overwrite existing FK if the registering supervisor didn't ask for
-    // that permission type — null in the patch means "leave whatever's there".
-    const merged: Partial<Employee> = {};
-    if (link.grant.leave) merged.leave_supervisor_id = supervisor.id;
-    if (link.grant.overtime) merged.ot_supervisor_id = supervisor.id;
-    if (link.grant.contact) merged.contact_supervisor_id = supervisor.id;
-    Object.assign(patch, merged);
-    if (Object.keys(merged).length > 0) {
-      await updateEmployeeRow(employee.id, merged);
-    }
-  }
-
-  if (!org.owner_employee_id) {
-    if (isDemo()) {
-      const o = ORGANIZATIONS.find((x) => x.id === org.id);
-      if (o) o.owner_employee_id = supervisor.id;
-    } else {
-      const sb = supabaseAdmin();
-      await sb.from("organizations").update({ owner_employee_id: supervisor.id }).eq("id", org.id);
+  // Brand-new company: the registrant is the owner/boss. Auto-activate them
+  // (nobody else can approve the first person) and mint their reusable company
+  // invite link. A supervisor who joins an EXISTING org stays pending_review,
+  // is approved by the owner/HR (which then wires their declared team), and
+  // generates their own invite from /liff/invite once active.
+  let activated = false;
+  let invite: OrgInvite | undefined;
+  if (created) {
+    const activatedRow = await activateOwner(supervisor.id, org.id);
+    if (activatedRow) {
+      Object.assign(supervisor, activatedRow);
+      activated = true;
+      // A brand-new company has no pre-existing team, but honor any deferred
+      // grants for completeness before handing over the invite.
+      await applyPendingSubordinateGrants(supervisor);
+      invite = await createOrgInvite({ orgId: org.id, supervisorId: supervisor.id });
     }
   }
 
   return {
     ok: true,
-    message: "Application submitted.",
+    message: activated ? "Account activated." : "Application submitted.",
     employee: supervisor,
     organization: org,
     trial: seatCheck.trial,
+    activated,
+    invite,
   };
 }
 
@@ -842,33 +1202,49 @@ export async function approveRegistration(
   approverId: string,
   patch: { employee_code: string; role?: Employee["role"]; base_salary?: number },
 ): Promise<Employee | undefined> {
+  const before = await getEmployeeById(employeeId);
+  if (!before) return undefined;
+  // Preserve the applicant's existing role (e.g. a supervisor stays a
+  // supervisor) unless the approver explicitly overrides it — the LINE
+  // fast-track approval used to force 'employee', demoting supervisors.
+  const nextRole = patch.role ?? before.role;
+  const now = new Date().toISOString();
+
+  let updated: Employee | undefined;
   if (isDemo()) {
     const e = EMPLOYEES.find((x) => x.id === employeeId);
     if (!e) return undefined;
     e.account_status = "active";
     e.employee_code = patch.employee_code;
-    if (patch.role) e.role = patch.role;
+    e.role = nextRole;
     if (typeof patch.base_salary === "number") e.base_salary = patch.base_salary;
-    e.approved_at = new Date().toISOString();
+    e.approved_at = now;
     e.approved_by_id = approverId;
-    return e;
+    updated = e;
+  } else {
+    const sb = supabaseAdmin();
+    const { data, error } = await sb
+      .from("employees")
+      .update({
+        account_status: "active",
+        employee_code: patch.employee_code,
+        role: nextRole,
+        base_salary: patch.base_salary ?? before.base_salary ?? null,
+        approved_at: now,
+        approved_by_id: approverId,
+      })
+      .eq("id", employeeId)
+      .select("*")
+      .single();
+    if (error) throw new Error(`approveRegistration: ${error.message}`);
+    updated = data as Employee;
   }
-  const sb = supabaseAdmin();
-  const { data, error } = await sb
-    .from("employees")
-    .update({
-      account_status: "active",
-      employee_code: patch.employee_code,
-      role: patch.role ?? "employee",
-      base_salary: patch.base_salary ?? null,
-      approved_at: new Date().toISOString(),
-      approved_by_id: approverId,
-    })
-    .eq("id", employeeId)
-    .select("*")
-    .single();
-  if (error) throw new Error(`approveRegistration: ${error.message}`);
-  return data as Employee;
+
+  // Now that the supervisor is active, wire any team they declared at
+  // registration (deferred to avoid repointing employees to an unapproved
+  // approver). No-op for a plain employee.
+  await applyPendingSubordinateGrants(updated);
+  return updated;
 }
 
 export async function rejectRegistration(

@@ -5,6 +5,7 @@ import {
   listApprovalAdminsForOrg,
   registerSupervisor,
 } from "@/lib/data";
+import { buildInviteUrl } from "@/lib/invite";
 import { notifyHrOfRegistration } from "@/lib/line/approvals";
 import type {
   BusinessType,
@@ -51,6 +52,12 @@ export interface SupervisorSubmitResult {
   message: string;
   duplicate?: "line_user_id" | "national_id";
   unresolvedSubordinateNames?: string[];
+  /** True when this registrant became the owner of a brand-new company. */
+  activated?: boolean;
+  /** Reusable company invite (owner only) — QR/link to share with the team. */
+  inviteToken?: string;
+  inviteUrl?: string;
+  businessName?: string;
 }
 
 function required(value: FormDataEntryValue | null, name: string): string {
@@ -169,22 +176,43 @@ export async function submitSupervisorRegistration(
     return { ok: false, message: "โปรดยอมรับเงื่อนไข PDPA ก่อนสมัคร" };
   }
 
-  const result = await registerSupervisor(input);
-  if (!result.ok || !result.employee) {
-    return {
-      ok: false,
-      message: result.message,
-      duplicate: result.duplicate,
-      unresolvedSubordinateNames: result.unresolvedSubordinateNames,
-    };
-  }
+  try {
+    const result = await registerSupervisor(input);
+    if (!result.ok || !result.employee) {
+      return {
+        ok: false,
+        message: result.message,
+        duplicate: result.duplicate,
+        unresolvedSubordinateNames: result.unresolvedSubordinateNames,
+      };
+    }
 
-  const admins = await listApprovalAdminsForOrg(result.employee.org_id);
-  // Exclude self from the notification list
-  const externalAdmins = admins.filter((a) => a.id !== result.employee!.id);
-  if (externalAdmins.length > 0) {
-    await notifyHrOfRegistration(result.employee.id, externalAdmins);
-  }
+    // Brand-new company: owner was auto-activated. Hand back the reusable invite
+    // (QR/link) so the client can show the "share with your team" screen.
+    if (result.activated && result.invite) {
+      return {
+        ok: true,
+        message: "Account activated.",
+        activated: true,
+        inviteToken: result.invite.token,
+        inviteUrl: buildInviteUrl(result.invite.token),
+        businessName: result.organization?.business_name ?? result.organization?.name,
+      };
+    }
 
-  return { ok: true, message: "Application submitted." };
+    // Joined an existing company: pending approval by the owner / HR.
+    const admins = await listApprovalAdminsForOrg(result.employee.org_id);
+    const externalAdmins = admins.filter((a) => a.id !== result.employee!.id);
+    if (externalAdmins.length > 0) {
+      await notifyHrOfRegistration(result.employee.id, externalAdmins);
+    }
+
+    return { ok: true, message: "Application submitted.", activated: false };
+  } catch (err) {
+    // Surface DB/transport errors (e.g. a concurrent same-name org create
+    // violating the unique business_name_norm index) instead of a swallowed
+    // server-action rejection that leaves the user with no feedback.
+    console.error("submitSupervisorRegistration failed", err);
+    return { ok: false, message: "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง" };
+  }
 }

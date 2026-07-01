@@ -292,11 +292,12 @@ export async function applyDecision(
   if (kind === "registration") {
     if (decision === "approved") {
       // For registration, supervisor still needs to fill role/code via dashboard.
-      // Postback "approve" is a fast-track that auto-assigns a code.
+      // Postback "approve" is a fast-track that auto-assigns a code. Do NOT pass
+      // a role — approveRegistration preserves the applicant's existing role so
+      // approving a pending supervisor doesn't demote them to 'employee'.
       const code = await nextEmployeeCode();
       const updated = await approveRegistration(requestId, approverId, {
         employee_code: code,
-        role: "employee",
       });
       if (!updated?.line_user_id) {
         return { ok: true, kind, status: decision, notified: false };

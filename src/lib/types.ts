@@ -34,6 +34,29 @@ export interface Organization {
   created_at: string;
 }
 
+/**
+ * Supervisor-generated invite link (v4_org_invites). Resolves a public
+ * opaque `token` to an `org_id` + inviting supervisor so employees join the
+ * exact tenant without typing the business name.
+ */
+export interface OrgInvite {
+  id: string;
+  org_id: string;
+  token: string;
+  created_by: string | null;
+  set_supervisor_id: string | null;
+  role_to_grant: Role;
+  grant_leave: boolean;
+  grant_overtime: boolean;
+  grant_contact: boolean;
+  expires_at: string | null;
+  max_uses: number | null;
+  use_count: number;
+  is_active: boolean;
+  revoked_at: string | null;
+  created_at: string;
+}
+
 export interface Employee {
   id: string;
   org_id: string;
@@ -106,9 +129,16 @@ export interface RegistrationInput {
   line_user_id: string;
   display_name: string;
   picture_url?: string;
-  /** Tenancy: required — joins existing org or creates new one */
-  business_name: string;
+  /**
+   * Tenancy. Supervisor/owner registration provides `business_name`
+   * (joins existing org or creates a new one). Employee registration is
+   * invite-only: it provides `invite_token` instead, which resolves the
+   * exact org + inviting supervisor server-side.
+   */
+  business_name?: string;
   business_type?: BusinessType;
+  /** Employee flow: opaque org-invite token (see OrgInvite). */
+  invite_token?: string;
   /** Personal */
   name_th: string;
   name_en?: string;

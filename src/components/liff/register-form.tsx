@@ -11,61 +11,39 @@ import {
   CheckCircle2,
   ChevronRight,
   Hourglass,
+  Link2,
   Loader2,
   Locate,
   MapPin,
   Phone,
-  Send,
   ShieldX,
   Trash2,
   UserCircle2,
-  UserPlus,
+  Send,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { initLiff } from "@/lib/liff-client";
 import { cn } from "@/lib/utils";
 import {
+  checkInvite,
   checkRegistrationState,
   submitRegistration,
+  type InviteInfoResponse,
   type RegistrationStateResponse,
 } from "@/app/liff/register/actions";
 
-const BUSINESS_TYPES = [
-  { value: "factory", labelTh: "โรงงาน / โรงงานผลิต" },
-  { value: "restaurant", labelTh: "ร้านอาหาร / คาเฟ่" },
-  { value: "retail", labelTh: "ร้านค้า / ค้าปลีก" },
-  { value: "clinic", labelTh: "คลินิก / สถานบริการสุขภาพ" },
-  { value: "service", labelTh: "บริการทั่วไป" },
-  { value: "logistics", labelTh: "ขนส่ง / โลจิสติกส์" },
-  { value: "construction", labelTh: "ก่อสร้าง" },
-  { value: "office", labelTh: "ออฟฟิศ / Office" },
-  { value: "other", labelTh: "อื่นๆ" },
-] as const;
+const TOTAL_STEPS = 4;
 
-const TOTAL_STEPS = 5;
+type StepKey = "personal" | "job" | "location" | "consent";
+const STEP_KEYS: StepKey[] = ["personal", "job", "location", "consent"];
 
-type StepKey = "company" | "personal" | "job" | "location" | "supervisor";
-const STEP_KEYS: StepKey[] = ["company", "personal", "job", "location", "supervisor"];
-
-// Lightweight Google Maps URL → {lat, lng} parser. Accepts:
-//   https://www.google.com/maps?q=13.7,100.5
-//   https://maps.app.goo.gl/...   (we cannot resolve without a network call;
-//                                  ask the user to paste an "@lat,lng" or "?q=" link)
-//   https://www.google.com/maps/place/.../@13.7,100.5,17z/...
+// Lightweight Google Maps URL → {lat, lng} parser.
 function parseMapsUrl(raw: string): { lat: number; lng: number } | null {
   if (!raw) return null;
   const atMatch = raw.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
@@ -87,6 +65,11 @@ export function RegisterForm() {
   const [pictureUrl, setPictureUrl] = useState("");
   const [demo, setDemo] = useState(false);
 
+  // Invite (employee registration is invite-only)
+  const [inviteToken, setInviteToken] = useState("");
+  const [inviteInfo, setInviteInfo] = useState<InviteInfoResponse | null>(null);
+  const [inviteChecked, setInviteChecked] = useState(false);
+
   const [stateCheck, setStateCheck] = useState<RegistrationStateResponse | null>(null);
 
   // Form state
@@ -94,11 +77,7 @@ export function RegisterForm() {
   const [pending, startTransition] = useTransition();
   const [submitted, setSubmitted] = useState(false);
 
-  // Step 0 — company
-  const [businessName, setBusinessName] = useState("");
-  const [businessType, setBusinessType] = useState<string>("factory");
-
-  // Step 1 — personal
+  // Step 0 — personal
   const [nameTh, setNameTh] = useState("");
   const [nameEn, setNameEn] = useState("");
   const [nickname, setNickname] = useState("");
@@ -106,14 +85,14 @@ export function RegisterForm() {
   const [dateOfBirth, setDateOfBirth] = useState("");
   const [nationalId, setNationalId] = useState("");
 
-  // Step 2 — job
+  // Step 1 — job
   const [department, setDepartment] = useState("");
   const [position, setPosition] = useState("");
   const [hireDate, setHireDate] = useState("");
   const [baseSalary, setBaseSalary] = useState("");
   const [bankAccount, setBankAccount] = useState("");
 
-  // Step 3 — location
+  // Step 2 — location
   const [homeLat, setHomeLat] = useState("");
   const [homeLng, setHomeLng] = useState("");
   const [homeLabel, setHomeLabel] = useState("");
@@ -122,22 +101,40 @@ export function RegisterForm() {
   const [emergencyContact, setEmergencyContact] = useState("");
   const [mapsUrl, setMapsUrl] = useState("");
 
-  // Step 4 — supervisor
-  const [addSupervisor, setAddSupervisor] = useState(false);
-  const [supervisorName, setSupervisorName] = useState("");
-  const [grantLeave, setGrantLeave] = useState(true);
-  const [grantOvertime, setGrantOvertime] = useState(true);
-  const [grantContact, setGrantContact] = useState(true);
-
-  // Final
+  // Step 3 — consent
   const [pdpaConsent, setPdpaConsent] = useState(false);
-
-  // Optional profile photo
   const [profilePreview, setProfilePreview] = useState("");
   const [profileUrl, setProfileUrl] = useState("");
 
   useEffect(() => {
     let cancelled = false;
+
+    // Capture the invite token from the deep link. Persist it in sessionStorage
+    // so it survives the LIFF login redirect (which can strip the query string).
+    let token = "";
+    try {
+      const fromUrl = new URLSearchParams(window.location.search).get("invite");
+      if (fromUrl) {
+        token = fromUrl;
+        sessionStorage.setItem("pending_invite", fromUrl);
+      } else {
+        token = sessionStorage.getItem("pending_invite") ?? "";
+      }
+    } catch {
+      /* ignore */
+    }
+    setInviteToken(token);
+
+    if (token) {
+      checkInvite(token).then((info) => {
+        if (cancelled) return;
+        setInviteInfo(info);
+        setInviteChecked(true);
+      });
+    } else {
+      setInviteChecked(true);
+    }
+
     initLiff(process.env.NEXT_PUBLIC_LIFF_ID_REGISTER).then(async (res) => {
       if (cancelled) return;
       setDemo(res.demoMode);
@@ -154,6 +151,7 @@ export function RegisterForm() {
         if (!cancelled) setStateCheck(status);
       }
     });
+
     return () => {
       cancelled = true;
     };
@@ -161,17 +159,11 @@ export function RegisterForm() {
 
   function validateStep(): string | null {
     if (step === 0) {
-      if (!businessName.trim()) return "กรุณากรอกชื่อบริษัท / ธุรกิจ";
-    }
-    if (step === 1) {
       if (!nameTh.trim()) return "กรุณากรอกชื่อ-นามสกุล";
       if (!/^[+\-\d\s]{6,}$/.test(phone.trim())) return "เบอร์โทรไม่ถูกต้อง";
       if (nationalId && !/^\d{13}$/.test(nationalId.trim())) return "เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก";
     }
-    // Step 2 and 3 are entirely optional for SaaS flexibility
-    if (step === 4) {
-      if (addSupervisor && !supervisorName.trim())
-        return "กรุณากรอกชื่อหัวหน้า หรือยกเลิกการเพิ่มหัวหน้า";
+    if (step === 3) {
       if (!pdpaConsent) return "โปรดยอมรับเงื่อนไข PDPA";
     }
     return null;
@@ -199,9 +191,7 @@ export function RegisterForm() {
       (pos) => {
         setHomeLat(String(pos.coords.latitude));
         setHomeLng(String(pos.coords.longitude));
-        setHomeLabel(
-          `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
-        );
+        setHomeLabel(`${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`);
         setHomeSource("gps");
         toast.success("บันทึกตำแหน่งปัจจุบันแล้ว");
       },
@@ -213,9 +203,7 @@ export function RegisterForm() {
   function applyMapsUrl() {
     const parsed = parseMapsUrl(mapsUrl);
     if (!parsed) {
-      toast.error(
-        'ไม่พบพิกัดในลิงก์ โปรดวาง "lat,lng" หรือ URL ที่มี @lat,lng',
-      );
+      toast.error('ไม่พบพิกัดในลิงก์ โปรดวาง "lat,lng" หรือ URL ที่มี @lat,lng');
       return;
     }
     setHomeLat(String(parsed.lat));
@@ -235,12 +223,15 @@ export function RegisterForm() {
       toast.error("ไม่พบข้อมูล LINE กรุณาเปิดหน้านี้ในแอป LINE");
       return;
     }
+    if (!inviteToken) {
+      toast.error("ไม่พบลิงก์คำเชิญ");
+      return;
+    }
     const fd = new FormData();
     fd.set("lineUserId", lineUserId);
     fd.set("displayName", displayName);
     fd.set("pictureUrl", pictureUrl);
-    fd.set("businessName", businessName.trim());
-    fd.set("businessType", businessType);
+    fd.set("inviteToken", inviteToken);
     fd.set("nameTh", nameTh.trim());
     fd.set("nameEn", nameEn.trim());
     fd.set("nickname", nickname.trim());
@@ -259,13 +250,6 @@ export function RegisterForm() {
     fd.set("address", address.trim());
     fd.set("emergencyContact", emergencyContact.trim());
     fd.set("profilePhotoUrl", profileUrl);
-    if (addSupervisor) {
-      fd.set("addSupervisor", "on");
-      fd.set("supervisorName", supervisorName.trim());
-      if (grantLeave) fd.set("supervisorGrantLeave", "on");
-      if (grantOvertime) fd.set("supervisorGrantOvertime", "on");
-      if (grantContact) fd.set("supervisorGrantContact", "on");
-    }
     if (pdpaConsent) fd.set("pdpaConsent", "on");
 
     startTransition(async () => {
@@ -275,6 +259,11 @@ export function RegisterForm() {
         else if (res.duplicate === "national_id") toast.error("เลขบัตรประชาชนนี้มีในระบบแล้ว");
         else toast.error(res.message);
         return;
+      }
+      try {
+        sessionStorage.removeItem("pending_invite");
+      } catch {
+        /* ignore */
       }
       toast.success("ส่งใบสมัครเรียบร้อย");
       setSubmitted(true);
@@ -291,7 +280,7 @@ export function RegisterForm() {
     });
   }
 
-  if (!liffReady) {
+  if (!liffReady || !inviteChecked) {
     return (
       <Card>
         <CardContent className="flex items-center justify-center gap-2 p-8 text-sm text-navy-500">
@@ -302,21 +291,48 @@ export function RegisterForm() {
     );
   }
 
+  // Already-registered short-circuits take priority over the invite gate.
   if (stateCheck?.state === "active") return <AlreadyActive employee={stateCheck.employee!} />;
   if (stateCheck?.state === "pending" || submitted) {
     return (
       <PendingReview
-        employee={stateCheck?.employee ?? {
-          name: nameTh,
-          department: department || null,
-          position: position || null,
-          submittedAt: new Date().toISOString(),
-          rejectionReason: null,
-        }}
+        employee={
+          stateCheck?.employee ?? {
+            name: nameTh,
+            department: department || null,
+            position: position || null,
+            submittedAt: new Date().toISOString(),
+            rejectionReason: null,
+          }
+        }
       />
     );
   }
-  if (stateCheck?.state === "rejected") return <Rejected employee={stateCheck.employee!} />;
+  // A rejected user with a FRESH valid invite may re-apply — fall through to
+  // the form. Only show the dead-end Rejected screen when they have no usable
+  // invite.
+  if (stateCheck?.state === "rejected" && (!inviteToken || !inviteInfo?.ok)) {
+    return <Rejected employee={stateCheck.employee!} />;
+  }
+
+  // Invite-only gate: no token or an invalid/expired token → explain how to join.
+  if (!inviteToken || !inviteInfo?.ok) {
+    return <NeedInvite reason={!inviteToken ? "missing" : inviteInfo?.reason ?? "invalid"} />;
+  }
+
+  // Org can't accept a new seat (full / expired / deactivated) — show the reason
+  // up front instead of letting the user fill a form that will be rejected.
+  if (inviteInfo.seatBlocked) {
+    return (
+      <div className="space-y-4">
+        <InviteBanner
+          businessName={inviteInfo.businessName ?? "—"}
+          supervisorName={inviteInfo.supervisorName}
+          seatBlocked={inviteInfo.seatBlocked}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -326,6 +342,12 @@ export function RegisterForm() {
         </div>
       )}
 
+      <InviteBanner
+        businessName={inviteInfo.businessName ?? "—"}
+        supervisorName={inviteInfo.supervisorName}
+        seatBlocked={inviteInfo.seatBlocked}
+      />
+
       <LineProfileCard displayName={displayName} userId={lineUserId} pictureUrl={pictureUrl} />
 
       <StepIndicator step={step} total={TOTAL_STEPS} stepNameKey={STEP_KEYS[step]} />
@@ -333,84 +355,42 @@ export function RegisterForm() {
       <Card>
         <CardContent className="space-y-4 p-5">
           {step === 0 && (
-            <CompanyStep
-              businessName={businessName}
-              setBusinessName={setBusinessName}
-              businessType={businessType}
-              setBusinessType={setBusinessType}
+            <PersonalStep
+              nameTh={nameTh} setNameTh={setNameTh}
+              nameEn={nameEn} setNameEn={setNameEn}
+              nickname={nickname} setNickname={setNickname}
+              phone={phone} setPhone={setPhone}
+              dateOfBirth={dateOfBirth} setDateOfBirth={setDateOfBirth}
+              nationalId={nationalId} setNationalId={setNationalId}
             />
           )}
           {step === 1 && (
-            <PersonalStep
-              nameTh={nameTh}
-              setNameTh={setNameTh}
-              nameEn={nameEn}
-              setNameEn={setNameEn}
-              nickname={nickname}
-              setNickname={setNickname}
-              phone={phone}
-              setPhone={setPhone}
-              dateOfBirth={dateOfBirth}
-              setDateOfBirth={setDateOfBirth}
-              nationalId={nationalId}
-              setNationalId={setNationalId}
+            <JobStep
+              department={department} setDepartment={setDepartment}
+              position={position} setPosition={setPosition}
+              hireDate={hireDate} setHireDate={setHireDate}
+              baseSalary={baseSalary} setBaseSalary={setBaseSalary}
+              bankAccount={bankAccount} setBankAccount={setBankAccount}
             />
           )}
           {step === 2 && (
-            <JobStep
-              department={department}
-              setDepartment={setDepartment}
-              position={position}
-              setPosition={setPosition}
-              hireDate={hireDate}
-              setHireDate={setHireDate}
-              baseSalary={baseSalary}
-              setBaseSalary={setBaseSalary}
-              bankAccount={bankAccount}
-              setBankAccount={setBankAccount}
+            <LocationStep
+              homeLat={homeLat} homeLng={homeLng}
+              homeLabel={homeLabel} homeSource={homeSource}
+              mapsUrl={mapsUrl} setMapsUrl={setMapsUrl}
+              pickGps={pickGps} applyMapsUrl={applyMapsUrl}
+              clearLocation={() => {
+                setHomeLat(""); setHomeLng(""); setHomeLabel(""); setHomeSource(""); setMapsUrl("");
+              }}
+              address={address} setAddress={setAddress}
+              emergencyContact={emergencyContact} setEmergencyContact={setEmergencyContact}
             />
           )}
           {step === 3 && (
-            <LocationStep
-              homeLat={homeLat}
-              homeLng={homeLng}
-              homeLabel={homeLabel}
-              homeSource={homeSource}
-              mapsUrl={mapsUrl}
-              setMapsUrl={setMapsUrl}
-              pickGps={pickGps}
-              applyMapsUrl={applyMapsUrl}
-              clearLocation={() => {
-                setHomeLat("");
-                setHomeLng("");
-                setHomeLabel("");
-                setHomeSource("");
-                setMapsUrl("");
-              }}
-              address={address}
-              setAddress={setAddress}
-              emergencyContact={emergencyContact}
-              setEmergencyContact={setEmergencyContact}
-            />
-          )}
-          {step === 4 && (
-            <SupervisorStep
-              addSupervisor={addSupervisor}
-              setAddSupervisor={setAddSupervisor}
-              supervisorName={supervisorName}
-              setSupervisorName={setSupervisorName}
-              grantLeave={grantLeave}
-              setGrantLeave={setGrantLeave}
-              grantOvertime={grantOvertime}
-              setGrantOvertime={setGrantOvertime}
-              grantContact={grantContact}
-              setGrantContact={setGrantContact}
-              pdpaConsent={pdpaConsent}
-              setPdpaConsent={setPdpaConsent}
-              profilePreview={profilePreview}
-              setProfilePreview={setProfilePreview}
-              profileUrl={profileUrl}
-              setProfileUrl={setProfileUrl}
+            <ConsentStep
+              pdpaConsent={pdpaConsent} setPdpaConsent={setPdpaConsent}
+              profilePreview={profilePreview} setProfilePreview={setProfilePreview}
+              profileUrl={profileUrl} setProfileUrl={setProfileUrl}
             />
           )}
         </CardContent>
@@ -440,16 +420,80 @@ export function RegisterForm() {
 }
 
 // =========================================================================
+// Invite banner + gate
+// =========================================================================
+
+function InviteBanner({
+  businessName,
+  supervisorName,
+  seatBlocked,
+}: {
+  businessName: string;
+  supervisorName?: string;
+  seatBlocked?: "expired" | "seats_full" | "deactivated";
+}) {
+  const seatMsg =
+    seatBlocked === "seats_full" ? "บริษัทนี้เต็มโควต้าที่นั่งแล้ว — แจ้งหัวหน้าเพื่ออัพเกรด" :
+    seatBlocked === "expired" ? "บริษัทนี้ครบกำหนดทดลองใช้ — แจ้งหัวหน้าเพื่ออัพเกรด" :
+    seatBlocked === "deactivated" ? "บริษัทนี้ถูกระงับการใช้งาน" :
+    null;
+  return (
+    <Card className="border-orange-200 bg-orange-50/50">
+      <CardContent className="flex items-start gap-3 p-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+          <Building2 className="h-4 w-4" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="text-[11px] uppercase tracking-wider text-orange-700">คุณกำลังเข้าร่วมบริษัท</div>
+          <div className="truncate text-sm font-semibold text-navy-900">{businessName}</div>
+          {supervisorName && (
+            <div className="truncate text-[11px] text-navy-500">หัวหน้า: {supervisorName}</div>
+          )}
+          {seatMsg && <div className="mt-1 text-[11px] font-medium text-red-600">{seatMsg}</div>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function NeedInvite({ reason }: { reason?: "missing" | "invalid" }) {
+  return (
+    <Card>
+      <CardContent className="space-y-4 p-6 text-center">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-navy-50">
+          <Link2 className="h-6 w-6 text-navy-700" />
+        </div>
+        <div>
+          <h3 className="text-base font-semibold text-navy-900">ต้องมีลิงก์คำเชิญ</h3>
+          <p className="mt-1 text-sm text-navy-500">
+            {reason === "invalid"
+              ? "ลิงก์คำเชิญไม่ถูกต้องหรือหมดอายุ"
+              : "โปรดเปิดลิงก์ / สแกน QR ที่หัวหน้าของคุณแชร์ให้"}
+            <br />
+            พนักงานเข้าร่วมบริษัทได้ผ่านลิงก์คำเชิญจากหัวหน้าเท่านั้น
+          </p>
+        </div>
+        <div className="rounded-lg border border-navy-100 bg-navy-50/40 p-3 text-[12px] leading-relaxed text-navy-600">
+          ถ้าคุณเป็นหัวหน้า / เจ้าของกิจการ{" "}
+          <a href="/liff/register-supervisor" className="font-semibold text-orange-600 underline">
+            ลงทะเบียนเปิดบริษัทที่นี่
+          </a>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// =========================================================================
 // Step components
 // =========================================================================
 
 function StepIndicator({ step, total, stepNameKey }: { step: number; total: number; stepNameKey: StepKey }) {
   const labels: Record<StepKey, string> = {
-    company: "บริษัท / ธุรกิจ",
     personal: "ข้อมูลส่วนตัว",
     job: "ตำแหน่งและเงินเดือน",
     location: "ที่อยู่และตำแหน่ง",
-    supervisor: "หัวหน้าและความยินยอม",
+    consent: "รูปและความยินยอม",
   };
   return (
     <div className="space-y-2">
@@ -501,45 +545,6 @@ function LineProfileCard({
         </div>
       </CardContent>
     </Card>
-  );
-}
-
-function CompanyStep(p: {
-  businessName: string;
-  setBusinessName: (v: string) => void;
-  businessType: string;
-  setBusinessType: (v: string) => void;
-}) {
-  return (
-    <div className="space-y-4">
-      <div className="rounded-xl bg-orange-50 px-3 py-2.5 text-[12px] text-orange-700">
-        <Building2 className="mr-1.5 inline h-3.5 w-3.5" />
-        ใส่ชื่อบริษัท / ธุรกิจที่คุณทำงาน — หากชื่อนี้ยังไม่เคยมีในระบบ จะสร้างองค์กรใหม่ให้
-        ทดลองใช้ฟรี 10 คน × 30 วัน
-      </div>
-      <Field label="ชื่อบริษัท / ธุรกิจ (ตัวหลัก)">
-        <Input
-          value={p.businessName}
-          onChange={(e) => p.setBusinessName(e.target.value)}
-          placeholder="เช่น ร้านกาแฟลุงตู่, บจก. ไทยออโต้, คลินิกหมอเก่ง"
-          required
-        />
-      </Field>
-      <Field label="ประเภทกิจการ">
-        <Select value={p.businessType} onValueChange={p.setBusinessType}>
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {BUSINESS_TYPES.map((b) => (
-              <SelectItem key={b.value} value={b.value}>
-                {b.labelTh}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
-    </div>
   );
 }
 
@@ -755,17 +760,7 @@ function LocationStep(p: {
   );
 }
 
-function SupervisorStep(p: {
-  addSupervisor: boolean;
-  setAddSupervisor: (v: boolean) => void;
-  supervisorName: string;
-  setSupervisorName: (v: string) => void;
-  grantLeave: boolean;
-  setGrantLeave: (v: boolean) => void;
-  grantOvertime: boolean;
-  setGrantOvertime: (v: boolean) => void;
-  grantContact: boolean;
-  setGrantContact: (v: boolean) => void;
+function ConsentStep(p: {
   pdpaConsent: boolean;
   setPdpaConsent: (v: boolean) => void;
   profilePreview: string;
@@ -775,57 +770,6 @@ function SupervisorStep(p: {
 }) {
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl border border-navy-100 bg-navy-50/40 px-3 py-3">
-        <div className="flex items-center gap-2">
-          <UserPlus className="h-4 w-4 text-orange-500" />
-          <div>
-            <div className="text-sm font-semibold text-navy-900">เพิ่มหัวหน้าของฉัน</div>
-            <div className="text-[11px] text-navy-500">
-              เลือกชื่อหัวหน้าที่อยู่ในระบบ บริษัทเดียวกัน
-            </div>
-          </div>
-        </div>
-        <Switch checked={p.addSupervisor} onCheckedChange={p.setAddSupervisor} />
-      </div>
-
-      {p.addSupervisor && (
-        <Card>
-          <CardContent className="space-y-3 p-4">
-            <Field label="ชื่อหัวหน้า (ต้องตรงกับชื่อในระบบ บริษัทเดียวกัน)">
-              <Input
-                value={p.supervisorName}
-                onChange={(e) => p.setSupervisorName(e.target.value)}
-                placeholder="เช่น สมหญิง รักงาน หรือชื่อเล่น"
-              />
-            </Field>
-            <div className="text-[11px] font-semibold text-navy-600">
-              หัวหน้าคนนี้มีสิทธิ์อนุมัติเรื่องอะไรบ้าง?
-            </div>
-            <PermissionRow
-              label="อนุมัติการลา"
-              desc="ลาป่วย, ลาพักร้อน, ลากิจ"
-              checked={p.grantLeave}
-              onChange={p.setGrantLeave}
-            />
-            <PermissionRow
-              label="อนุมัติการขอ OT"
-              desc="ขอทำงานล่วงเวลา"
-              checked={p.grantOvertime}
-              onChange={p.setGrantOvertime}
-            />
-            <PermissionRow
-              label="อนุมัติเรื่องนัดหมาย / ติดต่อทั่วไป"
-              desc="ขอเข้าพบ ปรึกษาส่วนตัว"
-              checked={p.grantContact}
-              onChange={p.setGrantContact}
-            />
-            <div className="rounded-md bg-orange-50 px-3 py-2 text-[11px] text-orange-700">
-              หากไม่ติ๊กข้อใดเลย ระบบจะไม่ผูกหัวหน้านี้กับสิทธิ์อนุมัติใดๆ
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       <PhotoField
         label="รูปโปรไฟล์ (ทางเลือก)"
         hint="แตะเพื่อถ่ายรูปหรือเลือกจากแกลเลอรี"
@@ -855,28 +799,6 @@ function SupervisorStep(p: {
         </span>
       </label>
     </div>
-  );
-}
-
-function PermissionRow({
-  label,
-  desc,
-  checked,
-  onChange,
-}: {
-  label: string;
-  desc: string;
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <label className="flex items-center justify-between gap-3 rounded-lg border border-navy-100 bg-white px-3 py-2.5">
-      <div>
-        <div className="text-sm font-medium text-navy-900">{label}</div>
-        <div className="text-[11px] text-navy-500">{desc}</div>
-      </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
-    </label>
   );
 }
 
@@ -983,7 +905,7 @@ function PendingReview({ employee }: { employee: ResultEmployee }) {
         <div>
           <h3 className="text-base font-semibold text-navy-900">ใบสมัครอยู่ระหว่างตรวจสอบ</h3>
           <p className="mt-1 text-sm text-navy-500">
-            ระบบจะแจ้งผลทาง LINE เมื่อ HR / หัวหน้าตรวจสอบเสร็จ
+            ระบบจะแจ้งผลทาง LINE เมื่อหัวหน้าตรวจสอบเสร็จ
           </p>
         </div>
         <div className="grid grid-cols-2 gap-2 rounded-lg border border-navy-100 bg-navy-50/40 p-3 text-left text-xs">

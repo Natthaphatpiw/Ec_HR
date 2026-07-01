@@ -1,5 +1,6 @@
+import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Activity, Clock, MapPin, PlaneTakeoff, Users } from "lucide-react";
+import { Activity, ChevronRight, Clock, MapPin, PlaneTakeoff, UserPlus, Users } from "lucide-react";
 import { LiffHeader } from "@/components/liff/header";
 import { guardLiffPage } from "@/components/liff/page-guard";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -78,6 +79,20 @@ export default async function LiffTeamPage() {
           <SummaryTile label={t("onLeave")} value={onLeave.length} icon={PlaneTakeoff} accent="info" />
           <SummaryTile label={t("absent")} value={absent.length} icon={Users} accent="danger" />
         </div>
+
+        <Link
+          href="/liff/invite"
+          className="flex items-center gap-3 rounded-xl border border-orange-200 bg-orange-50/60 p-4 transition-colors hover:bg-orange-50"
+        >
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+            <UserPlus className="h-4 w-4" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-semibold text-navy-900">เชิญพนักงานเข้าทีม</div>
+            <div className="text-[11px] text-navy-500">แชร์ QR / ลิงก์ให้พนักงานลงทะเบียนเข้าบริษัท</div>
+          </div>
+          <ChevronRight className="h-4 w-4 text-navy-400" />
+        </Link>
 
         <Card>
           <CardContent className="p-4">

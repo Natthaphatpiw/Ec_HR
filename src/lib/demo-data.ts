@@ -7,6 +7,7 @@ import type {
   LeaveRequest,
   Notification,
   Organization,
+  OrgInvite,
   OvertimeRequest,
   Payroll,
   PerformanceReview,
@@ -721,6 +722,10 @@ export const SCHEDULE_ASSIGNMENTS: ScheduleAssignment[] = [];
 export const SCHEDULE_CHANGES: ScheduleChange[] = [];
 
 export const ACTION_TOKENS: ActionToken[] = [];
+
+// Supervisor-generated invite links (v4_org_invites). Populated at runtime
+// when a supervisor/owner registers or opens the "invite team" page.
+export const ORG_INVITES: OrgInvite[] = [];
 
 // =========================================================================
 // Multi-tenant + 2026 SSO additions
