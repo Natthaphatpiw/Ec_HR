@@ -12,11 +12,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { GeofenceMap } from "@/components/dashboard/geofence-map";
-import { getOrganization } from "@/lib/data";
+import { GeofenceSettingsForm } from "@/components/dashboard/geofence-settings-form";
+import { getEmployeeByLineId, getOrganization, isDemoMode } from "@/lib/data";
+import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 
 const HOLIDAYS_2026 = [
   { date: "2026-01-01", name: "New Year's Day" },
@@ -43,7 +43,24 @@ const ROLES = [
 ];
 
 export default async function SettingsPage() {
-  const [t, org] = await Promise.all([getTranslations("dashboard.settings"), getOrganization()]);
+  const demoMode = isDemoMode();
+  const [t, lineUserId] = await Promise.all([
+    getTranslations("dashboard.settings"),
+    getLiffUserIdFromCookie(),
+  ]);
+  const actor = !demoMode && lineUserId ? await getEmployeeByLineId(lineUserId) : undefined;
+  const org = await getOrganization(actor?.org_id);
+  const canManageGeofence =
+    demoMode ||
+    (!!actor &&
+      actor.account_status === "active" &&
+      (actor.is_supervisor ||
+        actor.role === "supervisor" ||
+        actor.role === "hr" ||
+        actor.role === "executive"));
+  const latitude = finiteNumber(org.geofence_lat);
+  const longitude = finiteNumber(org.geofence_lng);
+  const radiusM = finiteNumber(org.geofence_radius) ?? 100;
 
   return (
     <>
@@ -121,47 +138,14 @@ export default async function SettingsPage() {
           </TabsContent>
 
           <TabsContent value="geofence">
-            <Card>
-              <CardHeader>
-                <CardTitle>{t("geofence")}</CardTitle>
-                <CardDescription>
-                  Set the factory location and acceptance radius. Workers outside the radius are
-                  blocked from clocking in.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="grid gap-6 lg:grid-cols-2">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Latitude</Label>
-                    <Input defaultValue={String(org.geofence_lat)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Longitude</Label>
-                    <Input defaultValue={String(org.geofence_lng)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>{t("geofenceRadius")}</Label>
-                    <Input type="number" defaultValue={String(org.geofence_radius)} />
-                    <p className="text-xs text-navy-500">Recommended: 50–200 m</p>
-                  </div>
-                  <div className="space-y-3 rounded-lg border border-navy-100 bg-navy-50 p-4">
-                    <RowSwitch label="Require photo on clock-in" defaultChecked />
-                    <RowSwitch label="Block VPN / proxy IPs" defaultChecked />
-                    <RowSwitch label="Allow clock-in without GPS (fallback)" />
-                  </div>
-                  <Button>
-                    <Save className="h-3.5 w-3.5" />
-                    Save geofence
-                  </Button>
-                </div>
-                <GeofenceMap
-                  centerLat={Number(org.geofence_lat ?? 13.740198598326677)}
-                  centerLng={Number(org.geofence_lng ?? 100.56227944249513)}
-                  radiusM={Number(org.geofence_radius)}
-                  points={[]}
-                />
-              </CardContent>
-            </Card>
+            <GeofenceSettingsForm
+              organizationName={org.business_name || org.name}
+              canEdit={canManageGeofence}
+              initialEnabled={org.geofence_enabled}
+              initialLatitude={latitude}
+              initialLongitude={longitude}
+              initialRadiusM={radiusM}
+            />
           </TabsContent>
 
           <TabsContent value="holidays">
@@ -221,17 +205,8 @@ export default async function SettingsPage() {
   );
 }
 
-function RowSwitch({
-  label,
-  defaultChecked,
-}: {
-  label: string;
-  defaultChecked?: boolean;
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <span className="text-sm text-navy-700">{label}</span>
-      <Switch defaultChecked={defaultChecked} />
-    </div>
-  );
+function finiteNumber(value: number | null): number | null {
+  if (value === null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }

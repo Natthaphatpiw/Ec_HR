@@ -1,6 +1,7 @@
 import { Check, Filter, X } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
+import { AnalyticsExportMenu } from "@/components/analytics/analytics-export-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,20 +16,22 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  getDefaultOrganizationId,
   getEmployeeName,
-  listEmployees,
-  listLeaveRequests,
-  listOvertimeRequests,
+  listEmployeesForOrg,
+  listLeaveRequestsForOrg,
+  listOvertimeRequestsForOrg,
 } from "@/lib/data";
 import { formatDate } from "@/lib/utils";
 
 export default async function LeavePage() {
+  const orgId = getDefaultOrganizationId();
   const [t, tCommon, employees, leaves, ots] = await Promise.all([
     getTranslations("dashboard.leave"),
     getTranslations("common"),
-    listEmployees(),
-    listLeaveRequests(),
-    listOvertimeRequests(),
+    listEmployeesForOrg(orgId),
+    listLeaveRequestsForOrg(orgId),
+    listOvertimeRequestsForOrg(orgId),
   ]);
   const empMap = new Map(employees.map((e) => [e.id, e]));
 
@@ -71,10 +74,13 @@ export default async function LeavePage() {
               <TabsTrigger value="leave">{t("leaveTab")}</TabsTrigger>
               <TabsTrigger value="ot">{t("otTab")}</TabsTrigger>
             </TabsList>
-            <Button variant="outline" size="sm">
-              <Filter className="h-3.5 w-3.5" />
-              {tCommon("filter")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm">
+                <Filter className="h-3.5 w-3.5" />
+                {tCommon("filter")}
+              </Button>
+              <AnalyticsExportMenu days={90} />
+            </div>
           </div>
 
           <TabsContent value="leave">

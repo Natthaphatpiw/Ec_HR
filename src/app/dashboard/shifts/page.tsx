@@ -6,18 +6,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   getEmployeeName,
+  getDefaultOrganizationId,
   listEmployeeShifts,
-  listEmployees,
+  listEmployeesForOrg,
   listShifts,
 } from "@/lib/data";
 import { cn } from "@/lib/utils";
 
 export default async function ShiftsPage() {
+  const orgId = getDefaultOrganizationId();
   const [t, employees, shifts, employeeShifts] = await Promise.all([
     getTranslations("dashboard.shifts"),
-    listEmployees(),
-    listShifts(),
-    listEmployeeShifts(),
+    listEmployeesForOrg(orgId),
+    listShifts(orgId),
+    listEmployeeShifts(orgId),
   ]);
   const workers = employees.filter((e) => e.role === "employee" || e.role === "supervisor");
   const shiftMap = new Map(shifts.map((s) => [s.id, s]));

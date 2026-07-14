@@ -18,25 +18,27 @@ import { Button } from "@/components/ui/button";
 import {
   getAttendanceTrend,
   getDashboardStats,
+  getDefaultOrganizationId,
   getDepartmentBreakdown,
   getEmployeeName,
   listAttendanceLogs,
-  listEmployees,
-  listLeaveRequests,
-  listOvertimeRequests,
+  listEmployeesForOrg,
+  listLeaveRequestsForOrg,
+  listOvertimeRequestsForOrg,
 } from "@/lib/data";
 import { formatTime } from "@/lib/utils";
 
 export default async function DashboardOverviewPage() {
+  const orgId = getDefaultOrganizationId();
   const [t, stats, trend, breakdown, allEmployees, recentAttendance, leaves, ots] = await Promise.all([
     getTranslations("dashboard.overview"),
     getDashboardStats(),
     getAttendanceTrend(7),
     getDepartmentBreakdown(),
-    listEmployees(),
-    listAttendanceLogs(),
-    listLeaveRequests(),
-    listOvertimeRequests(),
+    listEmployeesForOrg(orgId),
+    listAttendanceLogs(orgId),
+    listLeaveRequestsForOrg(orgId),
+    listOvertimeRequestsForOrg(orgId),
   ]);
 
   const employeeMap = new Map(allEmployees.map((e) => [e.id, e]));

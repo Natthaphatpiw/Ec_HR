@@ -3,9 +3,11 @@
 import {
   getEmployeeByLineId,
   getLastAttendanceLog,
+  getOrganization,
   recordAttendance,
 } from "@/lib/data";
 import type { AttendanceLog, AttendanceType } from "@/lib/types";
+import { haversineMeters } from "@/lib/utils";
 
 export interface CheckinStatus {
   employeeId: string | null;
@@ -68,6 +70,37 @@ export async function clockAction(input: {
   if (employee.account_status !== "active") {
     return { ok: false, message: "บัญชียังไม่ active — รอ HR / หัวหน้าอนุมัติ" };
   }
+
+  const organization = await getOrganization(employee.org_id);
+  if (organization.geofence_enabled) {
+    const centerLat = finiteNumber(organization.geofence_lat);
+    const centerLng = finiteNumber(organization.geofence_lng);
+    const radiusM = finiteNumber(organization.geofence_radius);
+    if (centerLat === null || centerLng === null || radiusM === null || radiusM <= 0) {
+      return {
+        ok: false,
+        message: "องค์กรเปิดตรวจระยะ แต่ยังตั้งค่าจุดทำงานไม่ครบ กรุณาติดต่อหัวหน้าหรือ HR",
+      };
+    }
+
+    const latitude = finiteNumber(input.latitude ?? null);
+    const longitude = finiteNumber(input.longitude ?? null);
+    if (latitude === null || longitude === null) {
+      return {
+        ok: false,
+        message: "บริษัทเปิดใช้ geofence กรุณาอนุญาต GPS ก่อนกดเข้าและออกงาน",
+      };
+    }
+
+    const distanceM = haversineMeters(latitude, longitude, centerLat, centerLng);
+    if (distanceM > radiusM) {
+      return {
+        ok: false,
+        message: `คุณอยู่ห่างจุดทำงาน ${Math.round(distanceM).toLocaleString("th-TH")} เมตร เกินรัศมีที่อนุญาต ${Math.round(radiusM).toLocaleString("th-TH")} เมตร`,
+      };
+    }
+  }
+
   const res = await recordAttendance({
     employee_id: employee.id,
     type: input.type,
@@ -80,4 +113,10 @@ export async function clockAction(input: {
   }
   const fresh = await loadCheckinStatus(input.lineUserId);
   return { ok: true, message: res.message, status: fresh };
+}
+
+function finiteNumber(value: number | null): number | null {
+  if (value === null) return null;
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
 }

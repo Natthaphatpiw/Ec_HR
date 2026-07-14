@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import {
+  BarChart3,
   Calendar,
   Clock,
   MapPin,
@@ -20,6 +21,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   getEmployeeName,
   getLeaveBalance,
+  getOrganizationById,
   getOrgTrialStatus,
   getRegistrationStatus,
   listAttendanceForEmployee,
@@ -66,12 +68,19 @@ export default async function LiffHome() {
       </>
     );
   }
-  const [attendance, balance, team] = await Promise.all([
+  const [attendance, balance, team, organization] = await Promise.all([
     listAttendanceForEmployee(me.id),
     getLeaveBalance(me.id),
     me.is_supervisor ? listTeamForSupervisor(me.id) : Promise.resolve([]),
+    getOrganizationById(me.org_id),
   ]);
   const lastIn = attendance.find((a) => a.type === "in");
+  const canViewAnalytics =
+    me.is_supervisor ||
+    me.role === "supervisor" ||
+    me.role === "hr" ||
+    me.role === "executive" ||
+    organization?.owner_employee_id === me.id;
 
   return (
     <>
@@ -133,6 +142,14 @@ export default async function LiffHome() {
             desc={me.is_supervisor ? "Own + team schedule" : "This month"}
           />
           <ActionTile href="/liff/profile" icon={User} title="Profile" desc="แก้ไขข้อมูล" />
+          {canViewAnalytics && (
+            <ActionTile
+              href="/liff/analytics"
+              icon={BarChart3}
+              title="Workforce Analytics"
+              desc={me.is_supervisor ? "Team dashboard" : "Organization dashboard"}
+            />
+          )}
           <ActionTile href="/liff/ai-chat" icon={MessageCircle} title="EC AIHR" desc="Ask anything" />
         </section>
 

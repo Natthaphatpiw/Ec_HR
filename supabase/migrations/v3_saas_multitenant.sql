@@ -5,7 +5,7 @@
 -- What this migration changes:
 --   1. Organizations get business_name / tier / trial windows / seat limit
 --   2. Employees get home location + flexible business-agnostic columns
---   3. Attendance gets reason text + a server-side guard against double clock-in
+--   3. Attendance gets reason/source/device metadata (pairing is enforced in data.ts)
 --   4. New social_security_config table (Thai SSO 2026 rates pre-seeded)
 --   5. New profile_edit_audit table to track who edited whose profile
 --   6. Account_status enum extended to support 'awaiting_supervisor' state
@@ -32,10 +32,13 @@ UPDATE organizations
 SET business_name      = COALESCE(business_name, name),
     business_name_norm = COALESCE(business_name_norm, lower(trim(name))),
     business_type      = COALESCE(business_type, 'factory'),
-    tier               = COALESCE(tier, 'enterprise'),
-    seat_limit         = COALESCE(seat_limit, 999),
+    tier               = 'enterprise',
+    seat_limit         = 999,
     trial_started_at   = COALESCE(trial_started_at, created_at),
-    trial_ends_at      = COALESCE(trial_ends_at, NOW() + INTERVAL '5 years'),
+    trial_ends_at      = GREATEST(
+      COALESCE(trial_ends_at, NOW()),
+      NOW() + INTERVAL '5 years'
+    ),
     is_active          = COALESCE(is_active, TRUE)
 WHERE id = '11111111-1111-1111-1111-111111111111';
 
@@ -83,6 +86,17 @@ ALTER TABLE employees
   ADD COLUMN IF NOT EXISTS metadata                 JSONB DEFAULT '{}'::jsonb, -- per-business custom fields
   ADD COLUMN IF NOT EXISTS notes                    TEXT;
 
+-- schema.sql + seed.sql run before this migration. Those legacy employees are
+-- already approved demo records, so preserve that state instead of letting the
+-- new pending_review default make every seeded LIFF account unusable.
+UPDATE employees
+SET account_status = 'active',
+    is_supervisor = (role = 'supervisor'),
+    submitted_at = COALESCE(submitted_at, created_at),
+    approved_at = COALESCE(approved_at, created_at)
+WHERE org_id = '11111111-1111-1111-1111-111111111111'
+  AND account_status = 'pending_review';
+
 -- Owner FK on organizations (lives in employees, so add after both have columns)
 ALTER TABLE organizations
   DROP CONSTRAINT IF EXISTS organizations_owner_employee_id_fkey;
@@ -99,7 +113,7 @@ CREATE INDEX IF NOT EXISTS idx_employees_supervisor_leave   ON employees(leave_s
 CREATE INDEX IF NOT EXISTS idx_employees_supervisor_ot      ON employees(ot_supervisor_id);
 CREATE INDEX IF NOT EXISTS idx_employees_supervisor_contact ON employees(contact_supervisor_id);
 
--- 3. Attendance: add reason, plus a partial unique index against double clock-in --
+-- 3. Attendance: add reason and source metadata -------------------------------
 
 ALTER TABLE attendance_logs
   ADD COLUMN IF NOT EXISTS reason            TEXT,
@@ -129,7 +143,7 @@ CREATE INDEX IF NOT EXISTS idx_sso_config_country_dates
   ON social_security_config(country, effective_from);
 
 -- Seed the three known Thai SSO phases (Section 33).
--- Source: Thai Cabinet ministerial regulation issued 2025-12-11, effective 2026-01-01.
+-- Source: Ministerial regulation published 2025-12-12, effective 2026-01-01.
 INSERT INTO social_security_config (country, effective_from, effective_to, rate_pct, wage_floor, wage_ceiling, max_contribution, notes)
 SELECT * FROM (VALUES
   ('TH', DATE '2026-01-01', DATE '2028-12-31', 5.0, 1650, 17500, 875,  'Section 33 — Phase 1 (2026-2028)'),

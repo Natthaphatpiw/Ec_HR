@@ -15,19 +15,21 @@ import {
 } from "@/components/ui/table";
 import {
   getEmployeeName,
+  getDefaultOrganizationId,
   getOrganization,
   listAttendanceLogs,
-  listEmployees,
+  listEmployeesForOrg,
 } from "@/lib/data";
 import { formatTime } from "@/lib/utils";
 
 export default async function AttendancePage() {
+  const orgId = getDefaultOrganizationId();
   const [t, tCommon, employees, logs, org] = await Promise.all([
     getTranslations("dashboard.attendance"),
     getTranslations("common"),
-    listEmployees(),
-    listAttendanceLogs(),
-    getOrganization(),
+    listEmployeesForOrg(orgId),
+    listAttendanceLogs(orgId),
+    getOrganization(orgId),
   ]);
   const employeeMap = new Map(employees.map((e) => [e.id, e]));
   const today = "2026-05-09";
@@ -105,9 +107,11 @@ export default async function AttendancePage() {
                 <CalendarDays className="h-3.5 w-3.5" />
                 Date
               </Button>
-              <Button size="sm">
-                <Download className="h-3.5 w-3.5" />
-                {tCommon("export")}
+              <Button asChild size="sm">
+                <a href="/api/analytics/export?dataset=attendance&days=30">
+                  <Download className="h-3.5 w-3.5" />
+                  {tCommon("export")} Excel
+                </a>
               </Button>
             </div>
           </CardHeader>

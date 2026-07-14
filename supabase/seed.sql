@@ -61,11 +61,25 @@ INSERT INTO overtime_requests (employee_id, date, hours, reason, status) VALUES
 -- Payroll for current and previous month
 INSERT INTO payrolls (employee_id, month_year, base_pay, ot_pay, ssf_deduction, tax_deduction, net_pay)
 SELECT id, '2026-04', base_salary, 4500, 750, 1200, base_salary + 4500 - 750 - 1200
-FROM employees WHERE role IN ('employee','supervisor');
+FROM employees e
+WHERE e.role IN ('employee','supervisor')
+  AND NOT EXISTS (
+    SELECT 1
+    FROM payrolls p
+    WHERE p.employee_id = e.id
+      AND p.month_year = '2026-04'
+  );
 
 INSERT INTO payrolls (employee_id, month_year, base_pay, ot_pay, ssf_deduction, tax_deduction, net_pay)
 SELECT id, '2026-05', base_salary, 3200, 750, 1100, base_salary + 3200 - 750 - 1100
-FROM employees WHERE role IN ('employee','supervisor');
+FROM employees e
+WHERE e.role IN ('employee','supervisor')
+  AND NOT EXISTS (
+    SELECT 1
+    FROM payrolls p
+    WHERE p.employee_id = e.id
+      AND p.month_year = '2026-05'
+  );
 
 -- Performance reviews
 INSERT INTO performance_reviews (employee_id, review_date, kpi_score, notes) VALUES

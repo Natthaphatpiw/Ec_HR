@@ -11,12 +11,15 @@ import {
   LogIn,
   LogOut,
   MapPin,
+  ShieldCheck,
+  ShieldOff,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { initLiff, type LiffProfile } from "@/lib/liff-client";
+import { haversineMeters } from "@/lib/utils";
 import {
   clockAction,
   loadCheckinStatus,
@@ -26,6 +29,12 @@ import {
 interface CheckinProps {
   shiftStart?: string;
   shiftEnd?: string;
+  geofence: {
+    enabled: boolean;
+    latitude: number | null;
+    longitude: number | null;
+    radiusM: number;
+  };
 }
 
 interface Position {
@@ -42,6 +51,7 @@ export function CheckinClient(props: CheckinProps) {
   const [now, setNow] = useState<Date>(() => new Date());
   const [position, setPosition] = useState<Position | null>(null);
   const [locating, setLocating] = useState(true);
+  const [locationError, setLocationError] = useState<string | null>(null);
   const [status, setStatus] = useState<CheckinStatus | null>(null);
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
@@ -70,16 +80,19 @@ export function CheckinClient(props: CheckinProps) {
     };
   }, []);
 
-  // Geolocation (informational only — no enforcement)
+  // Keep a live GPS reading so the UI can explain the same geofence rule that
+  // the server enforces when the employee submits a clock event.
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!navigator.geolocation) {
       setLocating(false);
+      setLocationError("อุปกรณ์นี้ไม่รองรับการอ่าน GPS");
       return;
     }
     setLocating(true);
     const timeoutId = setTimeout(() => {
       setLocating(false);
+      setLocationError("ใช้เวลาค้นหา GPS นานเกินไป กรุณาตรวจสิทธิ์ location");
     }, 8000);
     watchRef.current = navigator.geolocation.watchPosition(
       (pos) => {
@@ -89,10 +102,16 @@ export function CheckinClient(props: CheckinProps) {
           lng: pos.coords.longitude,
           accuracy: pos.coords.accuracy,
         });
+        setLocationError(null);
         setLocating(false);
       },
-      () => {
+      (error) => {
         clearTimeout(timeoutId);
+        setLocationError(
+          error.code === 1
+            ? "ยังไม่ได้อนุญาตให้เข้าถึงตำแหน่ง กรุณาเปิดสิทธิ์ location"
+            : "อ่าน GPS ไม่สำเร็จ กรุณาตรวจสัญญาณแล้วลองใหม่",
+        );
         setLocating(false);
       },
       { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
@@ -103,7 +122,37 @@ export function CheckinClient(props: CheckinProps) {
     };
   }, []);
 
+  const hasGeofenceConfig =
+    props.geofence.latitude !== null &&
+    props.geofence.longitude !== null &&
+    Number.isFinite(props.geofence.latitude) &&
+    Number.isFinite(props.geofence.longitude) &&
+    Number.isFinite(props.geofence.radiusM) &&
+    props.geofence.radiusM > 0;
+  const geofenceDistanceM =
+    position && hasGeofenceConfig
+      ? haversineMeters(
+          position.lat,
+          position.lng,
+          props.geofence.latitude as number,
+          props.geofence.longitude as number,
+        )
+      : null;
+  const isInsideGeofence =
+    geofenceDistanceM !== null && geofenceDistanceM <= props.geofence.radiusM;
+  const geofenceBlocked =
+    props.geofence.enabled && (!hasGeofenceConfig || !position || !isInsideGeofence);
+  const geofenceBlockMessage = !hasGeofenceConfig
+    ? "องค์กรเปิดตรวจระยะ แต่ยังตั้งค่าจุดทำงานไม่ครบ กรุณาติดต่อหัวหน้าหรือ HR"
+    : !position
+      ? locationError ?? "กำลังรอพิกัด GPS ก่อนลงเวลา"
+      : `คุณอยู่ห่างจุดทำงาน ${formatDistance(geofenceDistanceM)} เกินรัศมีที่อนุญาต ${formatDistance(props.geofence.radiusM)}`;
+
   function doClock(type: "in" | "out") {
+    if (geofenceBlocked) {
+      toast.error(geofenceBlockMessage);
+      return;
+    }
     if (!lineUserId) {
       toast.error(t("currentTime"));
       return;
@@ -196,35 +245,76 @@ export function CheckinClient(props: CheckinProps) {
 
       <Card>
         <CardContent className="p-5">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-navy-900">
               <MapPin className="h-4 w-4 text-orange-500" />
               <span>พิกัดปัจจุบัน</span>
             </div>
-            {locating ? (
-              <Badge variant="muted">
-                <Loader2 className="mr-1 h-3 w-3 animate-spin" />
-                กำลังหา GPS
+            <div className="flex flex-wrap gap-1.5">
+              {locating ? (
+                <Badge variant="muted">
+                  <Loader2 className="mr-1 h-3 w-3 animate-spin" />
+                  กำลังหา GPS
+                </Badge>
+              ) : position ? (
+                <Badge variant="default">
+                  <CheckCircle2 className="mr-1 h-3 w-3" />
+                  GPS พร้อม
+                </Badge>
+              ) : (
+                <Badge variant="default">ไม่พบ GPS</Badge>
+              )}
+              <Badge variant={props.geofence.enabled ? "default" : "muted"}>
+                {props.geofence.enabled ? (
+                  <ShieldCheck className="mr-1 h-3 w-3" />
+                ) : (
+                  <ShieldOff className="mr-1 h-3 w-3" />
+                )}
+                {props.geofence.enabled ? "เปิดตรวจระยะ" : "ไม่บังคับระยะ"}
               </Badge>
-            ) : position ? (
-              <Badge variant="success">
-                <CheckCircle2 className="mr-1 h-3 w-3" />
-                อ่าน GPS สำเร็จ
-              </Badge>
-            ) : (
-              <Badge variant="warning">ไม่พบตำแหน่ง</Badge>
-            )}
+              {props.geofence.enabled && (
+                <Badge variant={isInsideGeofence ? "muted" : "default"}>
+                  {!hasGeofenceConfig
+                    ? "ตั้งค่าไม่ครบ"
+                    : !position
+                      ? "รอพิกัด"
+                      : isInsideGeofence
+                        ? "ภายในพื้นที่"
+                        : "นอกพื้นที่"}
+                </Badge>
+              )}
+            </div>
           </div>
           {position && (
-            <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
               <Metric label="ละติจูด" value={position.lat.toFixed(5)} />
               <Metric label="ลองจิจูด" value={position.lng.toFixed(5)} />
               <Metric label="ความแม่นยำ" value={`±${Math.round(position.accuracy)}m`} />
+              <Metric
+                label="ระยะจากจุดงาน"
+                value={
+                  geofenceDistanceM === null ? "ไม่ได้ตั้งค่า" : formatDistance(geofenceDistanceM)
+                }
+              />
             </div>
           )}
-          <div className="mt-3 rounded-lg bg-navy-50 px-3 py-2 text-[11px] text-navy-500">
-            ระบบบันทึกพิกัดทุกครั้งที่กดเข้า / ออกงาน เพื่อใช้เป็น log
-            ไม่ได้บังคับว่าต้องอยู่ในเขตที่ทำงาน
+          <div
+            aria-live="polite"
+            className={`mt-3 rounded-lg border px-3 py-2 text-[11px] leading-relaxed ${
+              geofenceBlocked
+                ? "border-orange-200 bg-orange-50 text-orange-700"
+                : "border-navy-100 bg-navy-50 text-navy-600"
+            }`}
+          >
+            {!props.geofence.enabled
+              ? "องค์กรปิดการตรวจระยะ ระบบจะบันทึกพิกัดที่อุปกรณ์ส่งมาแต่ไม่บล็อกการลงเวลา"
+              : !hasGeofenceConfig
+                ? geofenceBlockMessage
+                : !position
+                  ? geofenceBlockMessage
+                  : isInsideGeofence
+                    ? `อยู่ภายในพื้นที่อนุญาต ระยะ ${formatDistance(geofenceDistanceM)} จากจุดทำงาน (กำหนดไว้ ${formatDistance(props.geofence.radiusM)})`
+                    : geofenceBlockMessage}
           </div>
         </CardContent>
       </Card>
@@ -239,8 +329,8 @@ export function CheckinClient(props: CheckinProps) {
               </span>
             </div>
           ) : status?.lastLog ? (
-            <div className="flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-2.5 text-xs text-emerald-700">
-              <Clock className="h-3.5 w-3.5" />
+            <div className="flex items-center gap-2 rounded-lg bg-navy-50 px-3 py-2.5 text-xs text-navy-700">
+              <Clock className="h-3.5 w-3.5 text-orange-500" />
               <span>
                 ล่าสุด {status.lastLog.type === "in" ? "เข้างาน" : "ออกงาน"} เวลา{" "}
                 <b>{lastLogTime}</b>
@@ -270,7 +360,7 @@ export function CheckinClient(props: CheckinProps) {
           <Button
             size="lg"
             className="w-full"
-            disabled={submitting || hasOpenSession}
+            disabled={submitting || hasOpenSession || geofenceBlocked}
             onClick={() => doClock("in")}
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
@@ -280,7 +370,7 @@ export function CheckinClient(props: CheckinProps) {
             size="lg"
             variant="outline"
             className="w-full"
-            disabled={submitting}
+            disabled={submitting || geofenceBlocked}
             onClick={() => doClock("out")}
           >
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogOut className="h-4 w-4" />}
@@ -299,4 +389,10 @@ function Metric({ label, value }: { label: string; value: string }) {
       <div className="mt-0.5 text-sm font-semibold tabular-nums text-navy-900">{value}</div>
     </div>
   );
+}
+
+function formatDistance(value: number | null): string {
+  if (value === null || !Number.isFinite(value)) return "ไม่ทราบ";
+  if (value < 1_000) return `${Math.round(value).toLocaleString("th-TH")} ม.`;
+  return `${(value / 1_000).toLocaleString("th-TH", { maximumFractionDigits: 2 })} กม.`;
 }

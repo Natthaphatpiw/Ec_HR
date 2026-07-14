@@ -20,8 +20,8 @@ configuring Supabase, LINE, or Anthropic.
 | Charts           | Recharts                                        |
 | Maps             | Leaflet + react-leaflet (geofence visualization) |
 | i18n             | next-intl (EN / TH / ZH)                        |
-| Database         | Supabase Postgres (RLS-enforced)                |
-| Auth             | Supabase Auth + LINE Login via LIFF             |
+| Database         | Supabase Postgres (RLS enabled; server data layer uses service role) |
+| Auth             | LINE LIFF cookie session (verified production auth remains a go-live requirement) |
 | LINE             | Messaging API + Rich Menu + LIFF v2 + Webhook   |
 | AI agent         | Mastra-style tool runtime + Claude Sonnet 4.6   |
 | Deployment       | Vercel + Supabase                               |
@@ -69,11 +69,17 @@ The app boots in **demo mode** by default (`DEMO_MODE=true`). All data is in-mem
 
 ### 1. Database (Supabase)
 
-Run the schema and seed in the Supabase SQL Editor:
+Run the schema and migrations in this exact order. The base seed is optional
+and is only for the original ThaiAuto demo tenant:
 
 ```sql
 \i supabase/schema.sql
-\i supabase/seed.sql
+\i supabase/seed.sql -- optional
+\i supabase/migrations/v2_approvals_and_schedule.sql
+\i supabase/migrations/v3_saas_multitenant.sql
+\i supabase/migrations/v4_org_invites.sql
+\i supabase/migrations/v5_preflight_payroll_duplicates.sql -- only when v5 reports duplicates
+\i supabase/migrations/v5_analytics_geofence_payroll.sql
 ```
 
 Or copy-paste each file's contents into the SQL editor.
@@ -87,8 +93,10 @@ SUPABASE_SERVICE_ROLE_KEY=<service role key>
 DEMO_MODE=false
 ```
 
-The schema enables Row Level Security on all sensitive tables. Define policies in the Supabase
-Dashboard following these patterns:
+The schema enables Row Level Security on sensitive tables, but `src/lib/data.ts`
+uses the server-only service-role client and therefore bypasses those policies.
+Before production launch, add verified dashboard/LIFF identities and enforce the
+following tenant/role rules in both application authorization and RLS:
 
 - **employee** — `SELECT` own row, own attendance, own leave/OT, own payroll only
 - **supervisor** — same-department `SELECT`, `UPDATE` on leave/OT status
@@ -169,11 +177,12 @@ same tool list — the tool signatures are already Mastra-compatible.
 | ----------------------------- | ---------------------------------------------------------- |
 | `/dashboard`                  | Overview — KPIs, attendance trend, AI insight, activity    |
 | `/dashboard/attendance`       | Calendar + geofence map + live clock-in feed                |
-| `/dashboard/shifts`           | Drag-and-drop shift planner + AI Suggest Schedule           |
+| `/dashboard/shifts`           | Interactive shift planner + AI Suggest Schedule             |
 | `/dashboard/employees`        | Searchable roster + CSV import/export                       |
 | `/dashboard/leave`            | Leave + OT approval queue                                   |
-| `/dashboard/payroll`          | Monthly run + previews + Thai-compliant calculation         |
-| `/dashboard/reports`          | Punctuality, OT, KPI trends + PDF/Excel export              |
+| `/dashboard/payroll`          | Payroll snapshots + Thai 2026 SSO/PIT estimate detail       |
+| `/dashboard/reports`          | Legacy report presentation                                  |
+| `/dashboard/analytics`        | Source-backed workforce dashboard + scoped Excel export     |
 | `/dashboard/ai-assistant`     | Full-page EC AIHR chat with tool-call inspection            |
 | `/dashboard/settings`         | Factory profile, geofence editor, holidays, roles           |
 | `/dashboard/setup`            | First-time admin onboarding (org create + LINE OA bind)     |
@@ -183,13 +192,14 @@ same tool list — the tool signatures are already Mastra-compatible.
 | Route                  | Purpose                                                |
 | ---------------------- | ------------------------------------------------------ |
 | `/liff`                | Worker home (cards: Clock, Leave, OT, Payslip, AI)     |
-| `/liff/checkin`        | GPS + IP + photo clock-in / clock-out                  |
+| `/liff/checkin`        | GPS clock-in/out with configurable server-side geofence |
 | `/liff/my-attendance`  | Personal weekly + monthly history                      |
 | `/liff/request-leave`  | Leave request form + balance                           |
 | `/liff/request-ot`     | OT request form + Thai labor-law calc                  |
-| `/liff/payslip`        | Latest + past payslips, PDF viewer                     |
+| `/liff/payslip`        | Latest + past payroll snapshots and Thai tax/SSO detail |
 | `/liff/ai-chat`        | Chat with EC AIHR Assistant inside LINE                |
 | `/liff/team`           | Supervisor view: team attendance today                 |
+| `/liff/analytics`      | Supervisor/HR/executive team or organization analytics |
 | `/liff/onboard`        | Bind LINE user ID to an `employees` row                |
 
 ### API
@@ -198,6 +208,7 @@ same tool list — the tool signatures are already Mastra-compatible.
 | ---------------------- | ------ | ---------------------------------------------------- |
 | `/api/line/webhook`    | POST   | LINE Messaging API webhook (signature-verified)      |
 | `/api/mastra/agent`    | POST   | `{ message, employeeId?, channel? }` → agent reply   |
+| `/api/analytics/export`| GET    | Authorized Excel export by dataset and date window    |
 
 ---
 

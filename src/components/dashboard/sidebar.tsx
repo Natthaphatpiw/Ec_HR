@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import {
+  BarChart3,
   CalendarRange,
   ClipboardCheck,
   LayoutDashboard,
@@ -11,7 +12,6 @@ import {
   Receipt,
   Settings,
   Sparkles,
-  TrendingUp,
   Users,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
@@ -28,7 +28,7 @@ export function DashboardSidebar() {
     { href: "/dashboard/employees", label: t("employees"), icon: Users },
     { href: "/dashboard/leave", label: t("leave"), icon: ClipboardCheck },
     { href: "/dashboard/payroll", label: t("payroll"), icon: Receipt },
-    { href: "/dashboard/reports", label: t("reports"), icon: TrendingUp },
+    { href: "/dashboard/analytics", label: t("analytics"), icon: BarChart3 },
     { href: "/dashboard/ai-assistant", label: t("aiAssistant"), icon: Sparkles, accent: true },
     { href: "/dashboard/settings", label: t("settings"), icon: Settings },
   ];

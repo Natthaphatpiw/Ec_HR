@@ -24,6 +24,7 @@ export interface Organization {
   geofence_lat: number | null;
   geofence_lng: number | null;
   geofence_radius: number;
+  geofence_enabled: boolean;
   owner_employee_id: string | null;
   tier: OrgTier;
   seat_limit: number;
@@ -32,6 +33,16 @@ export interface Organization {
   is_active: boolean;
   plan_notes: string | null;
   created_at: string;
+}
+
+export interface EmployeeTaxProfile {
+  personal_allowance: number;
+  spouse_allowance: number;
+  child_allowance: number;
+  parent_allowance: number;
+  insurance_deduction: number;
+  provident_fund_deduction: number;
+  other_deductions: number;
 }
 
 /**
@@ -74,6 +85,7 @@ export interface Employee {
   base_salary: number | null;
   bank_account: string | null;
   sso_number: string | null;
+  tax_profile: EmployeeTaxProfile;
   account_status: AccountStatus;
   phone: string | null;
   national_id: string | null;
@@ -232,6 +244,12 @@ export interface AttendanceLog {
   ip_address: string | null;
   status: AttendanceStatus;
   photo_url: string | null;
+  reason?: string | null;
+  source?: AttendanceSource;
+  device_label?: string | null;
+  maps_url?: string | null;
+  geofence_distance_m: number | null;
+  geofence_result: "disabled" | "inside" | "outside" | "missing_location" | "unconfigured";
 }
 
 export interface LeaveRequest {
@@ -342,6 +360,23 @@ export interface Payroll {
   ot_pay: number;
   ssf_deduction: number;
   tax_deduction: number;
+  allowance_pay: number;
+  bonus_pay: number;
+  other_income: number;
+  other_deductions: number;
+  gross_pay: number;
+  employer_sso_contribution: number;
+  taxable_income: number;
+  annualized_taxable_income: number;
+  annual_tax: number;
+  tax_method: string;
+  calculation_version: string;
+  calculation_details: Record<string, unknown>;
+  calculated_at: string | null;
+  calculation_status: "estimate" | "reviewed" | "file_ready" | "paid" | "void";
+  reviewed_by_id: string | null;
+  reviewed_at: string | null;
+  override_reason: string | null;
   net_pay: number;
   payslip_pdf_url: string | null;
   created_at: string;

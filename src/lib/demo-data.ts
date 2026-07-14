@@ -18,6 +18,7 @@ import type {
   Shift,
   SocialSecurityConfig,
 } from "./types";
+import { calculateThaiPayroll } from "./payroll/thai-payroll";
 
 const ORG_ID = "11111111-1111-1111-1111-111111111111";
 const SHIFT_MORNING = "22222222-2222-2222-2222-222222222201";
@@ -39,6 +40,7 @@ export const ORGANIZATIONS: Organization[] = [
     geofence_lat: 13.740198598326677,
     geofence_lng: 100.56227944249513,
     geofence_radius: 150,
+    geofence_enabled: false,
     owner_employee_id: "33333333-3333-3333-3333-333333333308",
     tier: "enterprise",
     seat_limit: 999,
@@ -88,6 +90,7 @@ function demoEmployeeDefaults(): Pick<
   | "submitted_at"
   | "approved_at"
   | "approved_by_id"
+  | "tax_profile"
   | "pdpa_consent_at"
   | "metadata"
   | "notes"
@@ -118,6 +121,15 @@ function demoEmployeeDefaults(): Pick<
     submitted_at: null,
     approved_at: null,
     approved_by_id: null,
+    tax_profile: {
+      personal_allowance: 60000,
+      spouse_allowance: 0,
+      child_allowance: 0,
+      parent_allowance: 0,
+      insurance_deduction: 0,
+      provident_fund_deduction: 0,
+      other_deductions: 0,
+    },
     pdpa_consent_at: "2025-01-01T00:00:00Z",
     metadata: {},
     notes: null,
@@ -416,6 +428,8 @@ export const ATTENDANCE_LOGS: AttendanceLog[] = workingEmployees.flatMap((e) => 
       ip_address: "192.168.1." + (50 + Math.floor(seededRandom() * 100)),
       status,
       photo_url: null,
+      geofence_distance_m: 42,
+      geofence_result: "disabled",
     });
     logs.push({
       id: `att-${e.employee_code}-${i}-out`,
@@ -427,6 +441,8 @@ export const ATTENDANCE_LOGS: AttendanceLog[] = workingEmployees.flatMap((e) => 
       ip_address: "192.168.1." + (50 + Math.floor(seededRandom() * 100)),
       status: "ontime",
       photo_url: null,
+      geofence_distance_m: 45,
+      geofence_result: "disabled",
     });
   }
   return logs;
@@ -588,17 +604,30 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
   },
 ];
 
-// Mirror the Thai SSO 2026 phase-1 ceiling so demo payslips already reflect
-// the new rule (max 875 THB / month for salaries ≥ 17,500).
-function demoSsf(salary: number): number {
-  if (!salary || salary <= 0) return 0;
-  const base = Math.min(Math.max(salary, 1650), 17500);
-  return Math.round(base * 0.05);
-}
+const DEMO_SSO_2026 = {
+  id: "sso-th-phase1",
+  rate_pct: 5,
+  wage_floor: 1650,
+  wage_ceiling: 17500,
+  max_contribution: 875,
+} as const;
 
 export const PAYROLLS: Payroll[] = workingEmployees.flatMap((e) => {
   const base = e.base_salary ?? 0;
-  const ssf = demoSsf(base);
+  const april = calculateThaiPayroll({
+    basePay: base,
+    overtimePay: 4500,
+    ssoConfig: DEMO_SSO_2026,
+    taxProfile: e.tax_profile,
+    payrollMonth: 4,
+  });
+  const may = calculateThaiPayroll({
+    basePay: base,
+    overtimePay: 3200,
+    ssoConfig: DEMO_SSO_2026,
+    taxProfile: e.tax_profile,
+    payrollMonth: 5,
+  });
   return [
     {
       id: `payroll-${e.employee_code}-2026-04`,
@@ -606,9 +635,26 @@ export const PAYROLLS: Payroll[] = workingEmployees.flatMap((e) => {
       month_year: "2026-04",
       base_pay: base,
       ot_pay: 4500,
-      ssf_deduction: ssf,
-      tax_deduction: 1200,
-      net_pay: base + 4500 - ssf - 1200,
+      ssf_deduction: april.employeeSso,
+      tax_deduction: april.monthlyWithholdingTax,
+      allowance_pay: 0,
+      bonus_pay: 0,
+      other_income: 0,
+      other_deductions: 0,
+      gross_pay: april.grossPay,
+      employer_sso_contribution: april.employerSso,
+      taxable_income: april.grossPay,
+      annualized_taxable_income: april.annualizedTaxableIncome,
+      annual_tax: april.annualTax,
+      tax_method: "thai_pit_annualized_por_96_2543",
+      calculation_version: april.calculationVersion,
+      calculation_details: { ...april.calculationDetails, source: "demo" },
+      calculated_at: "2026-04-30T18:00:00Z",
+      calculation_status: "paid",
+      reviewed_by_id: "33333333-3333-3333-3333-333333333304",
+      reviewed_at: "2026-04-30T17:30:00Z",
+      override_reason: null,
+      net_pay: april.netPay,
       payslip_pdf_url: null,
       created_at: "2026-04-30T18:00:00Z",
     },
@@ -618,9 +664,26 @@ export const PAYROLLS: Payroll[] = workingEmployees.flatMap((e) => {
       month_year: "2026-05",
       base_pay: base,
       ot_pay: 3200,
-      ssf_deduction: ssf,
-      tax_deduction: 1100,
-      net_pay: base + 3200 - ssf - 1100,
+      ssf_deduction: may.employeeSso,
+      tax_deduction: may.monthlyWithholdingTax,
+      allowance_pay: 0,
+      bonus_pay: 0,
+      other_income: 0,
+      other_deductions: 0,
+      gross_pay: may.grossPay,
+      employer_sso_contribution: may.employerSso,
+      taxable_income: may.grossPay,
+      annualized_taxable_income: may.annualizedTaxableIncome,
+      annual_tax: may.annualTax,
+      tax_method: "thai_pit_annualized_por_96_2543",
+      calculation_version: may.calculationVersion,
+      calculation_details: { ...may.calculationDetails, source: "demo" },
+      calculated_at: "2026-05-08T18:00:00Z",
+      calculation_status: "reviewed",
+      reviewed_by_id: "33333333-3333-3333-3333-333333333304",
+      reviewed_at: "2026-05-08T17:30:00Z",
+      override_reason: null,
+      net_pay: may.netPay,
       payslip_pdf_url: null,
       created_at: "2026-05-08T18:00:00Z",
     },

@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS organizations (
   geofence_lat NUMERIC(10,8),
   geofence_lng NUMERIC(11,8),
   geofence_radius NUMERIC DEFAULT 100,
+  geofence_enabled BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -18,7 +19,7 @@ CREATE TABLE IF NOT EXISTS employees (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
   line_user_id TEXT UNIQUE,
-  employee_code TEXT UNIQUE NOT NULL,
+  employee_code TEXT UNIQUE,
   name_th TEXT,
   name_en TEXT,
   name_zh TEXT,
@@ -29,6 +30,15 @@ CREATE TABLE IF NOT EXISTS employees (
   base_salary NUMERIC,
   bank_account TEXT,
   sso_number TEXT,
+  tax_profile JSONB NOT NULL DEFAULT '{
+    "personal_allowance": 60000,
+    "spouse_allowance": 0,
+    "child_allowance": 0,
+    "parent_allowance": 0,
+    "insurance_deduction": 0,
+    "provident_fund_deduction": 0,
+    "other_deductions": 0
+  }'::jsonb,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -61,7 +71,10 @@ CREATE TABLE IF NOT EXISTS attendance_logs (
   longitude NUMERIC(11,8),
   ip_address TEXT,
   status TEXT CHECK (status IN ('ontime','late','absent','early')) DEFAULT 'ontime',
-  photo_url TEXT
+  photo_url TEXT,
+  geofence_distance_m NUMERIC(10,2),
+  geofence_result TEXT NOT NULL DEFAULT 'disabled'
+    CHECK (geofence_result IN ('disabled','inside','outside','missing_location','unconfigured'))
 );
 
 -- 6. Leave Requests
@@ -98,6 +111,24 @@ CREATE TABLE IF NOT EXISTS payrolls (
   ot_pay NUMERIC,
   ssf_deduction NUMERIC,
   tax_deduction NUMERIC,
+  allowance_pay NUMERIC NOT NULL DEFAULT 0,
+  bonus_pay NUMERIC NOT NULL DEFAULT 0,
+  other_income NUMERIC NOT NULL DEFAULT 0,
+  other_deductions NUMERIC NOT NULL DEFAULT 0,
+  gross_pay NUMERIC NOT NULL DEFAULT 0,
+  employer_sso_contribution NUMERIC NOT NULL DEFAULT 0,
+  taxable_income NUMERIC NOT NULL DEFAULT 0,
+  annualized_taxable_income NUMERIC NOT NULL DEFAULT 0,
+  annual_tax NUMERIC NOT NULL DEFAULT 0,
+  tax_method TEXT NOT NULL DEFAULT 'thai_pit_annualized',
+  calculation_version TEXT NOT NULL DEFAULT 'TH-2026.1',
+  calculation_details JSONB NOT NULL DEFAULT '{}'::jsonb,
+  calculated_at TIMESTAMPTZ,
+  calculation_status TEXT NOT NULL DEFAULT 'estimate'
+    CHECK (calculation_status IN ('estimate','reviewed','file_ready','paid','void')),
+  reviewed_by_id UUID REFERENCES employees(id) ON DELETE SET NULL,
+  reviewed_at TIMESTAMPTZ,
+  override_reason TEXT,
   net_pay NUMERIC,
   payslip_pdf_url TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()

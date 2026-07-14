@@ -14,7 +14,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getEmployeeName, listEmployees } from "@/lib/data";
+import {
+  getDefaultOrganizationId,
+  getEmployeeName,
+  listEmployeesForOrg,
+} from "@/lib/data";
 import { formatCurrency } from "@/lib/utils";
 
 const ROLE_VARIANT: Record<string, "default" | "muted" | "info" | "success"> = {
@@ -25,9 +29,10 @@ const ROLE_VARIANT: Record<string, "default" | "muted" | "info" | "success"> = {
 };
 
 export default async function EmployeesPage() {
+  const orgId = getDefaultOrganizationId();
   const [t, employees] = await Promise.all([
     getTranslations("dashboard.employees"),
-    listEmployees(),
+    listEmployeesForOrg(orgId),
   ]);
 
   return (
@@ -46,9 +51,11 @@ export default async function EmployeesPage() {
                   <FileUp className="h-3.5 w-3.5" />
                   {t("importCsv")}
                 </Button>
-                <Button variant="outline" size="sm">
-                  <Download className="h-3.5 w-3.5" />
-                  {t("exportCsv")}
+                <Button asChild variant="outline" size="sm">
+                  <a href="/api/analytics/export?dataset=employees&days=30">
+                    <Download className="h-3.5 w-3.5" />
+                    Export Excel
+                  </a>
                 </Button>
                 <Button size="sm">
                   <Plus className="h-3.5 w-3.5" />

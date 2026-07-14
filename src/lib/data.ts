@@ -25,6 +25,7 @@ import type {
   ActionTokenAction,
   ActionTokenKind,
   AttendanceLog,
+  AttendanceSource,
   AttendanceType,
   BusinessType,
   ContactRequest,
@@ -51,6 +52,7 @@ import type {
   SubordinateLink,
   SupervisorGrant,
 } from "./types";
+import { haversineMeters } from "./utils";
 
 const ORG_ID = "11111111-1111-1111-1111-111111111111";
 const TRIAL_DAYS = 30;
@@ -67,6 +69,14 @@ const TRIAL_SEAT_LIMIT = 10;
 function isDemo(): boolean {
   if ((process.env.DEMO_MODE ?? "true") === "true") return true;
   return !hasSupabaseConfig();
+}
+
+export function isDemoMode(): boolean {
+  return isDemo();
+}
+
+export function getDefaultOrganizationId(): string {
+  return process.env.DASHBOARD_ORG_ID?.trim() || ORG_ID;
 }
 
 function newId(prefix: string): string {
@@ -93,7 +103,7 @@ export function normalizeBusinessName(raw: string): string {
 }
 
 export async function getOrganization(orgId?: string): Promise<Organization> {
-  const id = orgId ?? ORG_ID;
+  const id = orgId ?? getDefaultOrganizationId();
   if (isDemo()) return ORGANIZATIONS.find((o) => o.id === id) ?? ORGANIZATION;
   const sb = supabaseAdmin();
   const { data, error } = await sb
@@ -155,6 +165,7 @@ export async function createOrganization(input: {
     geofence_lat: null,
     geofence_lng: null,
     geofence_radius: 150,
+    geofence_enabled: false,
     owner_employee_id: null,
     tier: "free",
     seat_limit: TRIAL_SEAT_LIMIT,
@@ -187,6 +198,52 @@ export async function createOrganization(input: {
     .select("*")
     .single();
   if (error) throw new Error(`createOrganization: ${error.message}`);
+  return data as Organization;
+}
+
+export interface OrganizationGeofenceInput {
+  enabled: boolean;
+  latitude: number;
+  longitude: number;
+  radiusM: number;
+}
+
+export async function updateOrganizationGeofence(
+  orgId: string,
+  input: OrganizationGeofenceInput,
+): Promise<Organization> {
+  if (!Number.isFinite(input.latitude) || input.latitude < -90 || input.latitude > 90) {
+    throw new Error("Latitude must be between -90 and 90.");
+  }
+  if (!Number.isFinite(input.longitude) || input.longitude < -180 || input.longitude > 180) {
+    throw new Error("Longitude must be between -180 and 180.");
+  }
+  if (!Number.isFinite(input.radiusM) || input.radiusM < 10 || input.radiusM > 10_000) {
+    throw new Error("Geofence radius must be between 10 and 10,000 metres.");
+  }
+
+  const patch = {
+    geofence_enabled: input.enabled,
+    geofence_lat: input.latitude,
+    geofence_lng: input.longitude,
+    geofence_radius: Math.round(input.radiusM),
+  };
+
+  if (isDemo()) {
+    const org = ORGANIZATIONS.find((row) => row.id === orgId);
+    if (!org) throw new Error("Organization not found.");
+    Object.assign(org, patch);
+    return org;
+  }
+
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("organizations")
+    .update(patch)
+    .eq("id", orgId)
+    .select("*")
+    .single();
+  if (error) throw new Error(`updateOrganizationGeofence: ${error.message}`);
   return data as Organization;
 }
 
@@ -653,6 +710,15 @@ function makeNewEmployeeRow(
     base_salary: input.base_salary ?? null,
     bank_account: input.bank_account ?? null,
     sso_number: null,
+    tax_profile: {
+      personal_allowance: 60000,
+      spouse_allowance: 0,
+      child_allowance: 0,
+      parent_allowance: 0,
+      insurance_deduction: 0,
+      provident_fund_deduction: 0,
+      other_deductions: 0,
+    },
     account_status: "pending_review",
     phone: input.phone,
     national_id: input.national_id ?? null,
@@ -1281,26 +1347,62 @@ export async function rejectRegistration(
 // Shifts + employee shifts (kept demo for now)
 // =========================================================================
 
-export async function listShifts(): Promise<Shift[]> {
-  if (isDemo()) return SHIFTS;
+export async function listShifts(orgId = getDefaultOrganizationId()): Promise<Shift[]> {
+  if (isDemo()) return SHIFTS.filter((shift) => shift.org_id === orgId);
   const sb = supabaseAdmin();
-  const { data, error } = await sb.from("shifts").select("*").order("start_time");
+  const { data, error } = await sb
+    .from("shifts")
+    .select("*")
+    .eq("org_id", orgId)
+    .order("start_time");
   if (error) throw new Error(`listShifts: ${error.message}`);
   return (data ?? []) as Shift[];
 }
 
-export async function listEmployeeShifts(): Promise<EmployeeShift[]> {
-  return EMPLOYEE_SHIFTS;
+export async function listEmployeeShifts(
+  orgId = getDefaultOrganizationId(),
+): Promise<EmployeeShift[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return EMPLOYEE_SHIFTS.filter((shift) => allowed.has(shift.employee_id));
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("employee_shifts")
+    .select("*")
+    .in("employee_id", ids)
+    .order("date", { ascending: false });
+  if (error) throw new Error(`listEmployeeShifts: ${error.message}`);
+  return (data ?? []) as EmployeeShift[];
 }
 
 // =========================================================================
 // Attendance (read in production for personal history)
 // =========================================================================
 
-export async function listAttendanceLogs(): Promise<AttendanceLog[]> {
-  return [...ATTENDANCE_LOGS].sort(
-    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
-  );
+export async function listAttendanceLogs(
+  orgId = getDefaultOrganizationId(),
+): Promise<AttendanceLog[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return ATTENDANCE_LOGS.filter((log) => allowed.has(log.employee_id)).sort(
+      (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("attendance_logs")
+    .select("*")
+    .in("employee_id", ids)
+    .order("timestamp", { ascending: false });
+  if (error) throw new Error(`listAttendanceLogs: ${error.message}`);
+  return (data ?? []) as AttendanceLog[];
 }
 
 export async function listAttendanceForEmployee(employeeId: string): Promise<AttendanceLog[]> {
@@ -1335,6 +1437,26 @@ export async function listLeaveRequests(): Promise<LeaveRequest[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) throw new Error(`listLeaveRequests: ${error.message}`);
+  return (data ?? []) as LeaveRequest[];
+}
+
+export async function listLeaveRequestsForOrg(orgId: string): Promise<LeaveRequest[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return LEAVE_REQUESTS.filter((request) => allowed.has(request.employee_id)).sort(
+      (a, b) => b.created_at.localeCompare(a.created_at),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("leave_requests")
+    .select("*")
+    .in("employee_id", ids)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`listLeaveRequestsForOrg: ${error.message}`);
   return (data ?? []) as LeaveRequest[];
 }
 
@@ -1504,6 +1626,26 @@ export async function listOvertimeRequests(): Promise<OvertimeRequest[]> {
     .select("*")
     .order("created_at", { ascending: false });
   if (error) throw new Error(`listOvertimeRequests: ${error.message}`);
+  return (data ?? []) as OvertimeRequest[];
+}
+
+export async function listOvertimeRequestsForOrg(orgId: string): Promise<OvertimeRequest[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return OVERTIME_REQUESTS.filter((request) => allowed.has(request.employee_id)).sort(
+      (a, b) => b.created_at.localeCompare(a.created_at),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("overtime_requests")
+    .select("*")
+    .in("employee_id", ids)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`listOvertimeRequestsForOrg: ${error.message}`);
   return (data ?? []) as OvertimeRequest[];
 }
 
@@ -1741,6 +1883,26 @@ export async function listContactRequestsForSupervisor(
   if (status) q = q.eq("status", status);
   const { data, error } = await q.order("requested_date", { ascending: false });
   if (error) throw new Error(`listContactRequestsForSupervisor: ${error.message}`);
+  return (data ?? []) as ContactRequest[];
+}
+
+export async function listContactRequestsForOrg(orgId: string): Promise<ContactRequest[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return CONTACT_REQUESTS.filter((request) => allowed.has(request.employee_id)).sort(
+      (a, b) => b.created_at.localeCompare(a.created_at),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("contact_requests")
+    .select("*")
+    .in("employee_id", ids)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(`listContactRequestsForOrg: ${error.message}`);
   return (data ?? []) as ContactRequest[];
 }
 
@@ -2102,6 +2264,9 @@ export async function consumeActionToken(
     if (!t) return { ok: false, reason: "unknown token" };
     if (t.used_at) return { ok: false, reason: "token already used" };
     if (new Date(t.expires_at) < new Date()) return { ok: false, reason: "token expired" };
+    if (t.intended_user_id && t.intended_user_id !== intendedUserId) {
+      return { ok: false, reason: "token is not intended for this approver" };
+    }
     t.used_at = new Date().toISOString();
     return { ok: true, token: t };
   }
@@ -2117,17 +2282,21 @@ export async function consumeActionToken(
   const t = existing as unknown as ActionToken;
   if (t.used_at) return { ok: false, reason: "token already used" };
   if (new Date(t.expires_at) < new Date()) return { ok: false, reason: "token expired" };
-  if (t.intended_user_id && intendedUserId && t.intended_user_id !== intendedUserId) {
-    // userId mismatch is allowed (we don't always know intendedUserId at validation time);
-    // a stricter policy could return { ok: false } here.
+  if (t.intended_user_id && t.intended_user_id !== intendedUserId) {
+    return { ok: false, reason: "token is not intended for this approver" };
   }
-  const { error: uerr } = await sb
+  const consumedAt = new Date().toISOString();
+  const { data: consumed, error: uerr } = await sb
     .from("line_action_tokens")
-    .update({ used_at: new Date().toISOString() })
-    .eq("token", tokenStr);
+    .update({ used_at: consumedAt })
+    .eq("token", tokenStr)
+    .is("used_at", null)
+    .gt("expires_at", consumedAt)
+    .select("token, action, kind:request_kind, request_id, intended_user_id, used_at, expires_at, created_at")
+    .maybeSingle();
   if (uerr) throw new Error(`consumeActionToken update: ${uerr.message}`);
-  t.used_at = new Date().toISOString();
-  return { ok: true, token: t };
+  if (!consumed) return { ok: false, reason: "token already used or expired" };
+  return { ok: true, token: consumed as unknown as ActionToken };
 }
 
 // =========================================================================
@@ -2186,8 +2355,26 @@ export async function recordNotification(
 // Payroll (read-only LIFF use)
 // =========================================================================
 
-export async function listPayrolls(): Promise<Payroll[]> {
-  return PAYROLLS;
+export async function listPayrolls(
+  orgId = getDefaultOrganizationId(),
+): Promise<Payroll[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return PAYROLLS.filter((payroll) => allowed.has(payroll.employee_id)).sort((a, b) =>
+      b.month_year.localeCompare(a.month_year),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("payrolls")
+    .select("*")
+    .in("employee_id", ids)
+    .order("month_year", { ascending: false });
+  if (error) throw new Error(`listPayrolls: ${error.message}`);
+  return (data ?? []) as Payroll[];
 }
 
 export async function listPayrollsForEmployee(employeeId: string): Promise<Payroll[]> {
@@ -2210,8 +2397,26 @@ export async function listPayrollsForEmployee(employeeId: string): Promise<Payro
 // Performance reviews (kept demo-only)
 // =========================================================================
 
-export async function listPerformanceReviews(): Promise<PerformanceReview[]> {
-  return PERFORMANCE_REVIEWS;
+export async function listPerformanceReviews(
+  orgId = getDefaultOrganizationId(),
+): Promise<PerformanceReview[]> {
+  const employees = await listEmployeesForOrg(orgId);
+  const ids = employees.map((employee) => employee.id);
+  if (ids.length === 0) return [];
+  if (isDemo()) {
+    const allowed = new Set(ids);
+    return PERFORMANCE_REVIEWS.filter((review) => allowed.has(review.employee_id)).sort((a, b) =>
+      b.review_date.localeCompare(a.review_date),
+    );
+  }
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("performance_reviews")
+    .select("*")
+    .in("employee_id", ids)
+    .order("review_date", { ascending: false });
+  if (error) throw new Error(`listPerformanceReviews: ${error.message}`);
+  return (data ?? []) as PerformanceReview[];
 }
 
 // =========================================================================
@@ -2226,7 +2431,7 @@ export function getEmployeeName(employee: Employee, locale: "en" | "th" | "zh" =
 }
 
 // =========================================================================
-// Dashboard analytics (kept demo-only — wire to Supabase in a follow-up pass)
+// Dashboard analytics (tenant-scoped in both demo and Supabase modes)
 // =========================================================================
 
 export interface DashboardStats {
@@ -2238,23 +2443,34 @@ export interface DashboardStats {
   lateToday: number;
 }
 
-export async function getDashboardStats(): Promise<DashboardStats> {
-  const today = "2026-05-09";
-  const employees = EMPLOYEES.filter((e) => e.role === "employee" || e.role === "supervisor");
-  const todayLogs = ATTENDANCE_LOGS.filter(
+export async function getDashboardStats(
+  orgId = getDefaultOrganizationId(),
+): Promise<DashboardStats> {
+  const [employees, logs, leaves, overtime] = await Promise.all([
+    listEmployeesForOrg(orgId),
+    listAttendanceLogs(orgId),
+    listLeaveRequestsForOrg(orgId),
+    listOvertimeRequestsForOrg(orgId),
+  ]);
+  const today =
+    logs.find((log) => log.type === "in")?.timestamp.slice(0, 10) ??
+    (isDemo() ? "2026-05-09" : new Date().toISOString().slice(0, 10));
+  const active = employees.filter((employee) => employee.account_status === "active");
+  const attendanceEligible = active.filter((employee) => employee.role !== "executive");
+  const todayLogs = logs.filter(
     (l) => l.timestamp.startsWith(today) && l.type === "in",
   );
   const present = new Set(todayLogs.map((l) => l.employee_id)).size;
   const late = todayLogs.filter((l) => l.status === "late").length;
-  const onLeave = LEAVE_REQUESTS.filter(
+  const onLeave = leaves.filter(
     (l) => l.status === "approved" && l.start_date <= today && l.end_date >= today,
   ).length;
   const pending =
-    LEAVE_REQUESTS.filter((l) => l.status === "pending").length +
-    OVERTIME_REQUESTS.filter((o) => o.status === "pending").length;
-  const total = employees.length;
+    leaves.filter((l) => l.status === "pending").length +
+    overtime.filter((o) => o.status === "pending").length;
+  const total = attendanceEligible.length;
   return {
-    totalEmployees: EMPLOYEES.length,
+    totalEmployees: active.length,
     presentToday: present,
     onLeaveToday: onLeave,
     pendingApprovals: pending,
@@ -2263,16 +2479,28 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   };
 }
 
-export async function getAttendanceTrend(days = 7): Promise<
+export async function getAttendanceTrend(
+  days = 7,
+  orgId = getDefaultOrganizationId(),
+): Promise<
   { date: string; present: number; late: number; absent: number }[]
 > {
   const trend: { date: string; present: number; late: number; absent: number }[] = [];
-  const employees = EMPLOYEES.filter((e) => e.role === "employee" || e.role === "supervisor").length;
+  const [employeeRows, logs] = await Promise.all([
+    listEmployeesForOrg(orgId),
+    listAttendanceLogs(orgId),
+  ]);
+  const employees = employeeRows.filter(
+    (employee) => employee.account_status === "active" && employee.role !== "executive",
+  ).length;
+  const anchor =
+    logs.find((log) => log.type === "in")?.timestamp.slice(0, 10) ??
+    (isDemo() ? "2026-05-09" : new Date().toISOString().slice(0, 10));
   for (let i = days - 1; i >= 0; i--) {
-    const d = new Date("2026-05-09T00:00:00Z");
+    const d = new Date(`${anchor}T00:00:00Z`);
     d.setUTCDate(d.getUTCDate() - i);
     const dateStr = d.toISOString().slice(0, 10);
-    const dayLogs = ATTENDANCE_LOGS.filter((l) => l.timestamp.startsWith(dateStr) && l.type === "in");
+    const dayLogs = logs.filter((l) => l.timestamp.startsWith(dateStr) && l.type === "in");
     const present = new Set(dayLogs.map((l) => l.employee_id)).size;
     const late = dayLogs.filter((l) => l.status === "late").length;
     const absent = Math.max(0, employees - present);
@@ -2281,9 +2509,12 @@ export async function getAttendanceTrend(days = 7): Promise<
   return trend;
 }
 
-export async function getDepartmentBreakdown(): Promise<{ department: string; count: number }[]> {
+export async function getDepartmentBreakdown(
+  orgId = getDefaultOrganizationId(),
+): Promise<{ department: string; count: number }[]> {
   const groups = new Map<string, number>();
-  for (const e of EMPLOYEES) {
+  const employees = await listEmployeesForOrg(orgId);
+  for (const e of employees.filter((employee) => employee.account_status === "active")) {
     const k = e.department ?? "Unassigned";
     groups.set(k, (groups.get(k) ?? 0) + 1);
   }
@@ -2362,7 +2593,7 @@ export async function calcEmployeeSso(
 }
 
 // =========================================================================
-// Attendance v2 (no geofence gating, in→out pairing, optional reason)
+// Attendance v3 (optional server-enforced geofence, in/out pairing, reason)
 // =========================================================================
 
 export async function getLastAttendanceLog(employeeId: string): Promise<AttendanceLog | undefined> {
@@ -2389,13 +2620,21 @@ export interface RecordAttendanceInput {
   latitude?: number | null;
   longitude?: number | null;
   reason?: string | null;
-  source?: AttendanceLog["status"] extends string ? "liff" | "web" | "line_bot" : "liff";
+  source?: AttendanceSource;
+}
+
+export interface AttendanceGeofenceDecision {
+  enabled: boolean;
+  result: AttendanceLog["geofence_result"];
+  distanceM: number | null;
+  radiusM: number;
 }
 
 export interface RecordAttendanceResult {
   ok: boolean;
   message: string;
   log?: AttendanceLog;
+  geofence?: AttendanceGeofenceDecision;
   /** When ok=false because of double-clock-in, surface the open session so UI can prompt to clock out */
   openSession?: AttendanceLog;
 }
@@ -2403,6 +2642,72 @@ export interface RecordAttendanceResult {
 export async function recordAttendance(
   input: RecordAttendanceInput,
 ): Promise<RecordAttendanceResult> {
+  const employee = await getEmployeeById(input.employee_id);
+  if (!employee) return { ok: false, message: "ไม่พบข้อมูลพนักงาน" };
+  const org = await getOrganizationById(employee.org_id);
+  if (!org) return { ok: false, message: "ไม่พบข้อมูลองค์กร" };
+
+  const hasSiteLocation = org.geofence_lat != null && org.geofence_lng != null;
+  const hasDeviceLocation = input.latitude != null && input.longitude != null;
+  const distanceM =
+    hasSiteLocation && hasDeviceLocation
+      ? haversineMeters(
+          Number(org.geofence_lat),
+          Number(org.geofence_lng),
+          Number(input.latitude),
+          Number(input.longitude),
+        )
+      : null;
+  let geofenceResult: AttendanceLog["geofence_result"] = "disabled";
+
+  if (org.geofence_enabled) {
+    if (!hasSiteLocation) {
+      geofenceResult = "unconfigured";
+      return {
+        ok: false,
+        message: "องค์กรเปิดตรวจสอบสถานที่ แต่ยังไม่ได้ตั้งพิกัดสถานที่ทำงาน กรุณาติดต่อหัวหน้า",
+        geofence: {
+          enabled: true,
+          result: geofenceResult,
+          distanceM: null,
+          radiusM: Number(org.geofence_radius),
+        },
+      };
+    }
+    if (!hasDeviceLocation) {
+      geofenceResult = "missing_location";
+      return {
+        ok: false,
+        message: "ต้องอนุญาตตำแหน่ง GPS ก่อนจึงจะบันทึกเวลาได้",
+        geofence: {
+          enabled: true,
+          result: geofenceResult,
+          distanceM: null,
+          radiusM: Number(org.geofence_radius),
+        },
+      };
+    }
+    geofenceResult = Number(distanceM) <= Number(org.geofence_radius) ? "inside" : "outside";
+    if (geofenceResult === "outside") {
+      return {
+        ok: false,
+        message: `คุณอยู่นอกพื้นที่ทำงาน ระยะประมาณ ${Math.round(Number(distanceM))} เมตร (กำหนด ${Math.round(Number(org.geofence_radius))} เมตร)`,
+        geofence: {
+          enabled: true,
+          result: geofenceResult,
+          distanceM,
+          radiusM: Number(org.geofence_radius),
+        },
+      };
+    }
+  }
+
+  const geofence: AttendanceGeofenceDecision = {
+    enabled: org.geofence_enabled,
+    result: geofenceResult,
+    distanceM,
+    radiusM: Number(org.geofence_radius),
+  };
   const last = await getLastAttendanceLog(input.employee_id);
 
   // Rule: cannot clock IN twice in a row — must clock OUT first
@@ -2412,6 +2717,7 @@ export async function recordAttendance(
       message:
         "คุณยังกดออกงานครั้งก่อนยังไม่ครบ กดออกงานก่อนถึงจะกดเข้างานใหม่ได้",
       openSession: last,
+      geofence,
     };
   }
   // Rule: cannot clock OUT without a matching IN (would orphan the record).
@@ -2422,13 +2728,13 @@ export async function recordAttendance(
         ok: false,
         message:
           "ยังไม่พบการเข้างานที่ยังเปิดอยู่ — โปรดกดเข้างานก่อน หรือใส่เหตุผลเพื่อบันทึกย้อนหลัง",
+        geofence,
       };
     }
   }
 
   const now = new Date().toISOString();
-  // Status is informational only (no geofence enforcement) — we treat anything
-  // marked with a reason as "late/manual" so reports can pick it up.
+  // A reason marks a manual/exception record for downstream reports.
   const status: AttendanceLog["status"] = input.reason ? "late" : "ontime";
 
   const row: AttendanceLog = {
@@ -2441,11 +2747,15 @@ export async function recordAttendance(
     ip_address: null,
     status,
     photo_url: null,
+    reason: input.reason ?? null,
+    source: input.source ?? "liff",
+    geofence_distance_m: distanceM,
+    geofence_result: geofenceResult,
   };
 
   if (isDemo()) {
     ATTENDANCE_LOGS.unshift(row);
-    return { ok: true, message: "บันทึกแล้ว", log: row };
+    return { ok: true, message: "บันทึกแล้ว", log: row, geofence };
   }
   const sb = supabaseAdmin();
   const { data, error } = await sb
@@ -2458,10 +2768,12 @@ export async function recordAttendance(
       longitude: row.longitude,
       status: row.status,
       reason: input.reason ?? null,
-      source: "liff",
+      source: input.source ?? "liff",
+      geofence_distance_m: distanceM,
+      geofence_result: geofenceResult,
     })
     .select("*")
     .single();
   if (error) return { ok: false, message: `recordAttendance: ${error.message}` };
-  return { ok: true, message: "บันทึกแล้ว", log: data as AttendanceLog };
+  return { ok: true, message: "บันทึกแล้ว", log: data as AttendanceLog, geofence };
 }

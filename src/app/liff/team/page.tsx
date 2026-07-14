@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   getEmployeeName,
   listAttendanceLogs,
-  listLeaveRequests,
+  listLeaveRequestsForOrg,
   listTeamForSupervisor,
 } from "@/lib/data";
 import { formatTime } from "@/lib/utils";
@@ -42,8 +42,8 @@ export default async function LiffTeamPage() {
 
   const [team, logs, leaves] = await Promise.all([
     listTeamForSupervisor(me.id),
-    listAttendanceLogs(),
-    listLeaveRequests(),
+    listAttendanceLogs(me.org_id),
+    listLeaveRequestsForOrg(me.org_id),
   ]);
 
   const today = new Date().toISOString().slice(0, 10);
