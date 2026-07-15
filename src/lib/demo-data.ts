@@ -1,5 +1,6 @@
 import type {
   ActionToken,
+  AIAgentInteraction,
   AttendanceLog,
   ContactRequest,
   Employee,
@@ -26,21 +27,21 @@ const SHIFT_EVENING = "22222222-2222-2222-2222-222222222202";
 const SHIFT_NIGHT = "22222222-2222-2222-2222-222222222203";
 
 // SaaS roots are populated in-memory. New tenants registering at runtime will
-// be appended; the seed org is the existing demo factory but bumped to
+// be appended; the seed org is the Northstar demo factory and is bumped to
 // "enterprise" so demo flows never trip the trial gate.
 export const ORGANIZATIONS: Organization[] = [
   {
     id: ORG_ID,
-    name: "ThaiAuto Factory",
-    business_name: "ThaiAuto Factory",
-    business_name_norm: "thaiauto factory",
+    name: "บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด",
+    business_name: "บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด",
+    business_name_norm: "บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด",
     business_type: "factory",
     timezone: "Asia/Bangkok",
     thai_tax_id: "1234567890123",
     geofence_lat: 13.740198598326677,
     geofence_lng: 100.56227944249513,
-    geofence_radius: 150,
-    geofence_enabled: false,
+    geofence_radius: 250,
+    geofence_enabled: true,
     owner_employee_id: "33333333-3333-3333-3333-333333333308",
     tier: "enterprise",
     seat_limit: 999,
@@ -196,7 +197,7 @@ export const EMPLOYEES: Employee[] = [
     role: "employee",
     department: "Production",
     position: "Operator",
-    shift_group: "B",
+    shift_group: "A",
     base_salary: 15000,
     bank_account: "123-4-56789-2",
     sso_number: "SSO-003",
@@ -229,7 +230,7 @@ export const EMPLOYEES: Employee[] = [
     ot_supervisor_id: null,
     contact_supervisor_id: "33333333-3333-3333-3333-333333333308",
     is_supervisor: true,
-    subordinate_ids: ["33333333-3333-3333-3333-333333333002", "33333333-3333-3333-3333-333333333005", "33333333-3333-3333-3333-333333333006", "33333333-3333-3333-3333-333333333009"],
+    subordinate_ids: ["33333333-3333-3333-3333-333333333302", "33333333-3333-3333-3333-333333333305", "33333333-3333-3333-3333-333333333306", "33333333-3333-3333-3333-333333333309"],
     created_at: "2022-09-01T00:00:00Z",
     ...demoEmployeeDefaults(),
   },
@@ -268,7 +269,7 @@ export const EMPLOYEES: Employee[] = [
     role: "supervisor",
     department: "Production",
     position: "Supervisor",
-    shift_group: "B",
+    shift_group: "A",
     base_salary: 28000,
     bank_account: "123-4-56789-5",
     sso_number: "SSO-006",
@@ -292,7 +293,7 @@ export const EMPLOYEES: Employee[] = [
     role: "employee",
     department: "Production",
     position: "Operator",
-    shift_group: "C",
+    shift_group: "A",
     base_salary: 15000,
     bank_account: "123-4-56789-6",
     sso_number: "SSO-007",
@@ -325,7 +326,7 @@ export const EMPLOYEES: Employee[] = [
     ot_supervisor_id: null,
     contact_supervisor_id: null,
     is_supervisor: true,
-    subordinate_ids: ["33333333-3333-3333-3333-333333333002", "33333333-3333-3333-3333-333333333006"],
+    subordinate_ids: ["33333333-3333-3333-3333-333333333302", "33333333-3333-3333-3333-333333333306"],
     created_at: "2020-01-01T00:00:00Z",
     ...demoEmployeeDefaults(),
   },
@@ -364,7 +365,7 @@ export const EMPLOYEES: Employee[] = [
     role: "employee",
     department: "Production",
     position: "Operator",
-    shift_group: "B",
+    shift_group: "A",
     base_salary: 15000,
     bank_account: "123-4-56789-9",
     sso_number: "SSO-010",
@@ -593,7 +594,7 @@ export const OVERTIME_REQUESTS: OvertimeRequest[] = [
     employee_id: "33333333-3333-3333-3333-333333333307",
     date: todayMinus(-2),
     hours: 3,
-    reason: "Night-shift coverage",
+    reason: "Additional schedule coverage",
     status: "pending",
     supervisor_id: "33333333-3333-3333-3333-333333333306",
     approver_id: null,
@@ -834,3 +835,7 @@ export const SOCIAL_SECURITY_CONFIGS: SocialSecurityConfig[] = [
 ];
 
 export const PROFILE_EDIT_AUDIT: ProfileEditAudit[] = [];
+
+// Persisted for the lifetime of the demo server process. Production uses the
+// Supabase ai_agent_interactions table through the shared data layer.
+export const AI_AGENT_INTERACTIONS: AIAgentInteraction[] = [];

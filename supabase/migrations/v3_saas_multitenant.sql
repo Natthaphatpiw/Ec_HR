@@ -27,10 +27,11 @@ ALTER TABLE organizations
   ADD COLUMN IF NOT EXISTS is_active            BOOLEAN DEFAULT TRUE,
   ADD COLUMN IF NOT EXISTS plan_notes           TEXT;
 
--- Keep the existing demo row alive: long trial, large cap
+-- Keep the Northstar demo row aligned and alive: long trial, large cap
 UPDATE organizations
-SET business_name      = COALESCE(business_name, name),
-    business_name_norm = COALESCE(business_name_norm, lower(trim(name))),
+SET name               = 'บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด',
+    business_name      = 'บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด',
+    business_name_norm = lower(trim('บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด')),
     business_type      = COALESCE(business_type, 'factory'),
     tier               = 'enterprise',
     seat_limit         = 999,

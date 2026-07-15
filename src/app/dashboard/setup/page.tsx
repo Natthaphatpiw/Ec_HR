@@ -29,7 +29,7 @@ export default function SetupPage() {
             <CardContent className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
                 <Label>Factory name</Label>
-                <Input placeholder="e.g. ThaiAuto Factory" />
+                <Input placeholder="e.g. Northstar Electronics" />
               </div>
               <div className="space-y-2">
                 <Label>Thai tax ID</Label>

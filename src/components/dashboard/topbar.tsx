@@ -1,8 +1,10 @@
 "use client";
 
-import { Bell, Search } from "lucide-react";
+import { Bell, LogOut, Search } from "lucide-react";
+import { logoutAction } from "@/app/login/actions";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function DashboardTopbar({ title, subtitle }: { title: string; subtitle?: string }) {
@@ -21,16 +23,18 @@ export function DashboardTopbar({ title, subtitle }: { title: string; subtitle?:
           />
         </div>
         <LanguageSwitcher variant="outline" />
-        <button
-          className="relative inline-flex h-10 w-10 items-center justify-center rounded-md text-navy-700 transition-colors hover:bg-navy-50"
-          aria-label="Notifications"
-        >
+        <Button variant="ghost" size="icon" className="relative" aria-label="Notifications">
           <Bell className="h-4 w-4" />
           <span className="absolute right-2.5 top-2.5 h-1.5 w-1.5 rounded-full bg-orange-400" />
-        </button>
+        </Button>
         <Avatar className="h-9 w-9">
           <AvatarFallback className="bg-navy-900 text-white">NS</AvatarFallback>
         </Avatar>
+        <form action={logoutAction}>
+          <Button variant="ghost" size="icon" type="submit" aria-label="ออกจากระบบ" title="ออกจากระบบ">
+            <LogOut className="h-4 w-4" />
+          </Button>
+        </form>
       </div>
     </div>
   );

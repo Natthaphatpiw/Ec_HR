@@ -7,6 +7,9 @@ import {
   isDemoMode,
   updateOrganizationGeofence,
 } from "@/lib/data";
+import { getDashboardOrganizationId } from "@/lib/dashboard-auth-config";
+import { getDashboardOwnerSession } from "@/lib/dashboard-session";
+import { shouldUseDemoWorkforceSource } from "@/lib/demo-workforce";
 import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 
 export interface GeofenceSettingsResult {
@@ -27,6 +30,19 @@ function parseRequiredNumber(
 }
 
 async function resolveAuthorizedOrganizationId(): Promise<string> {
+  const dashboardSession = await getDashboardOwnerSession();
+  if (dashboardSession) {
+    const orgId = getDashboardOrganizationId();
+    if (orgId) {
+      if (shouldUseDemoWorkforceSource(orgId) && !isDemoMode()) {
+        throw new Error("บัญชีฝ่ายขายแบบ JSON เป็นโหมดอ่านอย่างเดียวและแก้ไของค์กรจริงไม่ได้");
+      }
+      return orgId;
+    }
+    if (isDemoMode()) return getDefaultOrganizationId();
+    throw new Error("ยังไม่ได้กำหนด DASHBOARD_ORG_ID สำหรับบัญชีเจ้าขององค์กร");
+  }
+
   if (isDemoMode()) return getDefaultOrganizationId();
 
   const lineUserId = await getLiffUserIdFromCookie();

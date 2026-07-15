@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AnalyticsExportMenu } from "@/components/analytics/analytics-export-menu";
+import { DemoWorkforceDetails } from "@/components/analytics/demo-workforce-details";
 import {
   DepartmentAttendanceChart,
   LeaveStatusChart,
@@ -32,7 +33,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { resolveAnalyticsAccess } from "@/lib/analytics-access";
-import { getWorkforceAnalytics, type AnalyticsRiskRow } from "@/lib/analytics";
+import {
+  getWorkforceAnalytics,
+  type WorkforceAnalytics,
+} from "@/lib/analytics";
+import {
+  buildDemoWorkforceAnalytics,
+  getDemoWorkforceDailyRoster,
+  getDemoWorkforceDates,
+  getDemoWorkforceEmployeeStats,
+  shouldUseDemoWorkforceSource,
+} from "@/lib/demo-workforce";
 import { cn } from "@/lib/utils";
 
 const RANGE_OPTIONS = [7, 30, 90] as const;
@@ -78,14 +89,20 @@ export default async function DashboardAnalyticsPage({
     );
   }
 
-  let analytics;
+  const useDemoWorkforce = shouldUseDemoWorkforceSource(access.orgId);
+  let analytics: WorkforceAnalytics;
   try {
-    analytics = await getWorkforceAnalytics({
-      orgId: access.orgId,
-      days,
-      employeeIds: access.employeeIds,
-      scope: access.scope,
-    });
+    analytics = useDemoWorkforce
+      ? buildDemoWorkforceAnalytics(days, {
+          orgId: access.orgId,
+          scope: access.scope,
+        })
+      : await getWorkforceAnalytics({
+          orgId: access.orgId,
+          days,
+          employeeIds: access.employeeIds,
+          scope: access.scope,
+        });
   } catch (error) {
     console.error("[analytics] dashboard failed to load", error);
     return (
@@ -122,22 +139,48 @@ export default async function DashboardAnalyticsPage({
     ...row,
     type: t(`leaveTypes.${row.type}`),
   }));
+  const demoDates = useDemoWorkforce
+    ? getDemoWorkforceDates().filter(
+        (value) => value >= analytics.rangeStart && value <= analytics.rangeEnd,
+      )
+    : [];
+  const demoDailyRows = useDemoWorkforce
+    ? Object.fromEntries(
+        demoDates.map((value) => [value, getDemoWorkforceDailyRoster(value)]),
+      )
+    : {};
+  const demoEmployeeStats = useDemoWorkforce
+    ? getDemoWorkforceEmployeeStats({
+        startDate: analytics.rangeStart,
+        endDate: analytics.rangeEnd,
+      })
+    : [];
 
   return (
     <>
       <DashboardTopbar title={t("title")} subtitle={t("subtitle")} />
       <main className="flex-1 px-4 py-6 sm:px-6">
         <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge className="border-navy-200 bg-navy-900 text-white">
-              {access.scope === "team" ? t("scopeTeam") : t("scopeOrganization")}
-            </Badge>
-            <Badge variant="muted">
-              {formatDate(analytics.rangeStart)} – {formatDate(analytics.rangeEnd)}
-            </Badge>
-            <span className="text-xs text-navy-500">
-              {t("updatedThrough", { date: formatDate(analytics.asOfDate) })}
-            </span>
+          <div className="min-w-0">
+            <p className="mb-2 truncate text-sm font-semibold text-navy-900">
+              {analytics.organization.business_name}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge className="border-navy-200 bg-navy-900 text-white">
+                {access.scope === "team" ? t("scopeTeam") : t("scopeOrganization")}
+              </Badge>
+              <Badge variant="muted">
+                {formatDate(analytics.rangeStart)} – {formatDate(analytics.rangeEnd)}
+              </Badge>
+              {useDemoWorkforce && (
+                <Badge className="border-orange-200 bg-orange-100 text-orange-700">
+                  {t("demo.sourceBadge")}
+                </Badge>
+              )}
+              <span className="text-xs text-navy-500">
+                {t("updatedThrough", { date: formatDate(analytics.asOfDate) })}
+              </span>
+            </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <div className="flex rounded-md border border-navy-200 bg-white p-0.5 shadow-soft">
@@ -259,7 +302,11 @@ export default async function DashboardAnalyticsPage({
           <Card>
             <CardHeader>
               <CardTitle>{t("departmentAttendanceTitle")}</CardTitle>
-              <CardDescription>{t("departmentAttendanceDescription")}</CardDescription>
+              <CardDescription>
+                {useDemoWorkforce
+                  ? t("demo.departmentAttendanceDescription")
+                  : t("departmentAttendanceDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent>
               {analytics.departments.length > 0 ? (
@@ -295,8 +342,14 @@ export default async function DashboardAnalyticsPage({
         <section className="mt-6 grid gap-4 xl:grid-cols-3">
           <Card className="xl:col-span-2">
             <CardHeader>
-              <CardTitle>{t("departmentTableTitle")}</CardTitle>
-              <CardDescription>{t("departmentTableDescription")}</CardDescription>
+              <CardTitle>
+                {useDemoWorkforce ? t("demo.departmentTableTitle") : t("departmentTableTitle")}
+              </CardTitle>
+              <CardDescription>
+                {useDemoWorkforce
+                  ? t("demo.departmentTableDescription")
+                  : t("departmentTableDescription")}
+              </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pb-0">
               <Table>
@@ -308,7 +361,9 @@ export default async function DashboardAnalyticsPage({
                     <TableHead className="text-right">{t("lateRate")}</TableHead>
                     <TableHead className="text-right">{t("approvedOtHours")}</TableHead>
                     <TableHead className="text-right">{t("netPayroll")}</TableHead>
-                    <TableHead className="pr-6 text-right">{t("averageKpi")}</TableHead>
+                    {!useDemoWorkforce && (
+                      <TableHead className="pr-6 text-right">{t("averageKpi")}</TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -319,10 +374,14 @@ export default async function DashboardAnalyticsPage({
                       <TableCell className="text-right tabular-nums">{number.format(row.attendanceRate)}%</TableCell>
                       <TableCell className="text-right tabular-nums">{number.format(row.lateRate)}%</TableCell>
                       <TableCell className="text-right tabular-nums">{number.format(row.approvedOtHours)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{currency.format(row.latestNetPay)}</TableCell>
-                      <TableCell className="pr-6 text-right tabular-nums">
-                        {row.averageKpi == null ? t("notAvailable") : number.format(row.averageKpi)}
+                      <TableCell className={cn("text-right tabular-nums", useDemoWorkforce && "pr-6")}>
+                        {currency.format(row.latestNetPay)}
                       </TableCell>
+                      {!useDemoWorkforce && (
+                        <TableCell className="pr-6 text-right tabular-nums">
+                          {row.averageKpi == null ? t("notAvailable") : number.format(row.averageKpi)}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -345,45 +404,57 @@ export default async function DashboardAnalyticsPage({
         </section>
 
         <section className="mt-6 grid gap-4 xl:grid-cols-3">
-          <Card className="xl:col-span-2">
-            <CardHeader>
-              <CardTitle>{t("riskTitle")}</CardTitle>
-              <CardDescription>{t("riskDescription")}</CardDescription>
-            </CardHeader>
-            <CardContent className="px-0 pb-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="pl-6">{t("employee")}</TableHead>
-                    <TableHead>{t("department")}</TableHead>
-                    <TableHead className="text-right">{t("scheduledDays")}</TableHead>
-                    <TableHead className="text-right">{t("absentDays")}</TableHead>
-                    <TableHead className="text-right">{t("lateDays")}</TableHead>
-                    <TableHead className="text-right">{t("approvedOtHours")}</TableHead>
-                    <TableHead className="pr-6 text-right">{t("riskScore")}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {analytics.risks.slice(0, 10).map((row) => (
-                    <TableRow key={row.employeeId}>
-                      <TableCell className="pl-6">
-                        <p className="font-medium text-navy-900">{row.name}</p>
-                        <p className="text-xs text-navy-500">{row.employeeCode}</p>
-                      </TableCell>
-                      <TableCell>{row.department}</TableCell>
-                      <TableCell className="text-right tabular-nums">{integer.format(row.scheduledDays)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{integer.format(row.absentDays)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{integer.format(row.lateDays)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{number.format(row.approvedOtHours)}</TableCell>
-                      <TableCell className="pr-6 text-right">
-                        <RiskBadge row={row} label={t(`riskLevels.${row.level}`)} />
-                      </TableCell>
+          {useDemoWorkforce ? (
+            <div className="xl:col-span-2">
+              <DemoWorkforceDetails
+                locale={locale}
+                dates={demoDates}
+                defaultDate={analytics.rangeEnd}
+                dailyRows={demoDailyRows}
+                employeeStats={demoEmployeeStats}
+              />
+            </div>
+          ) : (
+            <Card className="xl:col-span-2">
+              <CardHeader>
+                <CardTitle>{t("employeeAttendanceTitle")}</CardTitle>
+                <CardDescription>{t("employeeAttendanceDescription")}</CardDescription>
+              </CardHeader>
+              <CardContent className="px-0 pb-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="pl-6">{t("employee")}</TableHead>
+                      <TableHead>{t("department")}</TableHead>
+                      <TableHead className="text-right">{t("scheduledDays")}</TableHead>
+                      <TableHead className="text-right">{t("absentDays")}</TableHead>
+                      <TableHead className="text-right">{t("lateDays")}</TableHead>
+                      <TableHead className="text-right">{t("approvedLeaveDays")}</TableHead>
+                      <TableHead className="text-right">{t("approvedOtHours")}</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {analytics.employeeAttendance.slice(0, 10).map((row) => (
+                      <TableRow key={row.employeeId}>
+                        <TableCell className="pl-6">
+                          <p className="font-medium text-navy-900">{row.name}</p>
+                          <p className="text-xs text-navy-500">{row.employeeCode}</p>
+                        </TableCell>
+                        <TableCell>{row.department}</TableCell>
+                        <TableCell className="text-right tabular-nums">{integer.format(row.scheduledDays)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{integer.format(row.absentDays)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{integer.format(row.lateDays)}</TableCell>
+                        <TableCell className="text-right tabular-nums">{number.format(row.approvedLeaveDays)}</TableCell>
+                        <TableCell className="pr-6 text-right tabular-nums">
+                          {number.format(row.approvedOtHours)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
 
           <div className="space-y-4">
             <Card>
@@ -419,7 +490,7 @@ export default async function DashboardAnalyticsPage({
               </CardHeader>
               <CardContent className="space-y-2 text-xs leading-5 text-navy-600">
                 <p>{t("methodologyAttendance")}</p>
-                <p>{t("methodologyRisk")}</p>
+                {!useDemoWorkforce && <p>{t("methodologyEmployeeAttendance")}</p>}
                 <p>{t("methodologyPayroll")}</p>
               </CardContent>
             </Card>
@@ -491,23 +562,6 @@ function CoverageMetric({ label, value }: { label: string; value: number }) {
         <div className="h-full rounded-full bg-orange-400" style={{ width: `${Math.min(100, value)}%` }} />
       </div>
     </div>
-  );
-}
-
-function RiskBadge({ row, label }: { row: AnalyticsRiskRow; label: string }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold tabular-nums",
-        row.level === "high"
-          ? "bg-orange-400 text-white"
-          : row.level === "medium"
-            ? "bg-orange-100 text-orange-700"
-            : "bg-navy-50 text-navy-700",
-      )}
-    >
-      {row.riskScore} · {label}
-    </span>
   );
 }
 

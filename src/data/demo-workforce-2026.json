@@ -1,0 +1,5123 @@
+{
+  "schemaVersion": "1.0",
+  "sourceId": "workforce-json-2026",
+  "generatedAt": "2026-07-15T18:30:00+07:00",
+  "organization": {
+    "id": "11111111-1111-1111-1111-111111111111",
+    "name": "บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด",
+    "businessName": "บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด",
+    "businessType": "factory",
+    "timezone": "Asia/Bangkok",
+    "geofence": {
+      "enabled": true,
+      "latitude": 13.740198598326677,
+      "longitude": 100.56227944249513,
+      "radiusMeters": 250
+    }
+  },
+  "period": {
+    "startDate": "2026-05-16",
+    "endDate": "2026-07-15",
+    "weekdayCount": 43
+  },
+  "shift": {
+    "id": "22222222-2222-2222-2222-222222222201",
+    "name": "Morning Shift",
+    "start": "08:00",
+    "end": "17:00",
+    "breakMinutes": 60
+  },
+  "recordColumns": [
+    "employeeId",
+    "checkIn",
+    "checkOut",
+    "dayStatus",
+    "arrivalStatus",
+    "departureStatus",
+    "geofenceResult"
+  ],
+  "employees": [
+    {
+      "id": "33333333-3333-3333-3333-333333333301",
+      "employeeCode": "EMP001",
+      "nameTh": "สมชาย ใจดี",
+      "nameEn": "Somchai Jaidee",
+      "nameZh": "宋猜·哉迪",
+      "department": "Production",
+      "position": "Operator",
+      "role": "employee",
+      "baseSalary": 15000,
+      "lineBound": true,
+      "supervisorId": "33333333-3333-3333-3333-333333333302",
+      "shiftGroup": "A",
+      "hireDate": "2024-06-01",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333302",
+      "employeeCode": "EMP002",
+      "nameTh": "สมหญิง รักงาน",
+      "nameEn": "Somying Rakngan",
+      "nameZh": "宋盈·拉甘",
+      "department": "Production",
+      "position": "Line Leader",
+      "role": "supervisor",
+      "baseSalary": 25000,
+      "lineBound": true,
+      "supervisorId": "33333333-3333-3333-3333-333333333304",
+      "shiftGroup": "A",
+      "hireDate": "2023-03-15",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333303",
+      "employeeCode": "EMP003",
+      "nameTh": "วิชัย เก่งกล้า",
+      "nameEn": "Wichai Kengkla",
+      "nameZh": "维猜·肯卡拉",
+      "department": "Production",
+      "position": "Operator",
+      "role": "employee",
+      "baseSalary": 15000,
+      "lineBound": true,
+      "supervisorId": "33333333-3333-3333-3333-333333333302",
+      "shiftGroup": "A",
+      "hireDate": "2024-08-10",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333304",
+      "employeeCode": "EMP004",
+      "nameTh": "นันทนา สุขใจ",
+      "nameEn": "Nantana Sukjai",
+      "nameZh": "南塔娜·苏哉",
+      "department": "HR",
+      "position": "HR Manager",
+      "role": "hr",
+      "baseSalary": 35000,
+      "lineBound": false,
+      "supervisorId": "33333333-3333-3333-3333-333333333308",
+      "shiftGroup": null,
+      "hireDate": "2022-09-01",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333305",
+      "employeeCode": "EMP005",
+      "nameTh": "กฤษณ์ ฉลาด",
+      "nameEn": "Krit Chalat",
+      "nameZh": "克里·查拉",
+      "department": "Maintenance",
+      "position": "Technician",
+      "role": "employee",
+      "baseSalary": 18000,
+      "lineBound": true,
+      "supervisorId": "33333333-3333-3333-3333-333333333304",
+      "shiftGroup": "A",
+      "hireDate": "2024-01-05",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333306",
+      "employeeCode": "EMP006",
+      "nameTh": "อรทัย สดใส",
+      "nameEn": "Orathai Sodsai",
+      "nameZh": "奥拉泰·索赛",
+      "department": "Production",
+      "position": "Supervisor",
+      "role": "supervisor",
+      "baseSalary": 28000,
+      "lineBound": true,
+      "supervisorId": "33333333-3333-3333-3333-333333333304",
+      "shiftGroup": "A",
+      "hireDate": "2022-11-20",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333307",
+      "employeeCode": "EMP007",
+      "nameTh": "ธนพล แข็งแรง",
+      "nameEn": "Thanapol Khaengraeng",
+      "nameZh": "塔那蓬·肯让",
+      "department": "Production",
+      "position": "Operator",
+      "role": "employee",
+      "baseSalary": 15000,
+      "lineBound": false,
+      "supervisorId": "33333333-3333-3333-3333-333333333302",
+      "shiftGroup": "A",
+      "hireDate": "2025-02-14",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333308",
+      "employeeCode": "EMP008",
+      "nameTh": "ปริยา ฉลาด",
+      "nameEn": "Pariya Chalat",
+      "nameZh": "帕莉雅·查拉",
+      "department": "Management",
+      "position": "Factory Owner",
+      "role": "executive",
+      "baseSalary": 80000,
+      "lineBound": true,
+      "supervisorId": null,
+      "shiftGroup": null,
+      "hireDate": "2020-01-01",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333309",
+      "employeeCode": "EMP009",
+      "nameTh": "เอกชัย มั่นคง",
+      "nameEn": "Ekachai Mankong",
+      "nameZh": "艾卡猜·曼孔",
+      "department": "Warehouse",
+      "position": "Staff",
+      "role": "employee",
+      "baseSalary": 14000,
+      "lineBound": true,
+      "supervisorId": "33333333-3333-3333-3333-333333333304",
+      "shiftGroup": "A",
+      "hireDate": "2024-07-01",
+      "employmentType": "full_time"
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333310",
+      "employeeCode": "EMP010",
+      "nameTh": "ลลิตา เก่ง",
+      "nameEn": "Lalita Keng",
+      "nameZh": "拉莉塔·肯",
+      "department": "Production",
+      "position": "Operator",
+      "role": "employee",
+      "baseSalary": 15000,
+      "lineBound": false,
+      "supervisorId": "33333333-3333-3333-3333-333333333302",
+      "shiftGroup": "A",
+      "hireDate": "2025-04-12",
+      "employmentType": "full_time"
+    }
+  ],
+  "daily": [
+    {
+      "date": "2026-05-18",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:06",
+          "16:25",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:55",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:56",
+          "17:22",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:12",
+          "17:03",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:58",
+          "17:24",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:59",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:18",
+          "17:26",
+          "workday",
+          "late",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:54",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:55",
+          "17:28",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:24",
+          "17:09",
+          "workday",
+          "late",
+          "on_time",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-19",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:55",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:56",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:40",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:58",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:59",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:43",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:54",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:55",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:46",
+          "17:10",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:57",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-20",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:56",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:41",
+          "18:25",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:58",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:59",
+          "18:27",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:44",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:54",
+          "18:29",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:55",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:47",
+          "18:31",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:57",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:58",
+          "16:28",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-21",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:42",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "08:19",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:45",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:54",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:06",
+          "17:11",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:48",
+          "17:12",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:57",
+          "16:49",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:12",
+          "17:01",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:51",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-22",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:58",
+          "17:28",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:59",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:46",
+          "17:30",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:54",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:55",
+          "17:32",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:49",
+          "16:44",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:57",
+          "17:34",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:58",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:52",
+          "17:36",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:00",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-25",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:59",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:47",
+          "17:11",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:54",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:55",
+          "16:39",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:50",
+          "17:01",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:57",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:58",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:36",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:00",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:54",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-26",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          null,
+          null,
+          "absent",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:07",
+          "16:34",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:55",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:51",
+          "18:35",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:13",
+          "17:03",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:58",
+          "18:37",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:37",
+          "17:05",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:19",
+          "18:39",
+          "workday",
+          "late",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:54",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:40",
+          "18:41",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-27",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:54",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:55",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:52",
+          "17:03",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:57",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:58",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:38",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:00",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:54",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:41",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:56",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-28",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:55",
+          "17:36",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:36",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:57",
+          "17:38",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:58",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:39",
+          "17:40",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:00",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:54",
+          "17:42",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:42",
+          "17:10",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:56",
+          "17:44",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:57",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-05-29",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:14",
+          "17:05",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:57",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:58",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:20",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:00",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:54",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:07",
+          "17:11",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:56",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:57",
+          "16:32",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:13",
+          "17:01",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-01",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:57",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:58",
+          "18:41",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:41",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:00",
+          "18:43",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:54",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:44",
+          "18:45",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:56",
+          "16:27",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:57",
+          "18:47",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:47",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:59",
+          "18:49",
+          "workday",
+          "on_time",
+          "after_shift",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-02",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:58",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:42",
+          "17:10",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "08:00",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:54",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:45",
+          "16:48",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:56",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:57",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:48",
+          "17:03",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:59",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:00",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-03",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:43",
+          "17:44",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:00",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "08:08",
+          "16:43",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:46",
+          "17:01",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:56",
+          "17:48",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:14",
+          "17:03",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:49",
+          "17:50",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:59",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:20",
+          "17:21",
+          "workday",
+          "late",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:52",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-04",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:00",
+          "16:38",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:54",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:47",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:56",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:57",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:50",
+          "17:05",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:59",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:00",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:36",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:55",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-05",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:54",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:48",
+          "18:49",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:56",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:57",
+          "18:20",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:51",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:59",
+          "18:22",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:00",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:37",
+          "18:24",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:55",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:56",
+          "18:26",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-08",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:49",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:15",
+          "17:05",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:57",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:52",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:21",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:00",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:38",
+          "17:10",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:08",
+          "17:11",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:56",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:41",
+          "16:41",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-09",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:56",
+          "17:21",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:57",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:36",
+          "17:23",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:59",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:00",
+          "17:25",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:39",
+          "17:11",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:55",
+          "17:27",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:56",
+          "16:36",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:42",
+          "17:29",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:58",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-10",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:57",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:37",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:00",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:40",
+          "17:12",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:55",
+          "16:31",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:56",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:43",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:58",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:59",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-11",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:22",
+          "17:10",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:59",
+          "18:26",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:09",
+          "16:26",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:55",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:56",
+          "18:30",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:15",
+          "17:03",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:58",
+          "18:32",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:59",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:21",
+          "18:34",
+          "workday",
+          "late",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-12",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:59",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:00",
+          "16:47",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:42",
+          "17:01",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:55",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:56",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:45",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:58",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:59",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:48",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:54",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-15",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:00",
+          "17:29",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:43",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:55",
+          "17:31",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:56",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:46",
+          "17:33",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:58",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:59",
+          "17:35",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:49",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:54",
+          "17:37",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:55",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-16",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:44",
+          "17:03",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:55",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "08:16",
+          "17:05",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:47",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:58",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:22",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:50",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:54",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:09",
+          "17:11",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:36",
+          "17:12",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-17",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:55",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:56",
+          "18:34",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:48",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:58",
+          "18:36",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:59",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:51",
+          "18:38",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:54",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:55",
+          "18:40",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:37",
+          "16:45",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:57",
+          "18:42",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-18",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:56",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:49",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:58",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:59",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:52",
+          "17:11",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:54",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:55",
+          "16:40",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          null,
+          null,
+          "absent",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:57",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:58",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-19",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:50",
+          "17:37",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:23",
+          "17:10",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:59",
+          "17:39",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:36",
+          "17:12",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:10",
+          "16:35",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:55",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:39",
+          "17:43",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:16",
+          "17:03",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:58",
+          "17:45",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:42",
+          "17:05",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-22",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:58",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:59",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:37",
+          "16:30",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:54",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:55",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:40",
+          "17:03",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:57",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:58",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:43",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:00",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-23",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:59",
+          "16:25",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:38",
+          "18:42",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:54",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:55",
+          "18:44",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:41",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:58",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:44",
+          "18:48",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:00",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:54",
+          "18:50",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-24",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:11",
+          "17:02",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:54",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:55",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:17",
+          "17:05",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:57",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:58",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:23",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:00",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:54",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:10",
+          "17:11",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-25",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:54",
+          "17:45",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:55",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:43",
+          "17:47",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:57",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:58",
+          "17:49",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:46",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:00",
+          "17:20",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:54",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:49",
+          "17:22",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:56",
+          "16:28",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-26",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:55",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:44",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:57",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:58",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:47",
+          "17:10",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:00",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:54",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:50",
+          "16:49",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:56",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:57",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-29",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:45",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:57",
+          "18:50",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          null,
+          null,
+          "absent",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:48",
+          "18:21",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:00",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:11",
+          "16:44",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:51",
+          "17:01",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:56",
+          "18:25",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:17",
+          "17:03",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:37",
+          "18:27",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-06-30",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:57",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:58",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:49",
+          "17:12",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:00",
+          "16:39",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:54",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:52",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:56",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:57",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:38",
+          "17:05",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:59",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-01",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:58",
+          "17:22",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:50",
+          "16:34",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "08:00",
+          "17:24",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:54",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:36",
+          "17:26",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:56",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:57",
+          "17:28",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:39",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:59",
+          "17:30",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "08:00",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-02",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:51",
+          "17:01",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:12",
+          "17:02",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:54",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:37",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:18",
+          "17:05",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:57",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:40",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:24",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:00",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:43",
+          "17:10",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-03",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:00",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:54",
+          "18:27",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:38",
+          "17:05",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:56",
+          "18:29",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:57",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:41",
+          "18:31",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:00",
+          "18:33",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:44",
+          "17:11",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:55",
+          "18:35",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-06",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:54",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:39",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:56",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:57",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:42",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:59",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:00",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:45",
+          "17:12",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:55",
+          "16:32",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:56",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-07",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:19",
+          "17:30",
+          "workday",
+          "late",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:56",
+          "17:08",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:57",
+          "17:32",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:06",
+          "17:10",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:59",
+          "17:34",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:00",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "08:12",
+          "16:27",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:55",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:56",
+          "17:38",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          null,
+          null,
+          "absent",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-08",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:56",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:57",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:44",
+          "17:11",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:59",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "08:00",
+          "16:48",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:47",
+          "17:01",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:55",
+          "17:02",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:56",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:50",
+          "17:04",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:58",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-09",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:57",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:45",
+          "18:35",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:59",
+          "16:43",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "08:00",
+          "18:37",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:48",
+          "17:02",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:55",
+          "18:39",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:56",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:51",
+          "18:41",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:59",
+          "18:43",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-10",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:46",
+          "16:38",
+          "workday",
+          "before_shift",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:59",
+          "17:01",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "08:13",
+          "17:02",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:49",
+          "17:03",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:55",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "08:19",
+          "17:05",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:52",
+          "17:06",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:58",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "08:06",
+          "17:08",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:38",
+          "17:09",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-13",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:59",
+          "17:38",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:00",
+          "17:03",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:50",
+          "17:40",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:55",
+          "17:05",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:56",
+          "17:42",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:36",
+          "17:07",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:58",
+          "17:44",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:59",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:39",
+          "17:46",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:54",
+          "17:11",
+          "workday",
+          "on_time",
+          "on_time",
+          "not_recorded"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-14",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "08:00",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "07:51",
+          "17:05",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:55",
+          "17:06",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          "07:56",
+          "17:07",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          "07:37",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:58",
+          "17:09",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:59",
+          "17:10",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "07:40",
+          "17:11",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:54",
+          "17:12",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:55",
+          "16:41",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ]
+      ]
+    },
+    {
+      "date": "2026-07-15",
+      "records": [
+        [
+          "33333333-3333-3333-3333-333333333301",
+          "07:42",
+          "17:45",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333302",
+          "08:14",
+          "17:06",
+          "workday",
+          "late",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333303",
+          "07:58",
+          "16:38",
+          "workday",
+          "on_time",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333304",
+          null,
+          null,
+          "leave",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333305",
+          null,
+          null,
+          "absent",
+          "not_applicable",
+          "not_applicable",
+          "not_recorded"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333306",
+          "07:47",
+          "17:08",
+          "workday",
+          "before_shift",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333307",
+          "07:59",
+          "18:10",
+          "workday",
+          "on_time",
+          "after_shift",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333308",
+          "08:11",
+          "16:44",
+          "workday",
+          "late",
+          "early_departure",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333309",
+          "07:57",
+          "17:04",
+          "workday",
+          "on_time",
+          "on_time",
+          "inside"
+        ],
+        [
+          "33333333-3333-3333-3333-333333333310",
+          "07:39",
+          "17:36",
+          "workday",
+          "before_shift",
+          "after_shift",
+          "not_recorded"
+        ]
+      ]
+    }
+  ],
+  "leaveRequests": [
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000001",
+      "employeeId": "33333333-3333-3333-3333-333333333302",
+      "leaveType": "sick",
+      "startDate": "2026-05-21",
+      "endDate": "2026-05-21",
+      "days": 1,
+      "status": "approved",
+      "createdAt": "2026-05-21T06:20:00+07:00",
+      "decidedAt": "2026-05-21T07:05:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000002",
+      "employeeId": "33333333-3333-3333-3333-333333333303",
+      "leaveType": "annual",
+      "startDate": "2026-06-10",
+      "endDate": "2026-06-11",
+      "days": 2,
+      "status": "approved",
+      "createdAt": "2026-06-02T10:00:00+07:00",
+      "decidedAt": "2026-06-02T14:30:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000003",
+      "employeeId": "33333333-3333-3333-3333-333333333306",
+      "leaveType": "personal",
+      "startDate": "2026-06-23",
+      "endDate": "2026-06-23",
+      "days": 1,
+      "status": "approved",
+      "createdAt": "2026-06-19T15:10:00+07:00",
+      "decidedAt": "2026-06-20T09:00:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000004",
+      "employeeId": "33333333-3333-3333-3333-333333333307",
+      "leaveType": "annual",
+      "startDate": "2026-07-03",
+      "endDate": "2026-07-03",
+      "days": 1,
+      "status": "approved",
+      "createdAt": "2026-06-24T11:00:00+07:00",
+      "decidedAt": "2026-06-24T16:15:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000005",
+      "employeeId": "33333333-3333-3333-3333-333333333309",
+      "leaveType": "sick",
+      "startDate": "2026-07-09",
+      "endDate": "2026-07-09",
+      "days": 1,
+      "status": "approved",
+      "createdAt": "2026-07-09T06:35:00+07:00",
+      "decidedAt": "2026-07-09T07:20:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000006",
+      "employeeId": "33333333-3333-3333-3333-333333333304",
+      "leaveType": "annual",
+      "startDate": "2026-07-15",
+      "endDate": "2026-07-15",
+      "days": 1,
+      "status": "approved",
+      "createdAt": "2026-07-08T09:45:00+07:00",
+      "decidedAt": "2026-07-08T13:05:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000007",
+      "employeeId": "33333333-3333-3333-3333-333333333305",
+      "leaveType": "personal",
+      "startDate": "2026-07-15",
+      "endDate": "2026-07-15",
+      "days": 1,
+      "status": "pending",
+      "createdAt": "2026-07-14T10:20:00+07:00",
+      "decidedAt": null
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000008",
+      "employeeId": "33333333-3333-3333-3333-333333333308",
+      "leaveType": "annual",
+      "startDate": "2026-06-26",
+      "endDate": "2026-06-26",
+      "days": 1,
+      "status": "rejected",
+      "createdAt": "2026-06-18T13:00:00+07:00",
+      "decidedAt": "2026-06-19T10:15:00+07:00"
+    },
+    {
+      "id": "55555555-55555555-55555555-55555555-000000000009",
+      "employeeId": "33333333-3333-3333-3333-333333333310",
+      "leaveType": "maternity",
+      "startDate": "2026-08-03",
+      "endDate": "2026-10-30",
+      "days": 90,
+      "status": "pending",
+      "createdAt": "2026-07-14T14:10:00+07:00",
+      "decidedAt": null
+    }
+  ],
+  "overtimeRequests": [
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000001",
+      "employeeId": "33333333-3333-3333-3333-333333333301",
+      "date": "2026-05-22",
+      "hours": 2,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-05-21T14:00:00+07:00",
+      "decidedAt": "2026-05-21T15:20:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000002",
+      "employeeId": "33333333-3333-3333-3333-333333333303",
+      "date": "2026-05-29",
+      "hours": 1.5,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-05-28T13:30:00+07:00",
+      "decidedAt": "2026-05-28T17:00:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000003",
+      "employeeId": "33333333-3333-3333-3333-333333333305",
+      "date": "2026-06-05",
+      "hours": 2.5,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-06-04T10:10:00+07:00",
+      "decidedAt": "2026-06-04T14:40:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000004",
+      "employeeId": "33333333-3333-3333-3333-333333333307",
+      "date": "2026-06-12",
+      "hours": 3,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-06-11T11:00:00+07:00",
+      "decidedAt": "2026-06-11T12:45:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000005",
+      "employeeId": "33333333-3333-3333-3333-333333333308",
+      "date": "2026-06-26",
+      "hours": 2,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-06-25T09:20:00+07:00",
+      "decidedAt": "2026-06-25T11:00:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000006",
+      "employeeId": "33333333-3333-3333-3333-333333333309",
+      "date": "2026-07-02",
+      "hours": 1.5,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-07-01T15:00:00+07:00",
+      "decidedAt": "2026-07-01T16:10:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000007",
+      "employeeId": "33333333-3333-3333-3333-333333333302",
+      "date": "2026-07-10",
+      "hours": 2,
+      "status": "approved",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-07-09T14:30:00+07:00",
+      "decidedAt": "2026-07-09T16:00:00+07:00"
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000008",
+      "employeeId": "33333333-3333-3333-3333-333333333307",
+      "date": "2026-07-15",
+      "hours": 2,
+      "status": "pending",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-07-15T09:10:00+07:00",
+      "decidedAt": null
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000009",
+      "employeeId": "33333333-3333-3333-3333-333333333306",
+      "date": "2026-07-17",
+      "hours": 2.5,
+      "status": "pending",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-07-15T11:40:00+07:00",
+      "decidedAt": null
+    },
+    {
+      "id": "66666666-66666666-66666666-66666666-000000000010",
+      "employeeId": "33333333-3333-3333-3333-333333333310",
+      "date": "2026-06-19",
+      "hours": 2,
+      "status": "rejected",
+      "reason": "รองรับแผนงานตามตารางฝ่ายงาน",
+      "createdAt": "2026-06-18T16:20:00+07:00",
+      "decidedAt": "2026-06-19T08:50:00+07:00"
+    }
+  ],
+  "payroll": [
+    {
+      "id": "77777777-7777-4777-8777-000000000001",
+      "employeeId": "33333333-3333-3333-3333-333333333301",
+      "month": "2026-05",
+      "basePay": 15000,
+      "otPay": 1100,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 17100,
+      "taxableIncome": 16300,
+      "annualizedTaxableIncome": 26950,
+      "annualTax": 0,
+      "netPay": 15800,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000002",
+      "employeeId": "33333333-3333-3333-3333-333333333302",
+      "month": "2026-05",
+      "basePay": 25000,
+      "otPay": 1215,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 27715,
+      "taxableIncome": 26840,
+      "annualizedTaxableIncome": 148715,
+      "annualTax": 0,
+      "netPay": 26840,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000003",
+      "employeeId": "33333333-3333-3333-3333-333333333303",
+      "month": "2026-05",
+      "basePay": 15000,
+      "otPay": 1330,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 850,
+      "employerSso": 850,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 18330,
+      "taxableIncome": 17480,
+      "annualizedTaxableIncome": 35130,
+      "annualTax": 0,
+      "netPay": 17480,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000004",
+      "employeeId": "33333333-3333-3333-3333-333333333304",
+      "month": "2026-05",
+      "basePay": 35000,
+      "otPay": 1445,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 536.83,
+      "otherDeductions": 0,
+      "grossPay": 37445,
+      "taxableIncome": 36570,
+      "annualizedTaxableIncome": 262945,
+      "annualTax": 5647.25,
+      "netPay": 36033.17,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000005",
+      "employeeId": "33333333-3333-3333-3333-333333333305",
+      "month": "2026-05",
+      "basePay": 18000,
+      "otPay": 1560,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 21060,
+      "taxableIncome": 20185,
+      "annualizedTaxableIncome": 65060,
+      "annualTax": 0,
+      "netPay": 19685,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000006",
+      "employeeId": "33333333-3333-3333-3333-333333333306",
+      "month": "2026-05",
+      "basePay": 28000,
+      "otPay": 1675,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 248.33,
+      "otherDeductions": 0,
+      "grossPay": 31675,
+      "taxableIncome": 30800,
+      "annualizedTaxableIncome": 191175,
+      "annualTax": 2058.75,
+      "netPay": 30551.67,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000007",
+      "employeeId": "33333333-3333-3333-3333-333333333307",
+      "month": "2026-05",
+      "basePay": 15000,
+      "otPay": 1790,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 17790,
+      "taxableIncome": 16990,
+      "annualizedTaxableIncome": 27295,
+      "annualTax": 0,
+      "netPay": 16990,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000008",
+      "employeeId": "33333333-3333-3333-3333-333333333308",
+      "month": "2026-05",
+      "basePay": 80000,
+      "otPay": 1905,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 6756,
+      "otherDeductions": 0,
+      "grossPay": 83405,
+      "taxableIncome": 82530,
+      "annualizedTaxableIncome": 809405,
+      "annualTax": 76881,
+      "netPay": 75774,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000009",
+      "employeeId": "33333333-3333-3333-3333-333333333309",
+      "month": "2026-05",
+      "basePay": 14000,
+      "otPay": 2020,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 18020,
+      "taxableIncome": 17220,
+      "annualizedTaxableIncome": 27410,
+      "annualTax": 0,
+      "netPay": 16720,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000010",
+      "employeeId": "33333333-3333-3333-3333-333333333310",
+      "month": "2026-05",
+      "basePay": 15000,
+      "otPay": 2135,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 18135,
+      "taxableIncome": 17335,
+      "annualizedTaxableIncome": 27467.5,
+      "annualTax": 0,
+      "netPay": 17335,
+      "status": "paid",
+      "calculatedAt": "2026-05-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000011",
+      "employeeId": "33333333-3333-3333-3333-333333333301",
+      "month": "2026-06",
+      "basePay": 15000,
+      "otPay": 1240,
+      "allowancePay": 1000,
+      "bonusPay": 2000,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 19240,
+      "taxableIncome": 18440,
+      "annualizedTaxableIncome": 28020,
+      "annualTax": 0,
+      "netPay": 17940,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000012",
+      "employeeId": "33333333-3333-3333-3333-333333333302",
+      "month": "2026-06",
+      "basePay": 25000,
+      "otPay": 1355,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 27855,
+      "taxableIncome": 26980,
+      "annualizedTaxableIncome": 148855,
+      "annualTax": 0,
+      "netPay": 26980,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000013",
+      "employeeId": "33333333-3333-3333-3333-333333333303",
+      "month": "2026-06",
+      "basePay": 15000,
+      "otPay": 1470,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 850,
+      "employerSso": 850,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 18470,
+      "taxableIncome": 17620,
+      "annualizedTaxableIncome": 35270,
+      "annualTax": 0,
+      "netPay": 17620,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000014",
+      "employeeId": "33333333-3333-3333-3333-333333333304",
+      "month": "2026-06",
+      "basePay": 35000,
+      "otPay": 1585,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 543.83,
+      "otherDeductions": 0,
+      "grossPay": 37585,
+      "taxableIncome": 36710,
+      "annualizedTaxableIncome": 263085,
+      "annualTax": 5654.25,
+      "netPay": 36166.17,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000015",
+      "employeeId": "33333333-3333-3333-3333-333333333305",
+      "month": "2026-06",
+      "basePay": 18000,
+      "otPay": 1700,
+      "allowancePay": 1500,
+      "bonusPay": 2000,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 23200,
+      "taxableIncome": 22325,
+      "annualizedTaxableIncome": 67200,
+      "annualTax": 0,
+      "netPay": 21825,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000016",
+      "employeeId": "33333333-3333-3333-3333-333333333306",
+      "month": "2026-06",
+      "basePay": 28000,
+      "otPay": 1815,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 255.33,
+      "otherDeductions": 0,
+      "grossPay": 31815,
+      "taxableIncome": 30940,
+      "annualizedTaxableIncome": 191315,
+      "annualTax": 2065.75,
+      "netPay": 30684.67,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000017",
+      "employeeId": "33333333-3333-3333-3333-333333333307",
+      "month": "2026-06",
+      "basePay": 15000,
+      "otPay": 1930,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 17930,
+      "taxableIncome": 17130,
+      "annualizedTaxableIncome": 27365,
+      "annualTax": 0,
+      "netPay": 17130,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000018",
+      "employeeId": "33333333-3333-3333-3333-333333333308",
+      "month": "2026-06",
+      "basePay": 80000,
+      "otPay": 2045,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 6784,
+      "otherDeductions": 0,
+      "grossPay": 83545,
+      "taxableIncome": 82670,
+      "annualizedTaxableIncome": 809545,
+      "annualTax": 76909,
+      "netPay": 75886,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000019",
+      "employeeId": "33333333-3333-3333-3333-333333333309",
+      "month": "2026-06",
+      "basePay": 14000,
+      "otPay": 2160,
+      "allowancePay": 2000,
+      "bonusPay": 2000,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 20160,
+      "taxableIncome": 19360,
+      "annualizedTaxableIncome": 28480,
+      "annualTax": 0,
+      "netPay": 18860,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000020",
+      "employeeId": "33333333-3333-3333-3333-333333333310",
+      "month": "2026-06",
+      "basePay": 15000,
+      "otPay": 2275,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 18275,
+      "taxableIncome": 17475,
+      "annualizedTaxableIncome": 27537.5,
+      "annualTax": 0,
+      "netPay": 17475,
+      "status": "paid",
+      "calculatedAt": "2026-06-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000021",
+      "employeeId": "33333333-3333-3333-3333-333333333301",
+      "month": "2026-07",
+      "basePay": 15000,
+      "otPay": 1380,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 17380,
+      "taxableIncome": 16580,
+      "annualizedTaxableIncome": 27090,
+      "annualTax": 0,
+      "netPay": 16080,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000022",
+      "employeeId": "33333333-3333-3333-3333-333333333302",
+      "month": "2026-07",
+      "basePay": 25000,
+      "otPay": 1495,
+      "allowancePay": 1500,
+      "bonusPay": 1500,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 24.75,
+      "otherDeductions": 0,
+      "grossPay": 29495,
+      "taxableIncome": 28620,
+      "annualizedTaxableIncome": 150495,
+      "annualTax": 24.75,
+      "netPay": 28595.25,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000023",
+      "employeeId": "33333333-3333-3333-3333-333333333303",
+      "month": "2026-07",
+      "basePay": 15000,
+      "otPay": 1610,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 850,
+      "employerSso": 850,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 18610,
+      "taxableIncome": 17760,
+      "annualizedTaxableIncome": 35410,
+      "annualTax": 0,
+      "netPay": 17760,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000024",
+      "employeeId": "33333333-3333-3333-3333-333333333304",
+      "month": "2026-07",
+      "basePay": 35000,
+      "otPay": 1725,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 550.83,
+      "otherDeductions": 0,
+      "grossPay": 37725,
+      "taxableIncome": 36850,
+      "annualizedTaxableIncome": 263225,
+      "annualTax": 5661.25,
+      "netPay": 36299.17,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000025",
+      "employeeId": "33333333-3333-3333-3333-333333333305",
+      "month": "2026-07",
+      "basePay": 18000,
+      "otPay": 1840,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 21340,
+      "taxableIncome": 20465,
+      "annualizedTaxableIncome": 65340,
+      "annualTax": 0,
+      "netPay": 19965,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000026",
+      "employeeId": "33333333-3333-3333-3333-333333333306",
+      "month": "2026-07",
+      "basePay": 28000,
+      "otPay": 1955,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 262.33,
+      "otherDeductions": 0,
+      "grossPay": 31955,
+      "taxableIncome": 31080,
+      "annualizedTaxableIncome": 191455,
+      "annualTax": 2072.75,
+      "netPay": 30817.67,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000027",
+      "employeeId": "33333333-3333-3333-3333-333333333307",
+      "month": "2026-07",
+      "basePay": 15000,
+      "otPay": 2070,
+      "allowancePay": 1000,
+      "bonusPay": 1500,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 19570,
+      "taxableIncome": 18770,
+      "annualizedTaxableIncome": 28185,
+      "annualTax": 0,
+      "netPay": 18770,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000028",
+      "employeeId": "33333333-3333-3333-3333-333333333308",
+      "month": "2026-07",
+      "basePay": 80000,
+      "otPay": 2185,
+      "allowancePay": 1500,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 875,
+      "employerSso": 875,
+      "withholdingTax": 6812,
+      "otherDeductions": 0,
+      "grossPay": 83685,
+      "taxableIncome": 82810,
+      "annualizedTaxableIncome": 809685,
+      "annualTax": 76937,
+      "netPay": 75998,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000029",
+      "employeeId": "33333333-3333-3333-3333-333333333309",
+      "month": "2026-07",
+      "basePay": 14000,
+      "otPay": 2300,
+      "allowancePay": 2000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 500,
+      "grossPay": 18300,
+      "taxableIncome": 17500,
+      "annualizedTaxableIncome": 27550,
+      "annualTax": 0,
+      "netPay": 17000,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    },
+    {
+      "id": "77777777-7777-4777-8777-000000000030",
+      "employeeId": "33333333-3333-3333-3333-333333333310",
+      "month": "2026-07",
+      "basePay": 15000,
+      "otPay": 2415,
+      "allowancePay": 1000,
+      "bonusPay": 0,
+      "otherIncome": 0,
+      "employeeSso": 800,
+      "employerSso": 800,
+      "withholdingTax": 0,
+      "otherDeductions": 0,
+      "grossPay": 18415,
+      "taxableIncome": 17615,
+      "annualizedTaxableIncome": 27607.5,
+      "annualTax": 0,
+      "netPay": 17615,
+      "status": "reviewed",
+      "calculatedAt": "2026-07-28T18:00:00+07:00"
+    }
+  ]
+}

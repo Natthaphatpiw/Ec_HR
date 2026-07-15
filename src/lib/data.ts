@@ -1,5 +1,6 @@
 import {
   ACTION_TOKENS,
+  AI_AGENT_INTERACTIONS,
   ATTENDANCE_LOGS,
   CONTACT_REQUESTS,
   EMPLOYEES,
@@ -24,6 +25,7 @@ import type {
   ActionToken,
   ActionTokenAction,
   ActionTokenKind,
+  AIAgentInteraction,
   AttendanceLog,
   AttendanceSource,
   AttendanceType,
@@ -329,7 +331,30 @@ export async function getEmployeeById(id: string): Promise<Employee | undefined>
 }
 
 export async function getEmployeeByLineId(lineUserId: string): Promise<Employee | undefined> {
-  if (isDemo()) return EMPLOYEES.find((e) => e.line_user_id === lineUserId);
+  if (isDemo()) {
+    const seeded = EMPLOYEES.find((e) => e.line_user_id === lineUserId);
+    if (seeded) return seeded;
+
+    // A sales demo can bind verified real LINE subjects to one of the seeded
+    // employees without replacing the verified subject in the LIFF session.
+    // Keep this server-only: the mapping can contain real LINE user IDs.
+    const rawMapping = process.env.DEMO_LIFF_EMPLOYEE_MAP?.trim();
+    if (!rawMapping) return undefined;
+    try {
+      const parsed = JSON.parse(rawMapping) as unknown;
+      if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return undefined;
+      const employeeRef = (parsed as Record<string, unknown>)[lineUserId];
+      if (typeof employeeRef !== "string") return undefined;
+      const normalized = employeeRef.trim().toUpperCase();
+      return EMPLOYEES.find(
+        (employee) =>
+          employee.id === employeeRef.trim() || employee.employee_code?.toUpperCase() === normalized,
+      );
+    } catch {
+      console.warn("DEMO_LIFF_EMPLOYEE_MAP must be a JSON object of LINE user ID to employee code");
+      return undefined;
+    }
+  }
   const sb = supabaseAdmin();
   const { data, error } = await sb
     .from("employees")
@@ -2776,4 +2801,95 @@ export async function recordAttendance(
     .single();
   if (error) return { ok: false, message: `recordAttendance: ${error.message}` };
   return { ok: true, message: "บันทึกแล้ว", log: data as AttendanceLog, geofence };
+}
+
+// =========================================================================
+// Workforce assistant reports
+// =========================================================================
+
+export interface SaveWorkforceAssistantReportInput {
+  orgId: string;
+  employeeId?: string | null;
+  userMessage: string;
+  agentResponse: string;
+  openaiResponseId: string;
+  model: string;
+  reportSlug: string;
+  reportPayload: unknown;
+  responseSource: "openai" | "deterministic";
+}
+
+export async function saveWorkforceAssistantReport(
+  input: SaveWorkforceAssistantReportInput,
+): Promise<AIAgentInteraction> {
+  const row: AIAgentInteraction = {
+    id: newId("ai-report"),
+    org_id: input.orgId,
+    employee_id: input.employeeId ?? null,
+    channel: "dashboard",
+    user_message: input.userMessage,
+    agent_response: input.agentResponse,
+    tools_used: { report_created: true },
+    openai_response_id: input.openaiResponseId,
+    model: input.model,
+    report_slug: input.reportSlug,
+    report_payload: input.reportPayload,
+    response_source: input.responseSource,
+    created_at: new Date().toISOString(),
+  };
+
+  if (isDemo()) {
+    AI_AGENT_INTERACTIONS.unshift(row);
+    return row;
+  }
+
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("ai_agent_interactions")
+    .insert(row)
+    .select("*")
+    .single();
+  if (error) throw new Error(`saveWorkforceAssistantReport: ${error.message}`);
+  return data as AIAgentInteraction;
+}
+
+export async function getWorkforceAssistantReport(
+  orgId: string,
+  reportSlug: string,
+): Promise<AIAgentInteraction | undefined> {
+  if (isDemo()) {
+    return AI_AGENT_INTERACTIONS.find(
+      (row) => row.org_id === orgId && row.report_slug === reportSlug,
+    );
+  }
+
+  const sb = supabaseAdmin();
+  const { data, error } = await sb
+    .from("ai_agent_interactions")
+    .select("*")
+    .eq("org_id", orgId)
+    .eq("report_slug", reportSlug)
+    .maybeSingle();
+  if (error) throw new Error(`getWorkforceAssistantReport: ${error.message}`);
+  return (data as AIAgentInteraction | null) ?? undefined;
+}
+
+export async function hasWorkforceAssistantResponse(
+  orgId: string,
+  responseId: string,
+): Promise<boolean> {
+  if (isDemo()) {
+    return AI_AGENT_INTERACTIONS.some(
+      (row) => row.org_id === orgId && row.openai_response_id === responseId,
+    );
+  }
+
+  const sb = supabaseAdmin();
+  const { count, error } = await sb
+    .from("ai_agent_interactions")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .eq("openai_response_id", responseId);
+  if (error) throw new Error(`hasWorkforceAssistantResponse: ${error.message}`);
+  return Number(count ?? 0) > 0;
 }

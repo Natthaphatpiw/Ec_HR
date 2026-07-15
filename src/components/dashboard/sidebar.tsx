@@ -72,9 +72,9 @@ export function DashboardSidebar() {
       </nav>
       <div className="border-t border-navy-100 p-4">
         <div className="rounded-xl bg-navy-50 p-4">
-          <div className="text-xs font-semibold text-navy-900">Powered by Mastra</div>
+          <div className="text-xs font-semibold text-navy-900">OpenAI Workforce Assistant</div>
           <p className="mt-1 text-[11px] leading-relaxed text-navy-500">
-            EC AIHR Assistant uses Claude Sonnet 4.6 to read live data. Try the AI tab.
+            GPT-5.6 Luna when configured, with a deterministic JSON fallback for the demo.
           </p>
         </div>
       </div>

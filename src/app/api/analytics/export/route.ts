@@ -5,6 +5,10 @@ import {
   type AnalyticsExportDataset,
 } from "@/lib/analytics-workbook";
 import { getWorkforceAnalytics } from "@/lib/analytics";
+import {
+  buildDemoWorkforceAnalytics,
+  shouldUseDemoWorkforceSource,
+} from "@/lib/demo-workforce";
 
 export const runtime = "nodejs";
 
@@ -58,12 +62,17 @@ export async function GET(request: Request) {
   }
 
   const days = parseDays(url.searchParams.get("days"));
-  const analytics = await getWorkforceAnalytics({
-    orgId: access.orgId,
-    employeeIds: access.employeeIds,
-    scope: access.scope,
-    days,
-  });
+  const analytics = shouldUseDemoWorkforceSource(access.orgId)
+    ? buildDemoWorkforceAnalytics(days, {
+        orgId: access.orgId,
+        scope: access.scope,
+      })
+    : await getWorkforceAnalytics({
+        orgId: access.orgId,
+        employeeIds: access.employeeIds,
+        scope: access.scope,
+        days,
+      });
   const workbook = buildAnalyticsWorkbook(analytics, dataset);
   const filename = `EC-AIHR-${filenamePart(analytics.organization.business_name)}-${dataset}-${analytics.rangeEnd}.xlsx`;
   const body = workbook.buffer.slice(

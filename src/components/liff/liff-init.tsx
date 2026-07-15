@@ -8,9 +8,8 @@ import { initLiff } from "@/lib/liff-client";
 
 /**
  * First-touch LIFF bootstrap. Runs on the LIFF page when no `liff_user_id`
- * cookie is present yet — calls liff.init(), captures the userId, writes it
- * to a cookie, then refreshes so the server component can re-render with
- * the real user.
+ * cookie is present yet. The client sends only the LIFF ID token to the
+ * server, which verifies it with LINE and writes a signed HttpOnly cookie.
  */
 export function LiffInit({ liffId, hint }: { liffId?: string; hint?: string }) {
   const router = useRouter();
@@ -19,20 +18,20 @@ export function LiffInit({ liffId, hint }: { liffId?: string; hint?: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    initLiff(liffId).then((res) => {
-      if (cancelled) return;
-      if (!res.profile?.userId) {
-        setStatus("no-profile");
-        return;
-      }
-      const value = encodeURIComponent(res.profile.userId);
-      document.cookie = `liff_user_id=${value}; path=/; max-age=28800; samesite=lax`;
-      router.refresh();
-    }).catch((err: unknown) => {
-      if (cancelled) return;
-      setStatus("error");
-      setDetail(err instanceof Error ? err.message : String(err));
-    });
+    initLiff(liffId)
+      .then((res) => {
+        if (cancelled) return;
+        if (!res.profile?.userId) {
+          setStatus("no-profile");
+          return;
+        }
+        router.refresh();
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setStatus("error");
+        setDetail(err instanceof Error ? err.message : String(err));
+      });
     return () => {
       cancelled = true;
     };
@@ -55,7 +54,7 @@ export function LiffInit({ liffId, hint }: { liffId?: string; hint?: string }) {
     return (
       <Card>
         <CardContent className="space-y-2 p-8 text-center">
-          <h3 className="text-base font-semibold text-red-600">เชื่อมต่อ LINE ไม่สำเร็จ</h3>
+          <h3 className="text-base font-semibold text-orange-600">เชื่อมต่อ LINE ไม่สำเร็จ</h3>
           <p className="text-xs text-navy-500">{detail ?? "ไม่ทราบสาเหตุ"}</p>
         </CardContent>
       </Card>

@@ -2,9 +2,15 @@
 -- Run after schema.sql. Safe to re-run after TRUNCATE.
 
 -- Organization
-INSERT INTO organizations (id, name, thai_tax_id, geofence_lat, geofence_lng, geofence_radius)
-VALUES ('11111111-1111-1111-1111-111111111111', 'ThaiAuto Factory', '1234567890123', 13.740198598326677, 100.56227944249513, 150)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO organizations (id, name, thai_tax_id, geofence_lat, geofence_lng, geofence_radius, geofence_enabled)
+VALUES ('11111111-1111-1111-1111-111111111111', 'บริษัท นอร์ธสตาร์ อิเล็กทรอนิกส์ จำกัด', '1234567890123', 13.740198598326677, 100.56227944249513, 250, TRUE)
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  thai_tax_id = EXCLUDED.thai_tax_id,
+  geofence_lat = EXCLUDED.geofence_lat,
+  geofence_lng = EXCLUDED.geofence_lng,
+  geofence_radius = EXCLUDED.geofence_radius,
+  geofence_enabled = EXCLUDED.geofence_enabled;
 
 -- Shifts
 INSERT INTO shifts (id, org_id, name, start_time, end_time, break_minutes) VALUES

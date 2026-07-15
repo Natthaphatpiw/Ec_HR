@@ -12,7 +12,7 @@ export function LineQrPreview() {
             <div className="flex items-center gap-2">
               <div className="h-7 w-7 rounded-full bg-emerald-500" />
               <div className="text-sm">
-                <div className="font-medium">ThaiAuto HR Official</div>
+                <div className="font-medium">Northstar HR Official</div>
                 <div className="text-[11px] text-navy-300">LINE Official Account</div>
               </div>
             </div>
@@ -26,7 +26,7 @@ export function LineQrPreview() {
             <ChatBubble role="assistant">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-3.5 w-3.5 text-emerald-300" />
-                Clocked in at 08:02 · ThaiAuto Factory
+                Clocked in at 08:02 · Northstar Electronics
               </div>
               <div className="mt-1 flex items-center gap-1 text-[10px] text-navy-300">
                 <MapPin className="h-3 w-3" />

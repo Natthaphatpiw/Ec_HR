@@ -7,6 +7,9 @@ import {
   isDemoMode,
   listTeamForSupervisor,
 } from "@/lib/data";
+import { getDashboardOrganizationId } from "@/lib/dashboard-auth-config";
+import { getDashboardOwnerSession } from "@/lib/dashboard-session";
+import { shouldUseDemoWorkforceSource } from "@/lib/demo-workforce";
 import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 import type { Employee } from "@/lib/types";
 
@@ -25,12 +28,38 @@ export interface AnalyticsAccessDenied {
 }
 
 export async function resolveAnalyticsAccess(): Promise<AnalyticsAccess | AnalyticsAccessDenied> {
+  const dashboardSession = await getDashboardOwnerSession();
+  if (dashboardSession) {
+    const orgId = getDashboardOrganizationId() ?? getDefaultOrganizationId();
+    if (shouldUseDemoWorkforceSource(orgId)) {
+      return {
+        ok: true,
+        orgId,
+        employee: null,
+        scope: "organization",
+        readOnlyDemo: true,
+      };
+    }
+    const organization = await getOrganizationById(orgId);
+    if (!organization) return { ok: false, reason: "organization_not_found" };
+    return {
+      ok: true,
+      orgId: organization.id,
+      employee: null,
+      scope: "organization",
+      readOnlyDemo: false,
+    };
+  }
+
   const lineUserId = await getLiffUserIdFromCookie();
   if (lineUserId) {
     const employee = await getEmployeeByLineId(lineUserId);
     if (!employee) return { ok: false, reason: "not_authenticated" };
     if (employee.account_status !== "active") return { ok: false, reason: "inactive" };
+    const organization = await getOrganizationById(employee.org_id);
+    if (!organization) return { ok: false, reason: "organization_not_found" };
     if (
+      organization.owner_employee_id !== employee.id &&
       !employee.is_supervisor &&
       employee.role !== "supervisor" &&
       employee.role !== "hr" &&
@@ -38,8 +67,6 @@ export async function resolveAnalyticsAccess(): Promise<AnalyticsAccess | Analyt
     ) {
       return { ok: false, reason: "forbidden" };
     }
-    const organization = await getOrganizationById(employee.org_id);
-    if (!organization) return { ok: false, reason: "organization_not_found" };
 
     if (
       employee.role === "hr" ||

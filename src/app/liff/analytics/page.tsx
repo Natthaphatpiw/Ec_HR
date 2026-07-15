@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Activity, AlertTriangle, Clock3, LockKeyhole, Users } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 import { AnalyticsExportMenu } from "@/components/analytics/analytics-export-menu";
+import { LiffDemoWorkforceDetails } from "@/components/analytics/liff-demo-workforce-details";
 import { WorkforceAttendanceChart } from "@/components/analytics/workforce-charts";
 import { LiffHeader } from "@/components/liff/header";
 import { guardLiffPage } from "@/components/liff/page-guard";
@@ -9,7 +10,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveAnalyticsAccess } from "@/lib/analytics-access";
-import { getWorkforceAnalytics } from "@/lib/analytics";
+import { getWorkforceAnalytics, type WorkforceAnalytics } from "@/lib/analytics";
+import {
+  buildDemoWorkforceAnalytics,
+  getDemoWorkforceDailyRoster,
+  getDemoWorkforceDates,
+  getDemoWorkforceEmployeeStats,
+  shouldUseDemoWorkforceSource,
+} from "@/lib/demo-workforce";
 import { cn } from "@/lib/utils";
 
 const RANGE_OPTIONS = [7, 30, 90] as const;
@@ -34,7 +42,9 @@ export default async function LiffAnalyticsPage({
   const days = normalizeDays(rawDays);
   const guard = await guardLiffPage({
     title: t("title"),
-    liffId: process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE,
+    liffId:
+      process.env.NEXT_PUBLIC_LIFF_ID_ANALYTICS ??
+      process.env.NEXT_PUBLIC_LIFF_ID_ATTENDANCE,
   });
   if (!guard.ok) return guard.view;
 
@@ -43,14 +53,20 @@ export default async function LiffAnalyticsPage({
     return <LiffAccessDenied title={t("title")} heading={t("accessDeniedTitle")} body={t("accessDeniedDescription")} />;
   }
 
-  let analytics;
+  const useDemoWorkforce = shouldUseDemoWorkforceSource(access.orgId);
+  let analytics: WorkforceAnalytics;
   try {
-    analytics = await getWorkforceAnalytics({
-      orgId: access.orgId,
-      days,
-      employeeIds: access.employeeIds,
-      scope: access.scope,
-    });
+    analytics = useDemoWorkforce
+      ? buildDemoWorkforceAnalytics(days, {
+          orgId: access.orgId,
+          scope: access.scope,
+        })
+      : await getWorkforceAnalytics({
+          orgId: access.orgId,
+          days,
+          employeeIds: access.employeeIds,
+          scope: access.scope,
+        });
   } catch (error) {
     console.error("[analytics] LIFF failed to load", error);
     return (
@@ -83,6 +99,22 @@ export default async function LiffAnalyticsPage({
     timeZone: "UTC",
   });
   const formatDate = (value: string) => date.format(new Date(`${value}T00:00:00Z`));
+  const demoDates = useDemoWorkforce
+    ? getDemoWorkforceDates().filter(
+        (value) => value >= analytics.rangeStart && value <= analytics.rangeEnd,
+      )
+    : [];
+  const demoDailyRows = useDemoWorkforce
+    ? Object.fromEntries(
+        demoDates.map((value) => [value, getDemoWorkforceDailyRoster(value)]),
+      )
+    : {};
+  const demoEmployeeStats = useDemoWorkforce
+    ? getDemoWorkforceEmployeeStats({
+        startDate: analytics.rangeStart,
+        endDate: analytics.rangeEnd,
+      })
+    : [];
 
   return (
     <>
@@ -148,6 +180,16 @@ export default async function LiffAnalyticsPage({
           />
         </section>
 
+        {useDemoWorkforce && (
+          <LiffDemoWorkforceDetails
+            locale={locale}
+            dates={demoDates}
+            defaultDate={analytics.asOfDate}
+            dailyRows={demoDailyRows}
+            employeeStats={demoEmployeeStats}
+          />
+        )}
+
         <Card>
           <CardHeader className="p-5 pb-2">
             <CardTitle>{t("attendanceTrendTitle")}</CardTitle>
@@ -203,54 +245,53 @@ export default async function LiffAnalyticsPage({
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="p-5 pb-3">
-            <CardTitle>{t("riskTitle")}</CardTitle>
-            <CardDescription>{t("riskDescription")}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 p-5 pt-0">
-            {analytics.risks.slice(0, 5).map((row) => (
-              <div key={row.employeeId} className="flex items-center gap-3 border-b border-navy-100 pb-3 last:border-0 last:pb-0">
-                <div
-                  className={cn(
-                    "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-semibold tabular-nums",
-                    row.level === "high"
-                      ? "bg-orange-400 text-white"
-                      : row.level === "medium"
-                        ? "bg-orange-100 text-orange-700"
-                        : "bg-navy-50 text-navy-700",
-                  )}
-                >
-                  {row.riskScore}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-navy-900">{row.name}</p>
-                  <p className="truncate text-[11px] text-navy-500">
-                    {row.department} · {t("absenceAndLate", { absent: row.absentDays, late: row.lateDays })}
-                  </p>
-                </div>
-                <Badge
-                  className={cn(
-                    "shrink-0",
-                    row.level === "high"
-                      ? "border-orange-400 bg-orange-400 text-white"
-                      : row.level === "medium"
-                        ? "border-orange-200 bg-orange-100 text-orange-700"
-                        : "border-navy-200 bg-navy-50 text-navy-700",
-                  )}
-                >
-                  {t(`riskLevels.${row.level}`)}
-                </Badge>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        {!useDemoWorkforce && (
+          <>
+            <Card>
+              <CardHeader className="p-5 pb-3">
+                <CardTitle>{t("employeeAttendanceTitle")}</CardTitle>
+                <CardDescription>{t("employeeAttendanceDescription")}</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3 p-5 pt-0">
+                {analytics.employeeAttendance.slice(0, 10).map((row) => (
+                  <div key={row.employeeId} className="border-b border-navy-100 pb-3 last:border-0 last:pb-0">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium text-navy-900">{row.name}</p>
+                        <p className="truncate text-[11px] text-navy-500">{row.department}</p>
+                      </div>
+                      <Badge variant="muted" className="shrink-0">
+                        {row.employeeCode}
+                      </Badge>
+                    </div>
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <LiffAttendanceFact label={t("scheduledDays")} value={integer.format(row.scheduledDays)} />
+                      <LiffAttendanceFact label={t("absentDays")} value={integer.format(row.absentDays)} />
+                      <LiffAttendanceFact label={t("lateDays")} value={integer.format(row.lateDays)} />
+                      <LiffAttendanceFact label={t("approvedLeaveDays")} value={number.format(row.approvedLeaveDays)} />
+                      <LiffAttendanceFact
+                        label={t("approvedOtHours")}
+                        value={number.format(row.approvedOtHours)}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
 
-        <div className="rounded-xl border border-orange-200 bg-orange-50/50 p-4 text-xs leading-5 text-navy-600">
-          <p className="font-semibold text-navy-900">{t("methodologyTitle")}</p>
-          <p className="mt-1">{t("methodologyRisk")}</p>
-          <p className="mt-1">{t("updatedThrough", { date: formatDate(analytics.asOfDate) })}</p>
-        </div>
+            <div className="rounded-xl border border-navy-200 bg-white p-4 text-xs leading-5 text-navy-600">
+              <p className="font-semibold text-navy-900">{t("methodologyTitle")}</p>
+              <p className="mt-1">{t("methodologyEmployeeAttendance")}</p>
+              <p className="mt-1">{t("updatedThrough", { date: formatDate(analytics.asOfDate) })}</p>
+            </div>
+          </>
+        )}
+
+        {useDemoWorkforce && (
+          <div className="rounded-xl border border-navy-200 bg-white p-4 text-xs leading-5 text-navy-600">
+            {t("updatedThrough", { date: formatDate(analytics.asOfDate) })}
+          </div>
+        )}
       </main>
     </>
   );
@@ -280,6 +321,15 @@ function LiffHeroMetric({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl bg-white/10 p-3">
       <p className="text-[10px] uppercase tracking-wider text-navy-300">{label}</p>
       <p className="mt-1 text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
+    </div>
+  );
+}
+
+function LiffAttendanceFact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-navy-50 px-3 py-2">
+      <p className="truncate text-[10px] text-navy-500">{label}</p>
+      <p className="mt-0.5 font-semibold tabular-nums text-navy-900">{value}</p>
     </div>
   );
 }

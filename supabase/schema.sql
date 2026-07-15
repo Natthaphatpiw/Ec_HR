@@ -157,11 +157,17 @@ CREATE TABLE IF NOT EXISTS notifications (
 -- 11. AI Agent Interactions (audit log)
 CREATE TABLE IF NOT EXISTS ai_agent_interactions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  org_id UUID REFERENCES organizations(id) ON DELETE CASCADE,
   employee_id UUID REFERENCES employees(id) ON DELETE SET NULL,
   channel TEXT CHECK (channel IN ('line','dashboard','liff')) DEFAULT 'line',
   user_message TEXT,
   agent_response TEXT,
   tools_used JSONB,
+  openai_response_id TEXT,
+  model TEXT,
+  report_slug TEXT UNIQUE,
+  report_payload JSONB,
+  response_source TEXT CHECK (response_source IN ('openai','deterministic')),
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -170,6 +176,11 @@ CREATE INDEX IF NOT EXISTS idx_attendance_employee_ts ON attendance_logs(employe
 CREATE INDEX IF NOT EXISTS idx_employees_org ON employees(org_id);
 CREATE INDEX IF NOT EXISTS idx_leave_status ON leave_requests(status);
 CREATE INDEX IF NOT EXISTS idx_employee_line ON employees(line_user_id);
+CREATE INDEX IF NOT EXISTS idx_ai_agent_interactions_org_created
+  ON ai_agent_interactions(org_id, created_at DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_ai_agent_interactions_response
+  ON ai_agent_interactions(openai_response_id)
+  WHERE openai_response_id IS NOT NULL;
 
 -- Row Level Security
 ALTER TABLE employees ENABLE ROW LEVEL SECURITY;
@@ -178,6 +189,7 @@ ALTER TABLE leave_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE overtime_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payrolls ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ai_agent_interactions ENABLE ROW LEVEL SECURITY;
 
 -- Note: define RLS policies in Supabase Dashboard.
 -- Policy patterns:

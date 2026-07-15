@@ -4,7 +4,7 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { ArrowRight, CheckCircle2, Link2, Loader2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, Copy, Link2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -96,6 +96,24 @@ export function OnboardForm() {
               </div>
             </div>
           </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3 w-full"
+            disabled={!lineUserId}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(lineUserId);
+                toast.success("คัดลอก LINE user ID แล้ว");
+              } catch {
+                toast.error("คัดลอก LINE user ID ไม่สำเร็จ");
+              }
+            }}
+          >
+            <Copy className="h-3.5 w-3.5" />
+            คัดลอก LINE ID สำหรับตั้งค่า Demo
+          </Button>
         </CardContent>
       </Card>
 

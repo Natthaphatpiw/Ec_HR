@@ -5,9 +5,9 @@
 > Clock-in, leave, payroll, shifts, and an AI assistant — all running inside the LINE app your team
 > already uses every day.
 
-**Status:** v1.1 reference implementation. Ships with mock data and a fallback agent so the entire
-app — landing page, dashboard, LIFF flows, AI chat, LINE webhook — works locally without
-configuring Supabase, LINE, or Anthropic.
+**Status:** v1.1 reference implementation. Ships with mock data and deterministic AI fallbacks so
+the landing page, authenticated dashboard, LIFF flows, AI chat, and LINE webhook work locally
+without configuring Supabase, LINE, OpenAI, or Anthropic.
 
 ---
 
@@ -21,9 +21,9 @@ configuring Supabase, LINE, or Anthropic.
 | Maps             | Leaflet + react-leaflet (geofence visualization) |
 | i18n             | next-intl (EN / TH / ZH)                        |
 | Database         | Supabase Postgres (RLS enabled; server data layer uses service role) |
-| Auth             | LINE LIFF cookie session (verified production auth remains a go-live requirement) |
+| Auth             | Signed web owner session + server-verified LINE ID-token session |
 | LINE             | Messaging API + Rich Menu + LIFF v2 + Webhook   |
-| AI agent         | Mastra-style tool runtime + Claude Sonnet 4.6   |
+| AI               | OpenAI Responses workforce assistant + legacy Mastra-style LINE agent |
 | Deployment       | Vercel + Supabase                               |
 
 ---
@@ -34,22 +34,51 @@ configuring Supabase, LINE, or Anthropic.
 # 1. Install
 pnpm install   # or: npm install / yarn
 
-# 2. Copy env (optional in demo mode)
+# 2. Copy env, then add the values below to .env.local
 cp .env.example .env.local
 
-# 3. Run
+# 3. Signed owner login + isolated synthetic demo
+DEMO_MODE=true
+DASHBOARD_AUTH_USERNAME=demo@ecloudtec.com
+DASHBOARD_AUTH_PASSWORD=EC-AIHR-Demo-2569!
+DASHBOARD_SESSION_SECRET=<at-least-32-random-characters>
+DASHBOARD_ORG_ID=11111111-1111-1111-1111-111111111111
+DASHBOARD_WORKFORCE_JSON_DEMO=true
+DEMO_WORKFORCE_ORG_ID=11111111-1111-1111-1111-111111111111
+
+# 4. Run
 pnpm dev
 ```
 
 Open:
 
 - **Landing page:** http://localhost:3000/
+- **Owner login:** http://localhost:3000/login
 - **Dashboard:** http://localhost:3000/dashboard
 - **LIFF demo (mobile-shaped):** http://localhost:3000/liff
+- **Workforce analytics:** http://localhost:3000/dashboard/analytics
 - **AI assistant:** http://localhost:3000/dashboard/ai-assistant
 
-The app boots in **demo mode** by default (`DEMO_MODE=true`). All data is in-memory mock data
-(see `src/lib/demo-data.ts`) so you can explore every feature without external services.
+The app boots in **demo mode** by default (`DEMO_MODE=true`). The analytics and web assistant can
+use the deterministic 10-employee, two-month source in `src/data/demo-workforce-2026.json`. Change
+the sample password and session secret before using an internet-accessible deployment.
+
+For a real LINE account to open the demo as a specific seeded role, keep the
+verified LINE user ID server-side and add a Vercel environment mapping such as:
+
+```bash
+DEMO_LIFF_EMPLOYEE_MAP={"U_your_32_hex_LINE_user_id":"EMP008"}
+```
+
+Open `/liff/onboard` through LINE and use **คัดลอก LINE ID สำหรับตั้งค่า Demo**
+to obtain the verified subject for this mapping, then redeploy after changing
+the Vercel environment variable.
+
+Use `EMP008` (organization owner) or `EMP004` (HR) for organization analytics,
+and `EMP002`/`EMP006` for team-only supervisor analytics. An unmapped LINE
+account is sent to the existing registration flow instead of being silently
+treated as another employee. The mapping is for the in-memory sales demo only;
+production tenants should persist the verified LINE subject on the employee row.
 
 ---
 
@@ -70,7 +99,7 @@ The app boots in **demo mode** by default (`DEMO_MODE=true`). All data is in-mem
 ### 1. Database (Supabase)
 
 Run the schema and migrations in this exact order. The base seed is optional
-and is only for the original ThaiAuto demo tenant:
+and is only for the Northstar Electronics demo tenant:
 
 ```sql
 \i supabase/schema.sql
@@ -80,6 +109,8 @@ and is only for the original ThaiAuto demo tenant:
 \i supabase/migrations/v4_org_invites.sql
 \i supabase/migrations/v5_preflight_payroll_duplicates.sql -- only when v5 reports duplicates
 \i supabase/migrations/v5_analytics_geofence_payroll.sql
+\i supabase/migrations/v6_workforce_assistant_reports.sql -- optional: durable live-tenant AI reports
+\i supabase/migrations/v7_workforce_assistant_quota.sql -- recommended: shared OpenAI cost quota
 ```
 
 Or copy-paste each file's contents into the SQL editor.
@@ -91,12 +122,18 @@ NEXT_PUBLIC_SUPABASE_URL=https://<project>.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 SUPABASE_SERVICE_ROLE_KEY=<service role key>
 DEMO_MODE=false
+DASHBOARD_AUTH_USERNAME=<organization owner username>
+DASHBOARD_AUTH_PASSWORD=<strong password>
+DASHBOARD_SESSION_SECRET=<at least 32 random characters>
+DASHBOARD_ORG_ID=<organization UUID>
 ```
 
 The schema enables Row Level Security on sensitive tables, but `src/lib/data.ts`
 uses the server-only service-role client and therefore bypasses those policies.
-Before production launch, add verified dashboard/LIFF identities and enforce the
-following tenant/role rules in both application authorization and RLS:
+The dashboard owner cookie is signed and the LIFF cookie is issued only after server-side LINE
+ID-token verification. Before a multi-organization production launch, replace the single-owner
+environment credential with a per-user identity provider and enforce the following tenant/role
+rules in both application authorization and RLS:
 
 - **employee** — `SELECT` own row, own attendance, own leave/OT, own payroll only
 - **supervisor** — same-department `SELECT`, `UPDATE` on leave/OT status
@@ -113,6 +150,11 @@ For each, register a **Messaging API channel** and grab:
 - `LINE_CHANNEL_SECRET`
 - `LINE_CHANNEL_ID`
 
+Also set the numeric ID of the **LINE Login channel that owns the LIFF apps**:
+
+- `LINE_LOGIN_CHANNEL_ID`
+- `LIFF_SESSION_SECRET` (server-only, at least 32 random characters)
+
 Set the webhook URL to:
 
 ```
@@ -123,7 +165,7 @@ The webhook auto-verifies signatures with `LINE_CHANNEL_SECRET`.
 
 ### 3. LIFF apps
 
-Create eight LIFF apps under your LINE Login channel. Each app maps to one of the LIFF routes:
+Create LIFF apps under your LINE Login channel. Each app maps to one of the LIFF routes:
 
 | Env var                                | Endpoint URL                                  | Size     |
 | -------------------------------------- | --------------------------------------------- | -------- |
@@ -135,8 +177,16 @@ Create eight LIFF apps under your LINE Login channel. Each app maps to one of th
 | `NEXT_PUBLIC_LIFF_ID_AI_CHAT`          | `https://<domain>/liff/ai-chat`               | Full     |
 | `NEXT_PUBLIC_LIFF_ID_TEAM`             | `https://<domain>/liff/team`                  | Full     |
 | `NEXT_PUBLIC_LIFF_ID_ONBOARD`          | `https://<domain>/liff/onboard`               | Full     |
+| `NEXT_PUBLIC_LIFF_ID_ANALYTICS`        | `https://<domain>/liff/analytics`             | Full     |
 
 Each LIFF app needs the `profile` and `openid` scopes.
+
+`NEXT_PUBLIC_LIFF_ID_ANALYTICS` is optional in code. If it is absent, analytics reuses
+`NEXT_PUBLIC_LIFF_ID_ATTENDANCE`. Reuse is reliable only when the Attendance LIFF Endpoint URL is
+the common parent `https://<domain>/liff`; then open attendance and analytics through
+`https://liff.line.me/<ATTENDANCE_LIFF_ID>/my-attendance` and
+`https://liff.line.me/<ATTENDANCE_LIFF_ID>/analytics`. If the existing endpoint remains
+`/liff/my-attendance`, create the dedicated analytics LIFF app instead.
 
 ### 4. Rich Menus
 
@@ -148,7 +198,28 @@ Build two Rich Menus:
 Switch menus per user with the LINE `richmenu/<menuId>/user/<userId>` API after binding completes
 in `/liff/onboard`.
 
-### 5. Anthropic / Mastra agent
+### 5. AI assistants
+
+The authenticated web dashboard uses OpenAI Responses with structured output and the
+`gpt-5.6-luna` model:
+
+```bash
+OPENAI_API_KEY=sk-...
+```
+
+Without this key, `/dashboard/ai-assistant` still answers common workforce questions from the
+same JSON source deterministically. Generated report pages render validated React/Recharts data;
+raw model HTML is never executed.
+
+The synthetic JSON demo keeps OpenAI responses for multi-turn chat. Live tenant processing is
+stateless and audit persistence is off by default. Enable `OPENAI_STORE_RESPONSES=true` and/or
+`WORKFORCE_ASSISTANT_AUDIT_ENABLED=true` only after defining the organization's PDPA/DPA,
+retention, and deletion policy. For an internet-facing Vercel deployment, apply migration v7 and
+set `WORKFORCE_ASSISTANT_SHARED_RATE_LIMIT=true` plus
+`WORKFORCE_ASSISTANT_SHARED_RATE_LIMIT_REQUIRED=true`. The shared minute/day quota is atomic
+across regions and fails closed if unavailable; concurrency remains a per-instance latency guard.
+
+The existing LINE/LIFF agent can additionally use Anthropic:
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-...
@@ -170,6 +241,7 @@ same tool list — the tool signatures are already Mastra-compatible.
 | Route | Description |
 | ----- | ----------- |
 | `/`   | Multilingual landing page (Hero, Why, Features, How, Compliance, Testimonials, CTA, Footer) |
+| `/login` | Signed organization-owner login for all dashboard routes |
 
 ### Dashboard (`/dashboard/*`)
 
@@ -183,7 +255,8 @@ same tool list — the tool signatures are already Mastra-compatible.
 | `/dashboard/payroll`          | Payroll snapshots + Thai 2026 SSO/PIT estimate detail       |
 | `/dashboard/reports`          | Legacy report presentation                                  |
 | `/dashboard/analytics`        | Source-backed workforce dashboard + scoped Excel export     |
-| `/dashboard/ai-assistant`     | Full-page EC AIHR chat with tool-call inspection            |
+| `/dashboard/ai-assistant`     | Full-page OpenAI workforce chat with stop/new-chat controls  |
+| `/dashboard/ai-reports/[slug]`| Validated charts and findings opened from assistant answers  |
 | `/dashboard/settings`         | Factory profile, geofence editor, holidays, roles           |
 | `/dashboard/setup`            | First-time admin onboarding (org create + LINE OA bind)     |
 
@@ -209,10 +282,21 @@ same tool list — the tool signatures are already Mastra-compatible.
 | `/api/line/webhook`    | POST   | LINE Messaging API webhook (signature-verified)      |
 | `/api/mastra/agent`    | POST   | `{ message, employeeId?, channel? }` → agent reply   |
 | `/api/analytics/export`| GET    | Authorized Excel export by dataset and date window    |
+| `/api/liff/session`    | POST   | Verify LINE ID token and issue signed HttpOnly session |
+| `/api/workforce-assistant` | POST | Authorized streamed OpenAI/fallback workforce answer |
 
 ---
 
-## EC AIHR Assistant — agent tools
+## EC AIHR Assistant
+
+The web assistant receives the validated workforce context and the `Asia/Bangkok` timezone. Live
+tenants use the current Bangkok date per request; the frozen JSON demo uses its latest source date
+`2026-07-15`. It resolves phrases such as “เมื่อวาน” and “เมื่อ 2 วันที่แล้ว”, streams a concise
+answer, and can link to a safe report page with charts.
+Attendance signals are described neutrally; they are not used to label character, diligence, or
+employee quality.
+
+### Legacy LINE agent tools
 
 Defined in `src/lib/mastra/tools.ts`. All eight tools are registered with the Anthropic API as
 tool definitions, so Claude can call them autonomously. Each one reads from the same data layer
@@ -240,12 +324,12 @@ Try these in the dashboard's `Ask AI` page or in the LIFF chat:
 - Generate the May payroll for EMP001.
 - Suggest a shift schedule for Production next week.
 - Are there any pending approvals right now?
-- Predict absenteeism for tomorrow.
 - Draft a Songkran holiday announcement in Thai.
 ```
 
-The fallback agent (no API key) handles every prompt deterministically. With a key, Claude calls
-the tools and synthesizes natural-language answers in the user's language.
+The legacy fallback agent (no Anthropic key) handles its supported prompts deterministically.
+With an Anthropic key, Claude calls the tools and synthesizes natural-language answers in the
+user's language. The web workforce assistant uses `OPENAI_API_KEY` independently.
 
 ### Test cases
 
@@ -318,6 +402,7 @@ src/
       payroll/
       reports/
       ai-assistant/
+      ai-reports/
       settings/
       setup/
     liff/                       # LINE LIFF mobile pages
@@ -330,10 +415,13 @@ src/
       payslip/
       ai-chat/
       team/
+      analytics/
       onboard/                  # LINE → employee binding
     api/
       line/webhook/             # LINE Messaging API webhook
+      liff/session/             # LINE ID-token verification + signed cookie
       mastra/agent/             # Mastra agent endpoint
+      workforce-assistant/      # OpenAI Responses + deterministic fallback
   components/
     landing/                    # Hero, features, how, compliance, etc.
     dashboard/                  # Sidebar, topbar, charts, AI chat
@@ -349,6 +437,8 @@ src/
     zh.json
   lib/
     demo-data.ts                # In-memory mock data for demo mode
+    demo-workforce.ts           # Validated two-month JSON analytics adapter
+    workforce-assistant/        # Context, date resolution, OpenAI, reports
     data.ts                     # Data access layer
     types.ts                    # Domain types
     utils.ts
@@ -366,6 +456,8 @@ supabase/
 ## Security checklist
 
 - LINE webhook signature verified (HMAC-SHA256 + timing-safe compare)
+- Dashboard owner session signed in an HttpOnly cookie; production fails closed if auth env is incomplete
+- LIFF ID token verified server-side against its LINE Login channel before issuing an HttpOnly cookie
 - Supabase RLS enabled on `employees`, `attendance_logs`, `leave_requests`,
   `overtime_requests`, `payrolls`, `notifications`
 - Geofence + IP whitelist enforced server-side

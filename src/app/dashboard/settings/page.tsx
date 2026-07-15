@@ -15,7 +15,15 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { GeofenceSettingsForm } from "@/components/dashboard/geofence-settings-form";
-import { getEmployeeByLineId, getOrganization, isDemoMode } from "@/lib/data";
+import {
+  getDefaultOrganizationId,
+  getEmployeeByLineId,
+  getOrganization,
+  isDemoMode,
+} from "@/lib/data";
+import { getDashboardOrganizationId } from "@/lib/dashboard-auth-config";
+import { getDashboardOwnerSession } from "@/lib/dashboard-session";
+import { shouldUseDemoWorkforceSource } from "@/lib/demo-workforce";
 import { getLiffUserIdFromCookie } from "@/lib/liff-session";
 
 const HOLIDAYS_2026 = [
@@ -44,13 +52,21 @@ const ROLES = [
 
 export default async function SettingsPage() {
   const demoMode = isDemoMode();
-  const [t, lineUserId] = await Promise.all([
+  const [t, lineUserId, dashboardSession] = await Promise.all([
     getTranslations("dashboard.settings"),
     getLiffUserIdFromCookie(),
+    getDashboardOwnerSession(),
   ]);
   const actor = !demoMode && lineUserId ? await getEmployeeByLineId(lineUserId) : undefined;
-  const org = await getOrganization(actor?.org_id);
+  const ownerOrgId = dashboardSession
+    ? (getDashboardOrganizationId() ?? getDefaultOrganizationId())
+    : undefined;
+  const org = await getOrganization(actor?.org_id ?? ownerOrgId);
+  const readOnlyJsonDemo = Boolean(
+    dashboardSession && !demoMode && shouldUseDemoWorkforceSource(ownerOrgId),
+  );
   const canManageGeofence =
+    (Boolean(dashboardSession) && !readOnlyJsonDemo) ||
     demoMode ||
     (!!actor &&
       actor.account_status === "active" &&

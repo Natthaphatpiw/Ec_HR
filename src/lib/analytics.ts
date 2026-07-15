@@ -1,5 +1,6 @@
 import "server-only";
 
+import { resolveWorkforceAnalyticsRange } from "@/lib/analytics-range";
 import {
   getOrganizationById,
   listAttendanceLogs,
@@ -61,7 +62,7 @@ export interface AnalyticsLeaveTypeRow {
   rejectedDays: number;
 }
 
-export interface AnalyticsRiskRow {
+export interface AnalyticsEmployeeAttendanceRow {
   employeeId: string;
   employeeCode: string;
   name: string;
@@ -71,8 +72,6 @@ export interface AnalyticsRiskRow {
   lateDays: number;
   approvedOtHours: number;
   approvedLeaveDays: number;
-  riskScore: number;
-  level: "low" | "medium" | "high";
 }
 
 export interface AnalyticsDataQualityIssue {
@@ -124,7 +123,7 @@ export interface WorkforceAnalytics {
   departments: AnalyticsDepartmentRow[];
   payrollTrend: AnalyticsPayrollMonth[];
   leaveByType: AnalyticsLeaveTypeRow[];
-  risks: AnalyticsRiskRow[];
+  employeeAttendance: AnalyticsEmployeeAttendanceRow[];
   dataQuality: AnalyticsDataQualityIssue[];
   raw: AnalyticsRawData;
 }
@@ -132,13 +131,10 @@ export interface WorkforceAnalytics {
 export interface WorkforceAnalyticsOptions {
   orgId: string;
   days?: number;
+  startDate?: string;
+  endDate?: string;
   employeeIds?: string[];
   scope?: "organization" | "team";
-}
-
-function clampDays(value: number | undefined): number {
-  if (!Number.isFinite(value)) return 30;
-  return Math.min(180, Math.max(7, Math.round(value ?? 30)));
 }
 
 function datePlus(date: string, days: number): string {
@@ -178,7 +174,6 @@ function hoursBetween(start: string, end: string | null): number | null {
 export async function getWorkforceAnalytics(
   options: WorkforceAnalyticsOptions,
 ): Promise<WorkforceAnalytics> {
-  const days = clampDays(options.days);
   const organization = await getOrganizationById(options.orgId);
   if (!organization) throw new Error("Organization not found.");
 
@@ -211,8 +206,12 @@ export async function getWorkforceAnalytics(
     attendance.find((row) => row.type === "in")?.timestamp.slice(0, 10) ??
     payrolls[0]?.month_year.concat("-28") ??
     new Date().toISOString().slice(0, 10);
-  const rangeEnd = asOfDate;
-  const rangeStart = datePlus(rangeEnd, -(days - 1));
+  const { rangeStart, rangeEnd, days } = resolveWorkforceAnalyticsRange({
+    defaultEndDate: asOfDate,
+    days: options.days,
+    startDate: options.startDate,
+    endDate: options.endDate,
+  });
   const activeEmployees = employees.filter((employee) => employee.account_status === "active");
   // Synthetic demo rows intentionally do not carry fake LINE identities. Do
   // not report that deliberate privacy choice as a production onboarding gap.
@@ -407,18 +406,14 @@ export async function getWorkforceAnalytics(
   for (const request of approvedLeaves) {
     leaveByEmployee.set(request.employee_id, (leaveByEmployee.get(request.employee_id) ?? 0) + request.days);
   }
-  const risks = activeEmployees
-    .map((employee): AnalyticsRiskRow => {
+  const employeeAttendance = activeEmployees
+    .map((employee): AnalyticsEmployeeAttendanceRow => {
       const scheduledDays = expectedDaysByEmployee.get(employee.id) ?? 0;
       const presentDays = presentDaysByEmployee.get(employee.id) ?? 0;
       const absentDays = Math.max(0, scheduledDays - presentDays);
       const lateDays = lateDaysByEmployee.get(employee.id) ?? 0;
       const approvedOtHours = Math.round((otByEmployee.get(employee.id) ?? 0) * 10) / 10;
       const approvedLeaveDays = Math.round((leaveByEmployee.get(employee.id) ?? 0) * 10) / 10;
-      const riskScore = Math.min(
-        100,
-        Math.round(absentDays * 18 + lateDays * 7 + Math.max(0, approvedOtHours - 12) * 2),
-      );
       return {
         employeeId: employee.id,
         employeeCode: employee.employee_code ?? "—",
@@ -429,11 +424,14 @@ export async function getWorkforceAnalytics(
         lateDays,
         approvedOtHours,
         approvedLeaveDays,
-        riskScore,
-        level: riskScore >= 55 ? "high" : riskScore >= 25 ? "medium" : "low",
       };
     })
-    .sort((a, b) => b.riskScore - a.riskScore || b.absentDays - a.absentDays);
+    .sort(
+      (a, b) =>
+        a.department.localeCompare(b.department) ||
+        a.employeeCode.localeCompare(b.employeeCode) ||
+        a.name.localeCompare(b.name),
+    );
 
   const missingShiftIds = new Set(employeeShifts.map((shift) => shift.employee_id));
   const dataQuality: AnalyticsDataQualityIssue[] = [
@@ -513,7 +511,7 @@ export async function getWorkforceAnalytics(
     departments,
     payrollTrend,
     leaveByType,
-    risks,
+    employeeAttendance,
     dataQuality,
     raw: {
       organization,

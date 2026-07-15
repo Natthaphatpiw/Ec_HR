@@ -402,10 +402,16 @@ export interface Notification {
 
 export interface AIAgentInteraction {
   id: string;
+  org_id: string | null;
   employee_id: string | null;
   channel: "line" | "dashboard" | "liff";
   user_message: string;
   agent_response: string;
   tools_used: unknown;
+  openai_response_id: string | null;
+  model: string | null;
+  report_slug: string | null;
+  report_payload: unknown;
+  response_source: "openai" | "deterministic" | null;
   created_at: string;
 }

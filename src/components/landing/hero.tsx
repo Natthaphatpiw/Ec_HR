@@ -133,7 +133,7 @@ function PhoneStack() {
         className="absolute -left-6 top-6 hidden animate-float lg:flex"
         icon={<ShieldCheck className="h-4 w-4 text-emerald-600" />}
         title="Geofence verified"
-        body="ThaiAuto Factory · 142m"
+        body="Northstar Electronics · 142m"
       />
       <FloatingBadge
         className="absolute -right-2 bottom-24 hidden animate-float-reverse [animation-delay:-2s] lg:flex"

@@ -126,8 +126,7 @@ export default async function ShiftsPage() {
                 <CardTitle className="text-orange-700">{t("aiSuggest")}</CardTitle>
               </div>
               <CardDescription>
-                Mastra suggests rotation patterns based on historical attendance, leave patterns, and OT
-                fatigue
+                Workforce planning examples based on recorded schedules, approved leave, and OT coverage
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
