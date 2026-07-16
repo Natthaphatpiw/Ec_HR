@@ -63,7 +63,6 @@ export function RegisterForm() {
   const [lineUserId, setLineUserId] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [pictureUrl, setPictureUrl] = useState("");
-  const [demo, setDemo] = useState(false);
 
   // Invite (employee registration is invite-only)
   const [inviteToken, setInviteToken] = useState("");
@@ -137,7 +136,6 @@ export function RegisterForm() {
 
     initLiff(process.env.NEXT_PUBLIC_LIFF_ID_REGISTER).then(async (res) => {
       if (cancelled) return;
-      setDemo(res.demoMode);
       setLiffReady(true);
       if (res.profile) {
         setLineUserId(res.profile.userId);
@@ -336,12 +334,6 @@ export function RegisterForm() {
 
   return (
     <div className="space-y-4">
-      {demo && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
-          Demo mode · LIFF ID ไม่ได้ตั้งค่า ระบบจะใช้บัญชีตัวอย่างให้
-        </div>
-      )}
-
       <InviteBanner
         businessName={inviteInfo.businessName ?? "—"}
         supervisorName={inviteInfo.supervisorName}

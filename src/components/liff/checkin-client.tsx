@@ -46,7 +46,6 @@ interface Position {
 export function CheckinClient(props: CheckinProps) {
   const t = useTranslations("liff.checkin");
   const [profile, setProfile] = useState<LiffProfile | null>(null);
-  const [demoMode, setDemoMode] = useState(false);
   const [lineUserId, setLineUserId] = useState("");
   const [now, setNow] = useState<Date>(() => new Date());
   const [position, setPosition] = useState<Position | null>(null);
@@ -67,7 +66,6 @@ export function CheckinClient(props: CheckinProps) {
     let cancelled = false;
     initLiff(process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN).then(async (res) => {
       if (cancelled) return;
-      setDemoMode(res.demoMode);
       if (res.profile) {
         setProfile(res.profile);
         setLineUserId(res.profile.userId);
@@ -186,12 +184,6 @@ export function CheckinClient(props: CheckinProps) {
 
   return (
     <div className="space-y-4">
-      {demoMode && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
-          Demo mode · LIFF ไม่ได้ตั้งค่า ใช้บัญชีตัวอย่าง
-        </div>
-      )}
-
       <Card>
         <CardContent className="space-y-4 p-5">
           <div className="flex items-start justify-between">

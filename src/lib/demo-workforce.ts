@@ -707,7 +707,7 @@ function rawLeaveRequests(dataset: DemoWorkforceDataset): LeaveRequest[] {
       status: request.status,
       supervisor_id: supervisorId,
       approver_id: request.status === "pending" ? null : supervisorId,
-      reason: "คำขอที่บันทึกในชุดข้อมูลสาธิต",
+      reason: "คำขอที่บันทึกในระบบ",
       decision_reason: request.status === "rejected" ? "ตารางกำลังคนในวันที่ขอยังไม่พร้อม" : null,
       decided_at: request.decidedAt,
       line_card_message_id: null,

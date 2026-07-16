@@ -4,10 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   ArrowUp,
-  Bot,
   FileText,
   Maximize2,
-  MessageCircle,
   Minimize2,
   Plus,
   Square,
@@ -25,6 +23,7 @@ import {
   type ReactNode,
 } from "react";
 import { toast } from "sonner";
+import { AiMark } from "@/components/dashboard/ai-mark";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -235,11 +234,11 @@ export function WorkforceAssistantLauncher() {
         <Button
           type="button"
           size="icon"
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-card"
+          className="fixed bottom-5 right-4 z-40 h-14 w-14 rounded-full border border-navy-200 bg-white text-navy-900 shadow-card hover:bg-navy-50 sm:bottom-6 sm:right-6"
           aria-label="เปิด Workforce Assistant"
           onClick={() => setOpen(true)}
         >
-          <MessageCircle className="h-6 w-6" />
+          <AiMark size="lg" />
         </Button>
       )}
       {open && (
@@ -247,8 +246,8 @@ export function WorkforceAssistantLauncher() {
           className={cn(
             "fixed z-50",
             expanded
-              ? "inset-3 md:bottom-4 md:left-[17rem] md:right-4 md:top-4"
-              : "bottom-6 right-3 h-[min(680px,calc(100vh-3rem))] w-[min(430px,calc(100vw-1.5rem))] sm:right-6",
+              ? "inset-2 sm:inset-4"
+              : "inset-2 sm:bottom-6 sm:left-auto sm:right-6 sm:top-auto sm:h-[min(680px,calc(100dvh-3rem))] sm:w-[min(430px,calc(100vw-3rem))]",
           )}
         >
           <WorkforceAssistantChat
@@ -298,19 +297,19 @@ export function WorkforceAssistantChat({
   return (
     <Card
       className={cn(
-        "flex h-full min-h-0 flex-col overflow-hidden border-navy-200 bg-white",
-        mode === "page" && "h-[calc(100vh-164px)] min-h-[560px]",
+        "flex h-full min-h-0 flex-col overflow-hidden border-navy-200 bg-white shadow-card",
+        mode === "page" && "h-[calc(100dvh-136px)] min-h-[520px] sm:h-[calc(100dvh-164px)] sm:min-h-[560px]",
       )}
     >
-      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-navy-100 px-4 py-3">
+      <header className="flex shrink-0 items-center justify-between gap-3 border-b border-navy-100 bg-white px-3 py-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-orange-400 text-white">
-            <Bot className="h-4 w-4" />
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-navy-100 bg-white shadow-soft">
+            <AiMark size="md" />
           </div>
           <div className="min-w-0">
-            <h2 className="truncate text-sm font-semibold text-navy-900">Workforce Assistant</h2>
+            <h2 className="truncate text-sm font-semibold text-navy-900">ผู้ช่วย AI สำหรับงานบุคคล</h2>
             <p className="truncate text-[11px] text-navy-500">
-              GPT-5.6 Luna เมื่อมี key · JSON fallback สำหรับ demo
+              วิเคราะห์ข้อมูลบุคลากรและสร้างรายงานองค์กร
             </p>
           </div>
         </div>
@@ -360,23 +359,20 @@ export function WorkforceAssistantChat({
         role="log"
         aria-live="polite"
         aria-relevant="additions text"
-        className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4"
+        className="min-h-0 flex-1 space-y-4 overflow-y-auto bg-navy-50/30 px-3 py-4 sm:px-4"
       >
-        {session.messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
+        {session.messages.map((message, index) => (
+          <MessageBubble
+            key={message.id}
+            message={message}
+            pending={
+              session.sending &&
+              index === session.messages.length - 1 &&
+              message.role === "assistant" &&
+              message.content === ""
+            }
+          />
         ))}
-        {session.sending && session.messages.at(-1)?.content === "" && (
-          <div className="flex items-center gap-3 text-sm text-navy-500">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange-400 text-white">
-              <Bot className="h-4 w-4" />
-            </span>
-            <span className="flex gap-1" aria-label="กำลังประมวลผล">
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400" />
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400 [animation-delay:150ms]" />
-              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-400 [animation-delay:300ms]" />
-            </span>
-          </div>
-        )}
       </div>
 
       {session.messages.length === 1 && (
@@ -395,8 +391,8 @@ export function WorkforceAssistantChat({
         </div>
       )}
 
-      <footer className="shrink-0 border-t border-navy-100 bg-navy-50/50 p-3">
-        <div className="rounded-xl border border-navy-200 bg-white p-2 shadow-soft">
+      <footer className="shrink-0 border-t border-navy-100 bg-white p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="rounded-xl border border-navy-200 bg-white p-2 shadow-soft focus-within:border-orange-300 focus-within:ring-2 focus-within:ring-orange-100">
           <Textarea
             aria-label="ข้อความถึง Workforce Assistant"
             value={session.input}
@@ -415,7 +411,7 @@ export function WorkforceAssistantChat({
               วันที่อ้างอิง {formattedReferenceDate} · Asia/Bangkok
             </span>
             {session.sending ? (
-              <Button type="button" variant="outline" size="sm" onClick={session.stop}>
+              <Button type="button" variant="destructive" size="sm" onClick={session.stop}>
                 <Square className="h-3.5 w-3.5" />
                 หยุด
               </Button>
@@ -440,14 +436,14 @@ export function WorkforceAssistantChat({
   );
 }
 
-function MessageBubble({ message }: { message: ChatMessage }) {
+function MessageBubble({ message, pending = false }: { message: ChatMessage; pending?: boolean }) {
   if (message.role === "user") {
     return (
       <div className="flex items-start justify-end gap-2">
         <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-tr-sm bg-navy-900 px-4 py-2.5 text-sm leading-6 text-white shadow-soft">
           {message.content}
         </div>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-700">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-700" aria-hidden="true">
           <User className="h-4 w-4" />
         </span>
       </div>
@@ -456,21 +452,24 @@ function MessageBubble({ message }: { message: ChatMessage }) {
 
   return (
     <div className="flex items-start gap-2">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-400 text-white">
-        <Bot className="h-4 w-4" />
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-navy-100 bg-white shadow-soft">
+        <AiMark size="sm" />
       </span>
       <div className="max-w-[88%] space-y-2">
-        {message.content && (
-          <div className="whitespace-pre-wrap rounded-2xl rounded-tl-sm border border-navy-100 bg-white px-4 py-2.5 text-sm leading-6 text-navy-900 shadow-soft">
-            {message.content}
+        {(message.content || pending) && (
+          <div className="whitespace-pre-wrap rounded-2xl rounded-tl-sm border border-navy-200 bg-white px-4 py-2.5 text-sm leading-6 text-navy-900 shadow-soft">
+            {pending ? (
+              <span className="flex min-h-6 items-center gap-1.5" aria-label="กำลังประมวลผล">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500 [animation-delay:150ms]" />
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-orange-500 [animation-delay:300ms]" />
+              </span>
+            ) : (
+              message.content
+            )}
           </div>
         )}
         <div className="flex flex-wrap items-center gap-2 px-1">
-          {message.source && (
-            <Badge variant={message.source === "openai" ? "default" : "muted"}>
-              {message.source === "openai" ? "GPT-5.6 Luna" : "JSON demo"}
-            </Badge>
-          )}
           {message.stopped && <Badge variant="outline">หยุดแล้ว</Badge>}
           {message.reportUrl && (
             <Button asChild variant="outline" size="sm" className="h-7">

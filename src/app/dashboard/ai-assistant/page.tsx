@@ -5,10 +5,10 @@ export default function AiAssistantPage() {
   return (
     <>
       <DashboardTopbar
-        title="Workforce Assistant"
-        subtitle="ถามข้อมูลกำลังคนแบบหลายรอบ สร้างรายงานจาก JSON ที่ตรวจ schema แล้ว และอ้างอิงเวลา Asia/Bangkok"
+        title="ผู้ช่วย AI สำหรับงานบุคคล"
+        subtitle="ถามข้อมูลกำลังคน วิเคราะห์แนวโน้ม และสร้างรายงานพร้อมกราฟ"
       />
-      <main className="min-h-0 flex-1 px-6 py-6">
+      <main className="min-h-0 flex-1 px-3 py-3 sm:px-6 sm:py-6">
         <WorkforceAssistantChat mode="page" />
       </main>
     </>

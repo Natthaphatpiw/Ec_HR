@@ -79,8 +79,8 @@ const config: Config = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["var(--font-inter)", "var(--font-noto-thai)", "var(--font-noto-cjk)", "system-ui", "sans-serif"],
-        thai: ["var(--font-noto-thai)", "system-ui", "sans-serif"],
+        sans: ["var(--font-sarabun)", "var(--font-noto-cjk)", "system-ui", "sans-serif"],
+        thai: ["var(--font-sarabun)", "system-ui", "sans-serif"],
         cjk: ["var(--font-noto-cjk)", "system-ui", "sans-serif"],
       },
       boxShadow: {

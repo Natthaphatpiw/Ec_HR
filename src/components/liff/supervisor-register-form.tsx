@@ -87,7 +87,6 @@ export function SupervisorRegisterForm() {
   const [lineUserId, setLineUserId] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [pictureUrl, setPictureUrl] = useState("");
-  const [demo, setDemo] = useState(false);
 
   const [stateCheck, setStateCheck] = useState<SupervisorRegistrationStateResponse | null>(null);
 
@@ -147,7 +146,6 @@ export function SupervisorRegisterForm() {
         process.env.NEXT_PUBLIC_LIFF_ID_REGISTER,
     ).then(async (res) => {
       if (cancelled) return;
-      setDemo(res.demoMode);
       setLiffReady(true);
       if (res.profile) {
         setLineUserId(res.profile.userId);
@@ -360,12 +358,6 @@ export function SupervisorRegisterForm() {
 
   return (
     <div className="space-y-4">
-      {demo && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
-          Demo mode · LIFF ID ไม่ได้ตั้งค่า ระบบจะใช้บัญชีตัวอย่างให้
-        </div>
-      )}
-
       <LineProfileCard displayName={displayName} userId={lineUserId} pictureUrl={pictureUrl} />
 
       <StepIndicator step={step} total={TOTAL_STEPS} stepNameKey={STEP_KEYS[step]} />

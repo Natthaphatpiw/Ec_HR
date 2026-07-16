@@ -1,20 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Thai, Noto_Sans_SC } from "next/font/google";
+import { Noto_Sans_SC, Sarabun } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 import { Toaster } from "sonner";
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-const notoThai = Noto_Sans_Thai({
+const sarabun = Sarabun({
   subsets: ["thai", "latin"],
   weight: ["400", "500", "600", "700"],
-  variable: "--font-noto-thai",
+  variable: "--font-sarabun",
   display: "swap",
 });
 
@@ -86,7 +80,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const messages = await getMessages();
 
   return (
-    <html lang={locale} className={`${inter.variable} ${notoThai.variable} ${notoSC.variable}`}>
+    <html lang={locale} className={`${sarabun.variable} ${notoSC.variable}`}>
       <body className="min-h-screen bg-white text-navy-900 antialiased">
         <NextIntlClientProvider messages={messages} locale={locale}>
           {children}

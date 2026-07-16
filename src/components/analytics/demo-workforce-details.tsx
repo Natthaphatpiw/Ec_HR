@@ -88,9 +88,6 @@ export function DemoWorkforceDetails({
             </div>
           </div>
         </div>
-        <Badge className="border-navy-200 bg-navy-50 text-navy-700">
-          {t("sourceBadge")}
-        </Badge>
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="daily">

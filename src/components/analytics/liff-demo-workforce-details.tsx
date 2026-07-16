@@ -80,9 +80,6 @@ export function LiffDemoWorkforceDetails({
             </div>
           </div>
         </div>
-        <Badge className="mt-3 w-fit border-orange-200 bg-orange-100 text-orange-700">
-          {t("sourceBadge")}
-        </Badge>
       </CardHeader>
 
       <CardContent className="p-5 pt-0">

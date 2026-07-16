@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, Database, FileText } from "lucide-react";
+import { ArrowLeft, CalendarDays, FileText } from "lucide-react";
 import { WorkforceReportCharts } from "@/components/dashboard/workforce-report-charts";
 import { DashboardTopbar } from "@/components/dashboard/topbar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -28,8 +27,6 @@ import { cn } from "@/lib/utils";
 
 interface ReportView {
   report: WorkforceReportPayload;
-  model: string;
-  source: "openai" | "deterministic";
   createdAt: string;
 }
 
@@ -40,8 +37,6 @@ async function loadReport(slug: string, orgId: string): Promise<ReportView | nul
       if (token.orgId !== orgId) return null;
       return {
         report: token.report,
-        model: token.model,
-        source: token.source,
         createdAt: token.createdAt,
       };
     } catch {
@@ -56,8 +51,6 @@ async function loadReport(slug: string, orgId: string): Promise<ReportView | nul
     if (!report.success) return null;
     return {
       report: report.data,
-      model: record.model ?? "workforce-assistant",
-      source: record.response_source ?? "deterministic",
       createdAt: record.created_at,
     };
   } catch {
@@ -88,7 +81,7 @@ export default async function WorkforceReportPage({
         title={view.report.title}
         subtitle="รายงานที่สร้างจากข้อมูลแบบมีโครงสร้างและแสดงผลด้วยองค์ประกอบของระบบ"
       />
-      <main className="flex-1 space-y-6 px-6 py-6">
+      <main className="flex-1 space-y-6 px-4 py-6 sm:px-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <Button asChild variant="outline" size="sm">
             <Link href="/dashboard/ai-assistant">
@@ -96,15 +89,10 @@ export default async function WorkforceReportPage({
               กลับไปที่ผู้ช่วย
             </Link>
           </Button>
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant={view.source === "openai" ? "default" : "muted"}>
-              {view.source === "openai" ? "OpenAI GPT-5.6 Luna" : "Deterministic JSON"}
-            </Badge>
-            <span className="flex items-center gap-1.5 text-xs text-navy-500">
-              <CalendarDays className="h-3.5 w-3.5" />
-              {formattedCreatedAt}
-            </span>
-          </div>
+          <span className="flex items-center gap-1.5 text-xs text-navy-500">
+            <CalendarDays className="h-3.5 w-3.5" />
+            {formattedCreatedAt}
+          </span>
         </div>
 
         <Card className="overflow-hidden border-navy-200">
@@ -119,14 +107,12 @@ export default async function WorkforceReportPage({
                 {view.report.summary}
               </p>
             </div>
-            <div className="rounded-lg border border-navy-100 bg-navy-50 px-4 py-3 text-xs text-navy-600">
-              <div className="flex items-center gap-2 font-medium text-navy-900">
-                <Database className="h-4 w-4 text-orange-500" />
-                Safe structured report
+            <div className="rounded-lg border border-orange-200 bg-orange-50 px-4 py-3 text-xs text-navy-700">
+              <div className="flex items-center gap-2 font-semibold text-navy-900">
+                <FileText className="h-4 w-4 text-orange-500" />
+                รายงานพร้อมใช้งาน
               </div>
-              <p className="mt-1 max-w-xs">
-                ระบบตรวจ schema แล้ว render ด้วย React โดยไม่รัน HTML หรือสคริปต์จากโมเดล
-              </p>
+              <p className="mt-1 max-w-xs">สรุปจากข้อมูลที่อยู่ในขอบเขตองค์กรของคุณ</p>
             </div>
           </CardContent>
         </Card>

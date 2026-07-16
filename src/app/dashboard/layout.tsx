@@ -1,9 +1,6 @@
 import { redirect } from "next/navigation";
-import { DashboardSidebar } from "@/components/dashboard/sidebar";
-import {
-  WorkforceAssistantLauncher,
-  WorkforceAssistantProvider,
-} from "@/components/dashboard/workforce-assistant";
+import { DashboardShell } from "@/components/dashboard/dashboard-shell";
+import { WorkforceAssistantProvider } from "@/components/dashboard/workforce-assistant";
 import { isDashboardOwnerAuthorized } from "@/lib/dashboard-session";
 import {
   loadDemoWorkforceDataset,
@@ -19,11 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <WorkforceAssistantProvider referenceDate={referenceDate}>
-      <div className="flex min-h-screen bg-navy-50/40">
-        <DashboardSidebar />
-        <div className="flex min-w-0 flex-1 flex-col">{children}</div>
-        <WorkforceAssistantLauncher />
-      </div>
+      <DashboardShell>{children}</DashboardShell>
     </WorkforceAssistantProvider>
   );
 }

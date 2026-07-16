@@ -20,7 +20,6 @@ export function OnboardForm() {
   const [displayName, setDisplayName] = useState("");
   const [employeeCode, setEmployeeCode] = useState("");
   const [bound, setBound] = useState<{ name: string; dept: string; position: string } | null>(null);
-  const [demo, setDemo] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,7 +29,6 @@ export function OnboardForm() {
         setLineUserId(res.profile.userId);
         setDisplayName(res.profile.displayName);
       }
-      setDemo(res.demoMode);
     });
     return () => {
       cancelled = true;
@@ -77,12 +75,6 @@ export function OnboardForm() {
 
   return (
     <div className="space-y-4">
-      {demo && (
-        <div className="rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs text-orange-700">
-          Demo · using mock LINE profile. In production, the form auto-fills from `liff.getProfile()`.
-        </div>
-      )}
-
       <Card>
         <CardContent className="space-y-2 p-5">
           <div className="flex items-center gap-3">
@@ -112,7 +104,7 @@ export function OnboardForm() {
             }}
           >
             <Copy className="h-3.5 w-3.5" />
-            คัดลอก LINE ID สำหรับตั้งค่า Demo
+            คัดลอก LINE ID
           </Button>
         </CardContent>
       </Card>
@@ -132,9 +124,6 @@ export function OnboardForm() {
                 autoComplete="off"
                 required
               />
-              <p className="text-[11px] text-navy-500">
-                Demo codes: EMP001, EMP004, EMP007, EMP010
-              </p>
             </div>
 
             <div className="space-y-2">

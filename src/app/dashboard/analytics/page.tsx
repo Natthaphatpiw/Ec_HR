@@ -8,7 +8,6 @@ import {
   Database,
   LockKeyhole,
   MapPinned,
-  ShieldCheck,
   Users,
 } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -172,11 +171,6 @@ export default async function DashboardAnalyticsPage({
               <Badge variant="muted">
                 {formatDate(analytics.rangeStart)} – {formatDate(analytics.rangeEnd)}
               </Badge>
-              {useDemoWorkforce && (
-                <Badge className="border-orange-200 bg-orange-100 text-orange-700">
-                  {t("demo.sourceBadge")}
-                </Badge>
-              )}
               <span className="text-xs text-navy-500">
                 {t("updatedThrough", { date: formatDate(analytics.asOfDate) })}
               </span>
@@ -199,16 +193,6 @@ export default async function DashboardAnalyticsPage({
             <AnalyticsExportMenu days={days} />
           </div>
         </div>
-
-        {access.readOnlyDemo && (
-          <div className="mt-4 flex items-start gap-3 rounded-xl border border-orange-200 bg-orange-50 p-4 text-sm text-navy-700">
-            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
-            <div>
-              <p className="font-semibold text-navy-900">{t("readOnlyDemoTitle")}</p>
-              <p className="mt-0.5 text-xs leading-5 text-navy-600">{t("readOnlyDemoDescription")}</p>
-            </div>
-          </div>
-        )}
 
         <section className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <MetricCard
