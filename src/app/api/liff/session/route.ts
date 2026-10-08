@@ -28,6 +28,7 @@ async function verifyLineIdToken(idToken: string, channelId: string) {
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: new URLSearchParams({ id_token: idToken, client_id: channelId }),
     cache: "no-store",
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!response.ok) {
@@ -65,6 +66,9 @@ export async function POST(request: Request) {
   } catch {
     return json({ error: "invalid_request" }, 400);
   }
+  if (!body || typeof body !== "object" || Array.isArray(body)) {
+    return json({ error: "invalid_request" }, 400);
+  }
 
   if (body.demo === true) {
     if (!isExplicitDemoMode()) return json({ error: "line_verification_required" }, 401);
@@ -82,8 +86,12 @@ export async function POST(request: Request) {
   const idToken = typeof body.idToken === "string" ? body.idToken : "";
   const channelId = process.env.LINE_LOGIN_CHANNEL_ID?.trim() ?? "";
   if (!idToken || idToken.length > 8192) return json({ error: "id_token_required" }, 400);
-  if (!channelId) return json({ error: "line_login_not_configured" }, 503);
-  if (!process.env.LIFF_SESSION_SECRET || process.env.LIFF_SESSION_SECRET.length < 32) {
+  if (!channelId) {
+    console.error("[api/liff/session] Missing LINE_LOGIN_CHANNEL_ID; configure the LINE Login channel and redeploy.");
+    return json({ error: "line_login_not_configured" }, 503);
+  }
+  if (!process.env.LIFF_SESSION_SECRET || process.env.LIFF_SESSION_SECRET.trim().length < 32) {
+    console.error("[api/liff/session] LIFF_SESSION_SECRET must contain at least 32 non-padding characters; configure it and redeploy.");
     return json({ error: "liff_session_not_configured" }, 503);
   }
 

@@ -84,6 +84,8 @@ function parseMapsUrl(raw: string): { lat: number; lng: number } | null {
 export function SupervisorRegisterForm() {
   // LIFF
   const [liffReady, setLiffReady] = useState(false);
+  const [liffError, setLiffError] = useState<string | null>(null);
+  const [liffAttempt, setLiffAttempt] = useState(0);
   const [lineUserId, setLineUserId] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [pictureUrl, setPictureUrl] = useState("");
@@ -141,28 +143,36 @@ export function SupervisorRegisterForm() {
 
   useEffect(() => {
     let cancelled = false;
+    setLiffReady(false);
+    setLiffError(null);
+    setStateCheck(null);
     initLiff(
-      process.env.NEXT_PUBLIC_LIFF_ID_REGISTER_SUPERVISOR ??
-        process.env.NEXT_PUBLIC_LIFF_ID_REGISTER,
+      process.env.NEXT_PUBLIC_LIFF_ID_REGISTER_SUPERVISOR?.trim() ||
+        process.env.NEXT_PUBLIC_LIFF_ID_REGISTER?.trim() || "",
     ).then(async (res) => {
-      if (cancelled) return;
-      setLiffReady(true);
-      if (res.profile) {
-        setLineUserId(res.profile.userId);
-        setDisplayName(res.profile.displayName);
-        setPictureUrl(res.profile.pictureUrl ?? "");
-        if (res.profile.pictureUrl) {
-          setProfilePreview(res.profile.pictureUrl);
-          setProfileUrl(res.profile.pictureUrl);
-        }
-        const status = await checkSupervisorRegistrationState(res.profile.userId);
-        if (!cancelled) setStateCheck(status);
+      if (cancelled || !res.ready) return;
+      if (!res.profile?.userId) {
+        throw new Error("ไม่พบโปรไฟล์ LINE กรุณาเปิดหน้านี้ผ่านลิงก์ LIFF ในแอป LINE");
       }
+      const status = await checkSupervisorRegistrationState(res.profile.userId);
+      if (cancelled) return;
+      setLineUserId(res.profile.userId);
+      setDisplayName(res.profile.displayName);
+      setPictureUrl(res.profile.pictureUrl ?? "");
+      if (res.profile.pictureUrl) {
+        setProfilePreview(res.profile.pictureUrl);
+        setProfileUrl(res.profile.pictureUrl);
+      }
+      setStateCheck(status);
+      setLiffReady(true);
+    }).catch((error: unknown) => {
+      if (cancelled) return;
+      setLiffError(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
     });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [liffAttempt]);
 
   function addSubordinate() {
     setSubs((rows) => [
@@ -318,6 +328,24 @@ export function SupervisorRegisterForm() {
         },
       });
     });
+  }
+
+  if (liffError) {
+    return (
+      <Card>
+        <CardContent className="space-y-3 p-6 text-center" role="alert">
+          <h3 className="text-base font-semibold text-orange-600">เชื่อมต่อ LINE ไม่สำเร็จ</h3>
+          <p className="text-sm text-navy-500">{liffError}</p>
+          <Button type="button" variant="outline" onClick={() => {
+            setLiffError(null);
+            setLiffReady(false);
+            setLiffAttempt((attempt) => attempt + 1);
+          }}>
+            ลองเชื่อมต่ออีกครั้ง
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!liffReady) {

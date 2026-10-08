@@ -21,6 +21,7 @@ export function LiffInit({ liffId, hint }: { liffId?: string; hint?: string }) {
     initLiff(liffId)
       .then((res) => {
         if (cancelled) return;
+        if (!res.ready) return;
         if (!res.profile?.userId) {
           setStatus("no-profile");
           return;
