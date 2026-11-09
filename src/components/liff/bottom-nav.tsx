@@ -10,6 +10,7 @@ const HIDDEN_PATHS = new Set([
   "/liff/register",
   "/liff/register-supervisor",
   "/liff/onboard",
+  "/liff/signed-out",
 ]);
 
 export function LiffBottomNav() {

@@ -258,11 +258,29 @@ export interface OrgTrialStatus {
   seatsLimit: number;
 }
 
+async function countOccupiedOrganizationSeats(orgId: string): Promise<number> {
+  if (isDemo()) {
+    return EMPLOYEES.filter(
+      (employee) => employee.org_id === orgId &&
+        (employee.account_status === "active" || employee.account_status === "pending_review"),
+    ).length;
+  }
+  const sb = supabaseAdmin();
+  const { count, error } = await sb
+    .from("employees")
+    .select("id", { count: "exact", head: true })
+    .eq("org_id", orgId)
+    .in("account_status", ["active", "pending_review"]);
+  if (error) throw new Error(`countOccupiedOrganizationSeats: ${error.message}`);
+  if (count === null) throw new Error("countOccupiedOrganizationSeats: database returned no count");
+  return count;
+}
+
 export async function getOrgTrialStatus(orgId: string): Promise<OrgTrialStatus> {
-  const org = await getOrganization(orgId);
-  const seatsUsed = (await listEmployeesForOrg(orgId)).filter(
-    (e) => e.account_status === "active" || e.account_status === "pending_review",
-  ).length;
+  const [org, seatsUsed] = await Promise.all([
+    getOrganization(orgId),
+    countOccupiedOrganizationSeats(orgId),
+  ]);
   const seatsLimit = org.seat_limit ?? TRIAL_SEAT_LIMIT;
   const trialEnds = org.trial_ends_at ? new Date(org.trial_ends_at).getTime() : Infinity;
   const now = Date.now();

@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { initLiff } from "@/lib/liff-client";
+import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { fetchMyLeaveBalance, submitLeaveRequest } from "@/app/liff/request-leave/actions";
 
 interface Balance {
@@ -26,7 +26,11 @@ interface Balance {
   personal: { used: number; total: number };
 }
 
-export function LeaveForm({ balance: initialBalance, employeeId }: { balance: Balance; employeeId?: string }) {
+export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserId }: {
+  balance: Balance;
+  employeeId?: string;
+  serverLineUserId?: string;
+}) {
   const t = useTranslations("liff.requestLeave");
   const [type, setType] = useState<"annual" | "sick" | "maternity" | "personal">("annual");
   const [from, setFrom] = useState("");
@@ -35,18 +39,27 @@ export function LeaveForm({ balance: initialBalance, employeeId }: { balance: Ba
   const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
   const [lineUserId, setLineUserId] = useState<string>("");
-  const [balance, setBalance] = useState<Balance>(initialBalance);
+  const [refreshedBalance, setRefreshedBalance] = useState<{ userId: string; balance: Balance } | null>(null);
+  const balance = refreshedBalance?.userId === lineUserId && lineUserId !== serverLineUserId
+    ? refreshedBalance.balance
+    : initialBalance;
 
   useEffect(() => {
     let cancelled = false;
     initLiff(process.env.NEXT_PUBLIC_LIFF_ID_LEAVE).then(async (res) => {
       if (cancelled || !res.profile) return;
       setLineUserId(res.profile.userId);
+      // The server already loaded this actor's balance. Refresh only when the
+      // SDK has verified a different LINE account since the page was rendered.
+      if (res.profile.userId === serverLineUserId) return;
       const b = await fetchMyLeaveBalance(res.profile.userId);
-      if (!cancelled && b) setBalance(b);
+      if (!cancelled && b) setRefreshedBalance({ userId: res.profile.userId, balance: b });
+    }).catch((error: unknown) => {
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
     });
     return () => { cancelled = true; };
-  }, []);
+  }, [serverLineUserId]);
 
   function submit() {
     if (!from || !to) {

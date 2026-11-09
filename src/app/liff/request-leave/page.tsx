@@ -16,7 +16,7 @@ export default async function RequestLeavePage() {
     <>
       <LiffHeader title={t("title")} />
       <main className="px-4 pb-6 pt-3">
-        <LeaveForm balance={balance} employeeId={guard.employee.id} />
+        <LeaveForm balance={balance} employeeId={guard.employee.id} serverLineUserId={guard.lineUserId} />
       </main>
     </>
   );

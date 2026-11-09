@@ -10,7 +10,9 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "check:workforce-guardrails": "node --experimental-strip-types scripts/check-workforce-assistant-guardrails.mjs",
-    "check:workforce-analytics": "node --experimental-strip-types scripts/check-workforce-analytics-boundaries.mjs"
+    "check:workforce-analytics": "node --experimental-strip-types scripts/check-workforce-analytics-boundaries.mjs",
+    "check:liff-login": "node scripts/check-liff-session.mjs && node scripts/check-liff-client-cache.mjs",
+    "check:login-redis": "node scripts/check-login-redis.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.1",
@@ -45,6 +47,7 @@
     "react-hook-form": "^7.54.2",
     "react-leaflet": "^5.0.0",
     "recharts": "^2.15.0",
+    "redis": "6.3.1",
     "sonner": "^1.7.1",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",

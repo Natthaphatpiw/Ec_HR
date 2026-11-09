@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { initLiff, type LiffProfile } from "@/lib/liff-client";
+import { initLiff, LiffSessionError, type LiffProfile } from "@/lib/liff-client";
 import { haversineMeters } from "@/lib/utils";
 import {
   clockAction,
@@ -72,6 +72,9 @@ export function CheckinClient(props: CheckinProps) {
         const s = await loadCheckinStatus(res.profile.userId);
         if (!cancelled) setStatus(s);
       }
+    }).catch((error: unknown) => {
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
     });
     return () => {
       cancelled = true;

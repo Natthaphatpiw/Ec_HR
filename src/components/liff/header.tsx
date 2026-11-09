@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { BrandMark } from "@/components/brand-mark";
+import { LiffLogoutButton } from "@/components/liff/logout-button";
 
 export function LiffHeader({ title }: { title?: string }) {
   const pathname = usePathname();
@@ -29,7 +30,10 @@ export function LiffHeader({ title }: { title?: string }) {
             <span className="ml-1 truncate text-sm font-semibold text-navy-900">{title}</span>
           )}
         </div>
-        <LanguageSwitcher />
+        <div className="flex items-center gap-1">
+          <LanguageSwitcher />
+          {pathname !== "/liff/signed-out" && <LiffLogoutButton />}
+        </div>
       </div>
     </header>
   );

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { initLiff } from "@/lib/liff-client";
+import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { submitContactRequest } from "@/app/liff/ai-chat/contact-actions";
 
 export function ContactForm({ employeeId }: { employeeId?: string }) {
@@ -25,6 +25,9 @@ export function ContactForm({ employeeId }: { employeeId?: string }) {
     let cancelled = false;
     initLiff(process.env.NEXT_PUBLIC_LIFF_ID_AI_CHAT).then((res) => {
       if (!cancelled && res.profile) setLineUserId(res.profile.userId);
+    }).catch((error: unknown) => {
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
     });
     return () => { cancelled = true; };
   }, []);

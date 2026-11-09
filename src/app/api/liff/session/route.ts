@@ -1,113 +1,73 @@
+import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
-import { isExplicitDemoMode, setLiffSession } from "@/lib/liff-session";
-
-const LINE_ID_TOKEN_VERIFY_URL = "https://api.line.me/oauth2/v2.1/verify";
-// Explicit browser fallback uses the seeded organization owner (EMP008). A
-// verified LINE login never uses this identity and keeps its own LINE subject.
+import { createLiffSession, deleteLiffSession, isExplicitDemoMode, readLiffSession } from "@/lib/liff-session";
+import { verifyLineIdToken } from "@/lib/line-id-token";
+import { redisSessionConfigured, SessionStoreUnavailableError } from "@/lib/session-redis";
+import { isSameOriginRequest } from "@/lib/request-origin";
+import { DASHBOARD_SESSION_COOKIE } from "@/lib/dashboard-auth-config";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 const DEMO_LINE_USER_ID = "U6789012345abcdef6789012345abcdef";
-
-interface LineIdTokenPayload {
-  iss?: unknown;
-  sub?: unknown;
-  aud?: unknown;
-  exp?: unknown;
-  name?: unknown;
-  picture?: unknown;
+function json(body: unknown, status = 200, started = performance.now()) {
+  return NextResponse.json(body, { status, headers: {
+    "Cache-Control": "private, no-store", "Vary": "Cookie",
+    "X-Login-Session-Store": redisSessionConfigured() ? "redis" : "cookie",
+    "Server-Timing": `auth;dur=${Math.max(0, performance.now() - started).toFixed(1)}`,
+  } });
 }
-
-function json(body: unknown, status = 200) {
-  return NextResponse.json(body, {
-    status,
-    headers: { "Cache-Control": "no-store" },
-  });
-}
-
-async function verifyLineIdToken(idToken: string, channelId: string) {
-  const response = await fetch(LINE_ID_TOKEN_VERIFY_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({ id_token: idToken, client_id: channelId }),
-    cache: "no-store",
-    signal: AbortSignal.timeout(10_000),
-  });
-
-  if (!response.ok) {
-    console.warn(`[api/liff/session] LINE rejected an ID token with status ${response.status}`);
-    return null;
-  }
-
-  const payload = (await response.json()) as LineIdTokenPayload;
-  const now = Math.floor(Date.now() / 1000);
-  if (
-    payload.iss !== "https://access.line.me" ||
-    payload.aud !== channelId ||
-    typeof payload.sub !== "string" ||
-    !/^U[0-9a-f]{32}$/i.test(payload.sub) ||
-    typeof payload.exp !== "number" ||
-    payload.exp <= now
-  ) {
-    return null;
-  }
-
-  return {
-    profile: {
-      userId: payload.sub,
-      displayName: typeof payload.name === "string" ? payload.name : "LINE User",
-      pictureUrl: typeof payload.picture === "string" ? payload.picture : undefined,
-    },
-    expiresInSeconds: Math.max(1, Math.min(8 * 60 * 60, payload.exp - now)),
-  };
-}
-
-export async function POST(request: Request) {
-  let body: { idToken?: unknown; demo?: unknown };
+export async function GET() {
+  const started = performance.now();
   try {
-    body = (await request.json()) as { idToken?: unknown; demo?: unknown };
+    const session = await readLiffSession();
+    return session ? json(session, 200, started) : json({ error: "session_required" }, 401, started);
   } catch {
-    return json({ error: "invalid_request" }, 400);
+    console.error("[api/liff/session] Login session storage is unavailable.");
+    return json({ error: "session_store_unavailable" }, 503, started);
   }
-  if (!body || typeof body !== "object" || Array.isArray(body)) {
-    return json({ error: "invalid_request" }, 400);
-  }
-
-  if (body.demo === true) {
-    if (!isExplicitDemoMode()) return json({ error: "line_verification_required" }, 401);
-
-    await setLiffSession(DEMO_LINE_USER_ID);
-    return json({
-      profile: {
-        userId: DEMO_LINE_USER_ID,
-        displayName: "Pariya Chalat (Demo Owner)",
-      },
-      demoMode: true,
-    });
-  }
-
+}
+export async function POST(request: Request) {
+  const started = performance.now();
+  if (!isSameOriginRequest(request)) return json({ error: "invalid_origin" }, 403, started);
+  let body: { idToken?: unknown; demo?: unknown };
+  try { body = await request.json(); } catch { return json({ error: "invalid_request" }, 400, started); }
+  if (!body || typeof body !== "object" || Array.isArray(body)) return json({ error: "invalid_request" }, 400, started);
+  if (body.demo === true && !isExplicitDemoMode()) return json({ error: "line_verification_required" }, 401, started);
   const idToken = typeof body.idToken === "string" ? body.idToken : "";
   const channelId = process.env.LINE_LOGIN_CHANNEL_ID?.trim() ?? "";
-  if (!idToken || idToken.length > 8192) return json({ error: "id_token_required" }, 400);
-  if (!channelId) {
-    console.error("[api/liff/session] Missing LINE_LOGIN_CHANNEL_ID; configure the LINE Login channel and redeploy.");
-    return json({ error: "line_login_not_configured" }, 503);
+  if (body.demo !== true) {
+    if (!idToken || idToken.length > 8192) return json({ error: "id_token_required" }, 400, started);
+    if (!channelId) {
+      console.error("[api/liff/session] Missing LINE_LOGIN_CHANNEL_ID; configure the LINE Login channel and redeploy.");
+      return json({ error: "line_login_not_configured" }, 503, started);
+    }
+    if (!process.env.LIFF_SESSION_SECRET || process.env.LIFF_SESSION_SECRET.trim().length < 32) {
+      console.error("[api/liff/session] LIFF_SESSION_SECRET must contain at least 32 non-padding characters.");
+      return json({ error: "liff_session_not_configured" }, 503, started);
+    }
   }
-  if (!process.env.LIFF_SESSION_SECRET || process.env.LIFF_SESSION_SECRET.trim().length < 32) {
-    console.error("[api/liff/session] LIFF_SESSION_SECRET must contain at least 32 non-padding characters; configure it and redeploy.");
-    return json({ error: "liff_session_not_configured" }, 503);
-  }
-
   try {
+    if (body.demo === true) return json(await createLiffSession({ userId: DEMO_LINE_USER_ID, displayName: "Pariya Chalat (Demo Owner)" }, { demoMode: true }), 200, started);
     const verified = await verifyLineIdToken(idToken, channelId);
-    if (!verified) return json({ error: "invalid_id_token" }, 401);
-
-    // Preserve the verified LINE subject in every environment. Explicit demo
-    // accounts can be assigned to seeded roles through DEMO_LIFF_EMPLOYEE_MAP.
-    await setLiffSession(verified.profile.userId, verified.expiresInSeconds);
-    return json({ profile: verified.profile, demoMode: false });
+    if (!verified) return json({ error: "invalid_id_token" }, 401, started);
+    return json(await createLiffSession(verified.profile), 200, started);
   } catch (error) {
-    console.error(
-      "[api/liff/session] LINE verification request failed",
-      error instanceof Error ? error.message : "unknown error",
-    );
-    return json({ error: "line_verification_unavailable" }, 502);
+    if (error instanceof SessionStoreUnavailableError) {
+      console.error("[api/liff/session] Login Redis is unavailable; check its connection and write-capable credentials.");
+      return json({ error: "session_store_unavailable" }, 503, started);
+    }
+    console.error("[api/liff/session] LINE session could not be established.");
+    return json({ error: "line_verification_unavailable" }, 502, started);
+  }
+}
+export async function DELETE(request: Request) {
+  const started = performance.now();
+  if (!isSameOriginRequest(request)) return json({ error: "invalid_origin" }, 403, started);
+  try {
+    await deleteLiffSession();
+    (await cookies()).delete(DASHBOARD_SESSION_COOKIE);
+    return json({ ok: true }, 200, started);
+  } catch {
+    (await cookies()).delete(DASHBOARD_SESSION_COOKIE);
+    return json({ error: "session_store_unavailable" }, 503, started);
   }
 }

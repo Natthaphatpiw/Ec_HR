@@ -1,139 +1,67 @@
-import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
-import vm from "node:vm";
-import ts from "typescript";
-
-// Exercise the actual route and client with synthetic LINE responses only.
-// No real credentials, user accounts, database writes or outbound API calls.
-function loadModule(path, { env = {}, modules = {}, fetch } = {}) {
-  const filename = fileURLToPath(new URL(path, import.meta.url));
-  const source = ts.transpileModule(readFileSync(filename, "utf8"), {
-    compilerOptions: { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS },
-  }).outputText;
-  const logs = [];
-  const context = vm.createContext({
-    exports: {}, process: { env }, Request, Response, Headers, URLSearchParams,
-    AbortSignal, AbortController, setTimeout, clearTimeout, fetch,
-    console: { error: (...args) => logs.push(args.join(" ")), warn: (...args) => logs.push(args.join(" ")) },
-    require(name) {
-      assert.ok(Object.hasOwn(modules, name), `Unexpected dependency ${name}`);
-      return modules[name];
-    },
-  });
-  vm.runInContext(source, context, { filename });
-  return { ...context.exports, logs };
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+import vm from 'node:vm';
+import ts from 'typescript';
+const require = createRequire(import.meta.url);
+function load(path,{env={},modules={},fetch}={}) {
+ const filename=fileURLToPath(new URL(path,import.meta.url));
+ const source=ts.transpileModule(readFileSync(filename,'utf8'),{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
+ const logs=[];
+ const context=vm.createContext({exports:{},process:{env},Request,Response,Headers,URL,URLSearchParams,performance,AbortSignal,AbortController,setTimeout,clearTimeout,fetch,
+ console:{error:(...args)=>logs.push(args.join(' ')),warn:(...args)=>logs.push(args.join(' '))},
+ require(name){if(name==='node:crypto')return require(name);if(name==='server-only')return {};assert.ok(Object.hasOwn(modules,name),`Unexpected ${name}`);return modules[name];}});
+ vm.runInContext(source,context,{filename});return {...context.exports,logs};
 }
-
-const lineUserId = `U${"a".repeat(32)}`;
-const channelId = "1000000000";
-const idToken = "synthetic-test-token";
-const validPayload = { iss: "https://access.line.me", aud: channelId, sub: lineUserId, exp: Math.floor(Date.now() / 1000) + 900, name: "Synthetic Employee" };
-const configuredEnv = { DEMO_MODE: "false", LINE_LOGIN_CHANNEL_ID: channelId, LIFF_SESSION_SECRET: "s".repeat(64) };
-
-function routeFixture(env = configuredEnv, reply = validPayload, upstreamStatus = 200) {
-  const writes = [], requests = [];
-  const route = loadModule("../src/app/api/liff/session/route.ts", {
-    env,
-    modules: {
-      "next/server": { NextResponse: { json: (body, init) => new Response(JSON.stringify(body), { ...init, headers: { ...init.headers, "Content-Type": "application/json" } }) } },
-      "@/lib/liff-session": { isExplicitDemoMode: () => env.DEMO_MODE === "true", setLiffSession: async (...args) => writes.push(args) },
-    },
-    fetch: async (url, options) => {
-      requests.push({ url, options });
-      if (reply instanceof Error) throw reply;
-      return new Response(JSON.stringify(reply), { status: upstreamStatus });
-    },
-  });
-  return { ...route, writes, requests, post: (body) => route.POST(new Request("https://app.invalid/api/liff/session", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) })) };
+const userId=`U${'a'.repeat(32)}`,channelId='1000000000',idToken='synthetic-test-token';
+const claims={iss:'https://access.line.me',aud:channelId,sub:userId,exp:Math.floor(Date.now()/1000)+900,name:'Synthetic Employee'};
+const config={NODE_ENV:'production',DEMO_MODE:'false',LINE_LOGIN_CHANNEL_ID:channelId,LIFF_SESSION_SECRET:'s'.repeat(64)};
+class StoreError extends Error {}
+function fixture({env=config,payload=claims,status=200,redis=true}={}) {
+ const requests=[],writes=[],commands=[],cache=new Map(),cookieStore=new Map();
+ let session=null,storeDown=false;
+ const redisModule={SessionStoreUnavailableError:StoreError,redisSessionConfigured:()=>redis,sessionRedisNamespace:()=> 'local-only-test',async sessionRedisCommand(args){
+  if(storeDown)throw new StoreError();commands.push(args);if(args[0]==='GET')return cache.get(args[1])??null;
+  if(args[0]==='SET'){cache.set(args[1],args[2]);return 'OK';}throw new Error('Unexpected command');}};
+ const verifier=load('../src/lib/line-id-token.ts',{env,modules:{'@/lib/session-redis':redisModule},fetch:async(url,options)=>{
+  requests.push({url,options});if(payload instanceof Error)throw payload;return new Response(JSON.stringify(payload),{status});}});
+ const origin=load('../src/lib/request-origin.ts',{env});
+ const route=load('../src/app/api/liff/session/route.ts',{env,modules:{
+  'next/headers':{cookies:async()=>({delete:key=>cookieStore.delete(key)})},
+  'next/server':{NextResponse:{json:(body,options)=>new Response(JSON.stringify(body),{...options,headers:{...options.headers,'Content-Type':'application/json'}})}},
+  '@/lib/liff-session':{isExplicitDemoMode:()=>env.DEMO_MODE==='true',readLiffSession:async()=>{if(storeDown)throw new StoreError();return session;},
+   createLiffSession:async(profile,options={})=>{if(storeDown)throw new StoreError();writes.push({profile,options});session={profile,demoMode:options.demoMode===true,storage:redis?'redis':'cookie',expiresAt:Math.floor(Date.now()/1000)+(redis?604800:28800)};return session;},
+   deleteLiffSession:async()=>{session=null;if(storeDown)throw new StoreError();}},
+  '@/lib/line-id-token':verifier,'@/lib/session-redis':redisModule,'@/lib/request-origin':origin,'@/lib/dashboard-auth-config':{DASHBOARD_SESSION_COOKIE:'web_session'},
+ }});
+ return {...route,requests,writes,commands,cache,cookieStore,verifier,setSession:v=>session=v,setStoreDown:v=>storeDown=v,
+  post:(body,originHeader)=>route.POST(new Request('https://app.invalid/api/liff/session',{method:'POST',headers:{'Content-Type':'application/json',...(originHeader?{Origin:originHeader}:{})},body:JSON.stringify(body)})),
+  delete:originHeader=>route.DELETE(new Request('https://app.invalid/api/liff/session',{method:'DELETE',headers:originHeader?{Origin:originHeader}:{}}))};
 }
-
-for (const [setting, error] of [["LINE_LOGIN_CHANNEL_ID", "line_login_not_configured"], ["LIFF_SESSION_SECRET", "liff_session_not_configured"]]) {
-  const fixture = routeFixture({ ...configuredEnv, [setting]: "" });
-  const response = await fixture.post({ idToken });
-  assert.equal(response.status, 503);
-  assert.equal((await response.json()).error, error);
-  assert.equal(fixture.requests.length, 0);
-  assert.equal(fixture.writes.length, 0);
-  assert.ok(fixture.logs.some((line) => line.includes(setting)));
-  assert.ok(fixture.logs.every((line) => !line.includes(idToken) && !line.includes(configuredEnv.LIFF_SESSION_SECRET)));
+for(const [key,error]of [['LINE_LOGIN_CHANNEL_ID','line_login_not_configured'],['LIFF_SESSION_SECRET','liff_session_not_configured']]){
+ const f=fixture({env:{...config,[key]:''}});const r=await f.post({idToken});assert.equal(r.status,503);assert.equal((await r.json()).error,error);assert.equal(f.requests.length,0);assert.equal(f.writes.length,0);assert.ok(f.logs.some(line=>line.includes(key)));assert.ok(f.logs.every(line=>!line.includes(idToken)&&!line.includes(config.LIFF_SESSION_SECRET)));
 }
-for (const secret of ["short", " ".repeat(64)]) {
-  assert.equal((await routeFixture({ ...configuredEnv, LIFF_SESSION_SECRET: secret }).post({ idToken })).status, 503);
+const f=fixture();assert.equal((await f.GET()).status,401);
+const response=await f.post({idToken});assert.equal(response.status,200);assert.equal(response.headers.get('cache-control'),'private, no-store');assert.ok(response.headers.get('server-timing').startsWith('auth;dur='));
+assert.equal(response.headers.get('x-login-session-store'),'redis');
+const result=await response.json();assert.equal(result.profile.userId,userId);assert.equal(result.storage,'redis');assert.ok(result.expiresAt>claims.exp,'Own app session is independent of LINE token expiration after verified login');
+assert.equal(f.requests[0].url,'https://api.line.me/oauth2/v2.1/verify');assert.equal(f.requests[0].options.body.get('client_id'),channelId);assert.equal(f.requests[0].options.body.get('id_token'),idToken);
+assert.equal((await f.GET()).status,200);assert.equal((await f.post({idToken})).status,200);assert.equal(f.requests.length,1,'Verified token cache avoids a second LINE request');
+assert.ok(!JSON.stringify([...f.cache]).includes(idToken),'No raw token in Redis keys/records');
+const setCommand=f.commands.find(c=>c[0]==='SET');assert.equal(setCommand[3],'EX');assert.ok(Number(setCommand[4])<=300);
+f.cookieStore.set('web_session','signed-test-web-cookie');assert.equal((await f.delete()).status,200);assert.equal((await f.GET()).status,401);assert.equal(f.cookieStore.has('web_session'),false);
+for(const override of [{aud:'9999999999'},{iss:'https://untrusted.invalid'},{sub:'EMP001'},{exp:0},{exp:'9999999999'}]){
+ const bad=fixture({payload:{...claims,...override}});assert.equal((await bad.post({idToken})).status,401);assert.equal(bad.writes.length,0);assert.equal(bad.cache.size,0);
 }
-const verified = routeFixture();
-const verifiedResponse = await verified.post({ idToken });
-assert.equal(verifiedResponse.status, 200);
-assert.equal((await verifiedResponse.json()).profile.userId, lineUserId);
-assert.equal(verified.writes[0][0], lineUserId);
-assert.ok(verified.writes[0][1] > 0 && verified.writes[0][1] <= 900);
-assert.equal(verified.requests[0].url, "https://api.line.me/oauth2/v2.1/verify");
-assert.equal(verified.requests[0].options.body.get("client_id"), channelId);
-assert.equal(verified.requests[0].options.body.get("id_token"), idToken);
-assert.ok(verified.requests[0].options.signal instanceof AbortSignal);
-for (const badClaims of [{ aud: "9999999999" }, { iss: "https://untrusted.invalid" }, { sub: "EMP001" }, { exp: 0 }]) {
-  const fixture = routeFixture(configuredEnv, { ...validPayload, ...badClaims });
-  assert.equal((await fixture.post({ idToken })).status, 401);
-  assert.equal(fixture.writes.length, 0);
-}
-const rejected = routeFixture(configuredEnv, { error: "invalid_token" }, 400);
-assert.equal((await rejected.post({ idToken })).status, 401);
-const unavailable = routeFixture(configuredEnv, new Error("synthetic connection timeout"));
-assert.equal((await unavailable.post({ idToken })).status, 502);
-assert.equal(unavailable.writes.length, 0);
-const productionDemo = routeFixture();
-assert.equal((await productionDemo.post({ demo: true })).status, 401);
-assert.equal(productionDemo.writes.length, 0);
-assert.equal((await routeFixture({ ...configuredEnv, DEMO_MODE: "true" }).post({ demo: true })).status, 200);
-for (const invalid of [null, [], {}, { idToken: 123 }, { idToken: "x".repeat(8193) }]) {
-  assert.equal((await routeFixture().post(invalid)).status, 400);
-}
-
-function clientFixture({ status = 200, error, sdkError, inClient = true, loggedIn = true, token = idToken } = {}) {
-  const requests = [], initializedIds = [];
-  let logins = 0;
-  const sdk = {
-    init: async ({ liffId }) => { initializedIds.push(liffId); if (sdkError) throw sdkError; },
-    isLoggedIn: () => loggedIn, isInClient: () => inClient, getIDToken: () => token,
-    login: () => { logins++; },
-  };
-  const client = loadModule("../src/lib/liff-client.ts", {
-    env: { NEXT_PUBLIC_LIFF_ID_CHECKIN: "1000000000-checkin" },
-    modules: { "@line/liff": { __esModule: true, default: sdk } },
-    fetch: async (_url, options) => {
-      const body = JSON.parse(options.body);
-      requests.push({ body, options });
-      return new Response(JSON.stringify(status === 200 ? { profile: { userId: lineUserId, displayName: "Synthetic Employee" }, demoMode: body.demo === true } : { error }), { status });
-    },
-  });
-  return { ...client, requests, initializedIds, get logins() { return logins; } };
-}
-for (const [status, error] of [[503, "line_login_not_configured"], [503, "liff_session_not_configured"], [401, "invalid_id_token"], [502, "line_verification_unavailable"]]) {
-  const client = clientFixture({ status, error });
-  await assert.rejects(client.initLiff("1000000000-register"), (failure) => failure.code === error && failure.status === status && /LINE|ระบบ/.test(failure.message));
-  assert.equal(client.requests.length, 1, "A failed verified session must not trigger a demo POST");
-  assert.equal(client.requests[0].body.idToken, idToken);
-  assert.equal(client.requests[0].body.demo, undefined);
-}
-const client = clientFixture();
-assert.equal((await client.initLiff(" 1000000000-register ")).profile.userId, lineUserId);
-assert.equal(client.initializedIds[0], "1000000000-register");
-assert.equal(client.requests[0].options.credentials, "same-origin");
-const redirect = clientFixture({ loggedIn: false });
-assert.equal((await redirect.initLiff("1000000000-register")).ready, false);
-assert.equal(redirect.logins, 1);
-assert.equal(redirect.requests.length, 0);
-const noOpenId = clientFixture({ token: null });
-await assert.rejects(noOpenId.initLiff("1000000000-register"), /openid/);
-assert.equal(noOpenId.requests.length, 0);
-const sdkFailedInLine = clientFixture({ sdkError: new Error("synthetic SDK failure") });
-await assert.rejects(sdkFailedInLine.initLiff("1000000000-register"), /synthetic SDK failure/);
-assert.equal(sdkFailedInLine.requests.length, 0);
-const explicitDemo = clientFixture();
-assert.equal((await explicitDemo.initLiff("")).demoMode, true);
-assert.equal(explicitDemo.initializedIds.length, 0, "An explicitly missing registration ID must not initialize CHECKIN");
-assert.equal(explicitDemo.requests[0].body.demo, true);
-const externalDemo = clientFixture({ sdkError: new Error("SDK unavailable in a local browser"), inClient: false });
-assert.equal((await externalDemo.initLiff("1000000000-register")).demoMode, true);
-assert.equal(externalDemo.requests[0].body.demo, true);
-console.log("LIFF route/client checks passed: config, token verification, demo boundaries, redirects and error preservation.");
+const nonce=fixture({payload:{...claims,nonce:'correct-nonce'}});assert.equal(await nonce.verifier.verifyLineIdToken(idToken,channelId,'wrong-nonce'),null);assert.equal(nonce.cache.size,0);assert.ok(await nonce.verifier.verifyLineIdToken(idToken,channelId,'correct-nonce'));assert.equal(nonce.requests[1].options.body.get('nonce'),'correct-nonce');
+for(const status of [400,401])assert.equal((await fixture({status}).post({idToken})).status,401);
+for(const status of [429,500])assert.equal((await fixture({status}).post({idToken})).status,502);
+assert.equal((await fixture({payload:new Error('synthetic timeout')}).post({idToken})).status,502);
+for(const invalid of [null,[],{}, {idToken:123},{idToken:'x'.repeat(8193)}])assert.equal((await fixture().post(invalid)).status,400);
+assert.equal((await fixture().post({demo:true})).status,401);
+assert.equal((await fixture({env:{...config,DEMO_MODE:'true'}}).post({demo:true})).status,200);
+const csrf=fixture();assert.equal((await csrf.post({idToken},'https://untrusted.invalid')).status,403);assert.equal((await csrf.delete('https://untrusted.invalid')).status,403);assert.equal(csrf.requests.length,0);
+const down=fixture();down.setStoreDown(true);assert.equal((await down.GET()).status,503);assert.equal((await down.post({idToken})).status,503);assert.equal(down.requests.length,0);assert.equal((await down.delete()).status,503);
+const noRedis=fixture({redis:false});assert.equal((await noRedis.post({idToken})).status,200);assert.equal((await (await noRedis.GET()).json()).storage,'cookie');
+console.log('LIFF session API + LINE token cache checks passed: resume, rotation contract, claims, nonce, TTL, logout, CSRF and Redis failure.');

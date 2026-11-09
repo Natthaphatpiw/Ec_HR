@@ -471,3 +471,7 @@ supabase/
 ## License
 
 Proprietary. © 2026 eCloudtec Thailand.
+
+### LINE LIFF login cache
+
+Redis-backed login sessions reuse verified LINE identities across LIFF pages, with a 7-day absolute limit and 24-hour idle expiry. Connect the existing Redis resource to the Vercel project; both Upstash KV REST envs and REDIS_URL are supported. See [LINE Login Performance](docs/LINE-LOGIN-PERFORMANCE-TH.md) for setup, tests and the optional v10 index SQL.

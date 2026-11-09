@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { initLiff } from "@/lib/liff-client";
+import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { submitOvertimeRequest } from "@/app/liff/request-ot/actions";
 
 const HOURLY_RATE = 86; // 15000 / 22 days / 8 hours ≈ 86 baht/h
@@ -28,6 +28,9 @@ export function OtForm({ employeeId }: { employeeId?: string }) {
     let cancelled = false;
     initLiff(process.env.NEXT_PUBLIC_LIFF_ID_OT).then((res) => {
       if (!cancelled && res.profile) setLineUserId(res.profile.userId);
+    }).catch((error: unknown) => {
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
     });
     return () => { cancelled = true; };
   }, []);

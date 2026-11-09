@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { initLiff } from "@/lib/liff-client";
+import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { bindLineAccount } from "@/app/liff/onboard/actions";
 
 export function OnboardForm() {
@@ -29,6 +29,9 @@ export function OnboardForm() {
         setLineUserId(res.profile.userId);
         setDisplayName(res.profile.displayName);
       }
+    }).catch((error: unknown) => {
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
     });
     return () => {
       cancelled = true;
