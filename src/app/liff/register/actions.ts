@@ -8,6 +8,7 @@ import {
   registerEmployee,
 } from "@/lib/data";
 import { notifyHrOfRegistration } from "@/lib/line/approvals";
+import { getRegistrationIdentity } from "@/lib/registration-session";
 import type {
   Employee,
   Gender,
@@ -16,7 +17,8 @@ import type {
 } from "@/lib/types";
 
 export interface RegistrationStateResponse {
-  state: "new" | "pending" | "active" | "rejected";
+  state: "new" | "pending" | "active" | "rejected" | "session_required" | "session_unavailable" | "unavailable";
+  message?: string;
   employee?: {
     name: string;
     department: string | null;
@@ -39,10 +41,16 @@ function publicEmployee(e: Employee): RegistrationStateResponse["employee"] {
 export async function checkRegistrationState(
   lineUserId: string,
 ): Promise<RegistrationStateResponse> {
-  if (!lineUserId) return { state: "new" };
-  const status = await getRegistrationStatus(lineUserId);
-  if (status.state === "new") return { state: "new" };
-  return { state: status.state, employee: publicEmployee(status.employee) };
+  const identity = await getRegistrationIdentity(lineUserId);
+  if (!identity.ok) return { state: identity.reason, message: identity.message };
+  try {
+    const status = await getRegistrationStatus(identity.lineUserId);
+    if (status.state === "new") return { state: "new" };
+    return { state: status.state, employee: publicEmployee(status.employee) };
+  } catch {
+    console.error("[employee registration] status lookup unavailable");
+    return { state: "unavailable", message: "ตรวจสอบสถานะการลงทะเบียนไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง" };
+  }
 }
 
 // =========================================================================
@@ -58,21 +66,29 @@ export interface InviteInfoResponse {
   /** Set when the org can't currently accept a new seat. */
   seatBlocked?: "expired" | "seats_full" | "deactivated";
   /** Why the invite is not usable, when ok=false. */
-  reason?: "missing" | "invalid";
+  reason?: "missing" | "invalid" | "unavailable";
 }
 
 export async function checkInvite(token: string): Promise<InviteInfoResponse> {
-  if (!token?.trim()) return { ok: false, reason: "missing" };
-  const resolved = await getOrgInviteByToken(token);
-  if (!resolved) return { ok: false, reason: "invalid" };
-  const seat = await canAcceptNewSeat(resolved.org.id);
-  const sup = resolved.supervisor;
-  return {
-    ok: true,
-    businessName: resolved.org.business_name ?? resolved.org.name,
-    supervisorName: sup ? (sup.name_th ?? sup.name_en ?? sup.nickname ?? undefined) : undefined,
-    seatBlocked: seat.ok ? undefined : seat.reason,
-  };
+  if (typeof token !== "string") return { ok: false, reason: "invalid" };
+  const value = token.trim();
+  if (!value) return { ok: false, reason: "missing" };
+  if (value.length > 256) return { ok: false, reason: "invalid" };
+  try {
+    const resolved = await getOrgInviteByToken(value);
+    if (!resolved) return { ok: false, reason: "invalid" };
+    const seat = await canAcceptNewSeat(resolved.org.id);
+    const sup = resolved.supervisor;
+    return {
+      ok: true,
+      businessName: resolved.org.business_name ?? resolved.org.name,
+      supervisorName: sup ? (sup.name_th ?? sup.name_en ?? sup.nickname ?? undefined) : undefined,
+      seatBlocked: seat.ok ? undefined : seat.reason,
+    };
+  } catch {
+    console.error("[employee registration] invite or seat lookup unavailable");
+    return { ok: false, reason: "unavailable" };
+  }
 }
 
 export interface SubmitResult {
@@ -112,10 +128,14 @@ function parseHomeSource(raw: string | undefined): HomeLocationSource | undefine
 }
 
 export async function submitRegistration(formData: FormData): Promise<SubmitResult> {
+  if (!(formData instanceof FormData)) return { ok: false, message: "ข้อมูลลงทะเบียนไม่ถูกต้อง" };
+  const identity = await getRegistrationIdentity(formData.get("lineUserId"));
+  if (!identity.ok) return { ok: false, message: identity.message };
+
   let input: RegistrationInput;
   try {
     input = {
-      line_user_id:        required(formData.get("lineUserId"), "lineUserId"),
+      line_user_id:        identity.lineUserId,
       display_name:        String(formData.get("displayName") ?? "").trim(),
       picture_url:         optional(formData.get("pictureUrl")),
       invite_token:        required(formData.get("inviteToken"), "invite_token"),
@@ -143,8 +163,8 @@ export async function submitRegistration(formData: FormData): Promise<SubmitResu
       profile_photo_url:   optional(formData.get("profilePhotoUrl")),
       pdpa_consent:        formData.get("pdpaConsent") === "on",
     };
-  } catch (err) {
-    return { ok: false, message: (err as Error).message };
+  } catch {
+    return { ok: false, message: "กรุณากรอกชื่อ เบอร์โทร และเปิดลิงก์คำเชิญก่อนส่งใบสมัคร" };
   }
 
   if (input.national_id && !/^\d{13}$/.test(input.national_id)) {
@@ -181,8 +201,8 @@ export async function submitRegistration(formData: FormData): Promise<SubmitResu
     }
 
     return { ok: true, message: "Application submitted." };
-  } catch (err) {
-    console.error("submitRegistration failed", err);
-    return { ok: false, message: "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง" };
+  } catch {
+    console.error("[employee registration] submission failed");
+    return { ok: false, message: "ระบบลงทะเบียนไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง" };
   }
 }

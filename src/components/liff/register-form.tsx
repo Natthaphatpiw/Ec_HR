@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 
-import { initLiff } from "@/lib/liff-client";
+import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { cn } from "@/lib/utils";
 import {
   checkInvite,
@@ -60,7 +60,7 @@ export function RegisterForm() {
 
   // LIFF
   const [liffReady, setLiffReady] = useState(false);
-  const [liffError, setLiffError] = useState<string | null>(null);
+  const [liffError, setLiffError] = useState<{ source: "line" | "registration"; message: string } | null>(null);
   const [liffAttempt, setLiffAttempt] = useState(0);
   const [lineUserId, setLineUserId] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -109,37 +109,52 @@ export function RegisterForm() {
 
   useEffect(() => {
     let cancelled = false;
+    let source: "line" | "registration" = "line";
     setLiffReady(false);
     setLiffError(null);
     setStateCheck(null);
     setInviteChecked(false);
 
-    // Capture the invite token from the deep link. Persist it in sessionStorage
-    // so it survives the LIFF login redirect (which can strip the query string).
-    let token = "";
+    // Preserve a direct invite across a login redirect, but wait for the LIFF
+    // SDK to restore the destination query before resolving the invite.
+    const originalInvite = new URLSearchParams(window.location.search).get("invite")?.trim() ?? "";
     try {
-      const fromUrl = new URLSearchParams(window.location.search).get("invite");
-      if (fromUrl) {
-        token = fromUrl;
-        sessionStorage.setItem("pending_invite", fromUrl);
-      } else {
-        token = sessionStorage.getItem("pending_invite") ?? "";
-      }
+      if (originalInvite) sessionStorage.setItem("pending_invite", originalInvite);
     } catch {
-      /* ignore */
+      // Storage may be disabled in the embedded browser.
     }
-    setInviteToken(token);
 
-    Promise.all([
-      initLiff(process.env.NEXT_PUBLIC_LIFF_ID_REGISTER?.trim() || ""),
-      token ? checkInvite(token) : Promise.resolve(null),
-    ]).then(async ([res, info]) => {
+    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_REGISTER?.trim() || "").then(async (res) => {
       if (cancelled || !res.ready) return;
       if (!res.profile?.userId) {
-        throw new Error("ไม่พบโปรไฟล์ LINE กรุณาเปิดหน้านี้ผ่านลิงก์ LIFF ในแอป LINE");
+        setLiffError({ source: "line", message: "ไม่พบโปรไฟล์ LINE กรุณาเปิดลิงก์ลงทะเบียนจากแอป LINE อีกครั้ง" });
+        return;
       }
-      const status = await checkRegistrationState(res.profile.userId);
+      let token = new URLSearchParams(window.location.search).get("invite")?.trim() || originalInvite;
+      try {
+        if (token) sessionStorage.setItem("pending_invite", token);
+        else token = sessionStorage.getItem("pending_invite")?.trim() ?? "";
+      } catch {
+        // The URL invite still works without sessionStorage.
+      }
+      source = "registration";
+      const [status, info] = await Promise.all([
+        checkRegistrationState(res.profile.userId),
+        token ? checkInvite(token) : Promise.resolve(null),
+      ]);
       if (cancelled) return;
+      if (status.state === "session_required" || status.state === "session_unavailable") {
+        setLiffError({ source: "line", message: status.message ?? "ยืนยันบัญชี LINE ไม่สำเร็จ กรุณาลองใหม่" });
+        return;
+      }
+      if (status.state === "unavailable") {
+        setLiffError({ source, message: status.message ?? "ตรวจสอบสถานะการลงทะเบียนไม่ได้ กรุณาลองใหม่" });
+        return;
+      }
+      if (info?.reason === "unavailable" && status.state !== "active" && status.state !== "pending") {
+        setLiffError({ source, message: "ตรวจสอบลิงก์คำเชิญไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง" });
+        return;
+      }
       setLineUserId(res.profile.userId);
       setDisplayName(res.profile.displayName);
       setPictureUrl(res.profile.pictureUrl ?? "");
@@ -147,13 +162,19 @@ export function RegisterForm() {
         setProfilePreview(res.profile.pictureUrl);
         setProfileUrl(res.profile.pictureUrl);
       }
+      setInviteToken(token);
       setInviteInfo(info);
       setInviteChecked(true);
       setStateCheck(status);
       setLiffReady(true);
     }).catch((error: unknown) => {
-      if (cancelled) return;
-      setLiffError(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      setLiffError({
+        source,
+        message: source === "registration"
+          ? "ติดต่อระบบลงทะเบียนไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง"
+          : error instanceof LiffSessionError ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่",
+      });
     });
 
     return () => {
@@ -257,7 +278,11 @@ export function RegisterForm() {
     if (pdpaConsent) fd.set("pdpaConsent", "on");
 
     startTransition(async () => {
-      const res = await submitRegistration(fd);
+      const res = await submitRegistration(fd).catch(() => null);
+      if (!res) {
+        toast.error("ติดต่อระบบลงทะเบียนไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง");
+        return;
+      }
       if (!res.ok) {
         if (res.duplicate === "line_user_id") toast.error("บัญชี LINE นี้ลงทะเบียนไว้แล้ว");
         else if (res.duplicate === "national_id") toast.error("เลขบัตรประชาชนนี้มีในระบบแล้ว");
@@ -288,14 +313,16 @@ export function RegisterForm() {
     return (
       <Card>
         <CardContent className="space-y-3 p-6 text-center" role="alert">
-          <h3 className="text-base font-semibold text-orange-600">เชื่อมต่อ LINE ไม่สำเร็จ</h3>
-          <p className="text-sm text-navy-500">{liffError}</p>
+          <h3 className="text-base font-semibold text-orange-600">
+            {liffError.source === "line" ? "เชื่อมต่อ LINE ไม่สำเร็จ" : "ระบบลงทะเบียนไม่พร้อมใช้งาน"}
+          </h3>
+          <p className="text-sm text-navy-500">{liffError.message}</p>
           <Button type="button" variant="outline" onClick={() => {
             setLiffError(null);
             setLiffReady(false);
             setLiffAttempt((attempt) => attempt + 1);
           }}>
-            ลองเชื่อมต่ออีกครั้ง
+            ลองอีกครั้ง
           </Button>
         </CardContent>
       </Card>
@@ -339,7 +366,7 @@ export function RegisterForm() {
 
   // Invite-only gate: no token or an invalid/expired token → explain how to join.
   if (!inviteToken || !inviteInfo?.ok) {
-    return <NeedInvite reason={!inviteToken ? "missing" : inviteInfo?.reason ?? "invalid"} />;
+    return <NeedInvite reason={inviteToken ? "invalid" : "missing"} />;
   }
 
   // Org can't accept a new seat (full / expired / deactivated) — show the reason

@@ -28,7 +28,7 @@ export async function loginAction(formData: FormData): Promise<never> {
   if (auth.status === "disabled") redirect(nextPath);
   if (auth.status === "misconfigured") redirect(`/login?error=config&next=${encodeURIComponent(nextPath)}`);
 
-  const username = String(formData.get("username") ?? "");
+  const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
   const usernameMatches = sameCredential(username, auth.username);
   const passwordMatches = sameCredential(password, auth.password);

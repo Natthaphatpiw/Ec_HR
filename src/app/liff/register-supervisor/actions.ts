@@ -7,6 +7,7 @@ import {
 } from "@/lib/data";
 import { buildInviteUrl } from "@/lib/invite";
 import { notifyHrOfRegistration } from "@/lib/line/approvals";
+import { getRegistrationIdentity } from "@/lib/registration-session";
 import type {
   BusinessType,
   Employee,
@@ -18,7 +19,8 @@ import type {
 } from "@/lib/types";
 
 export interface SupervisorRegistrationStateResponse {
-  state: "new" | "pending" | "active" | "rejected";
+  state: "new" | "pending" | "active" | "rejected" | "session_required" | "session_unavailable" | "unavailable";
+  message?: string;
   employee?: {
     name: string;
     department: string | null;
@@ -41,10 +43,16 @@ function publicEmployee(e: Employee): SupervisorRegistrationStateResponse["emplo
 export async function checkSupervisorRegistrationState(
   lineUserId: string,
 ): Promise<SupervisorRegistrationStateResponse> {
-  if (!lineUserId) return { state: "new" };
-  const status = await getRegistrationStatus(lineUserId);
-  if (status.state === "new") return { state: "new" };
-  return { state: status.state, employee: publicEmployee(status.employee) };
+  const identity = await getRegistrationIdentity(lineUserId);
+  if (!identity.ok) return { state: identity.reason, message: identity.message };
+  try {
+    const status = await getRegistrationStatus(identity.lineUserId);
+    if (status.state === "new") return { state: "new" };
+    return { state: status.state, employee: publicEmployee(status.employee) };
+  } catch {
+    console.error("[supervisor registration] status lookup unavailable");
+    return { state: "unavailable", message: "ตรวจสอบสถานะการลงทะเบียนไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง" };
+  }
 }
 
 export interface SupervisorSubmitResult {
@@ -129,10 +137,14 @@ function parseSubordinates(formData: FormData): SubordinateLink[] {
 export async function submitSupervisorRegistration(
   formData: FormData,
 ): Promise<SupervisorSubmitResult> {
+  if (!(formData instanceof FormData)) return { ok: false, message: "ข้อมูลลงทะเบียนไม่ถูกต้อง" };
+  const identity = await getRegistrationIdentity(formData.get("lineUserId"));
+  if (!identity.ok) return { ok: false, message: identity.message };
+
   let input: RegistrationInput;
   try {
     input = {
-      line_user_id:       required(formData.get("lineUserId"), "lineUserId"),
+      line_user_id:       identity.lineUserId,
       display_name:       String(formData.get("displayName") ?? "").trim(),
       picture_url:        optional(formData.get("pictureUrl")),
       business_name:      required(formData.get("businessName"), "business_name"),
@@ -162,8 +174,8 @@ export async function submitSupervisorRegistration(
       is_supervisor:      true,
       subordinates:       parseSubordinates(formData),
     };
-  } catch (err) {
-    return { ok: false, message: (err as Error).message };
+  } catch {
+    return { ok: false, message: "กรุณากรอกชื่อบริษัท ชื่อผู้สมัคร และเบอร์โทรก่อนส่งใบสมัคร" };
   }
 
   if (input.national_id && !/^\d{13}$/.test(input.national_id)) {
@@ -208,11 +220,8 @@ export async function submitSupervisorRegistration(
     }
 
     return { ok: true, message: "Application submitted.", activated: false };
-  } catch (err) {
-    // Surface DB/transport errors (e.g. a concurrent same-name org create
-    // violating the unique business_name_norm index) instead of a swallowed
-    // server-action rejection that leaves the user with no feedback.
-    console.error("submitSupervisorRegistration failed", err);
-    return { ok: false, message: "เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง" };
+  } catch {
+    console.error("[supervisor registration] submission failed");
+    return { ok: false, message: "ระบบลงทะเบียนไม่พร้อมใช้งาน กรุณาลองใหม่อีกครั้ง" };
   }
 }

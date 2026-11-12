@@ -79,6 +79,8 @@ export default async function LoginPage({
                   id="username"
                   name="username"
                   autoComplete="username"
+                  autoCapitalize="none"
+                  spellCheck={false}
                   required
                   disabled={auth.status !== "enabled"}
                 />

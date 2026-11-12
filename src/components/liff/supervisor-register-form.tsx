@@ -36,7 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { initLiff } from "@/lib/liff-client";
+import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { buildInviteQrPath, buildInviteUrl } from "@/lib/invite";
 import { cn } from "@/lib/utils";
 import {
@@ -84,7 +84,7 @@ function parseMapsUrl(raw: string): { lat: number; lng: number } | null {
 export function SupervisorRegisterForm() {
   // LIFF
   const [liffReady, setLiffReady] = useState(false);
-  const [liffError, setLiffError] = useState<string | null>(null);
+  const [liffError, setLiffError] = useState<{ source: "line" | "registration"; message: string } | null>(null);
   const [liffAttempt, setLiffAttempt] = useState(0);
   const [lineUserId, setLineUserId] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -143,6 +143,7 @@ export function SupervisorRegisterForm() {
 
   useEffect(() => {
     let cancelled = false;
+    let source: "line" | "registration" = "line";
     setLiffReady(false);
     setLiffError(null);
     setStateCheck(null);
@@ -152,10 +153,20 @@ export function SupervisorRegisterForm() {
     ).then(async (res) => {
       if (cancelled || !res.ready) return;
       if (!res.profile?.userId) {
-        throw new Error("ไม่พบโปรไฟล์ LINE กรุณาเปิดหน้านี้ผ่านลิงก์ LIFF ในแอป LINE");
+        setLiffError({ source, message: "ไม่พบโปรไฟล์ LINE กรุณาเปิดลิงก์ลงทะเบียนจากแอป LINE อีกครั้ง" });
+        return;
       }
+      source = "registration";
       const status = await checkSupervisorRegistrationState(res.profile.userId);
       if (cancelled) return;
+      if (status.state === "session_required" || status.state === "session_unavailable") {
+        setLiffError({ source: "line", message: status.message ?? "ยืนยันบัญชี LINE ไม่สำเร็จ กรุณาลองใหม่" });
+        return;
+      }
+      if (status.state === "unavailable") {
+        setLiffError({ source, message: status.message ?? "ตรวจสอบสถานะการลงทะเบียนไม่ได้ กรุณาลองใหม่" });
+        return;
+      }
       setLineUserId(res.profile.userId);
       setDisplayName(res.profile.displayName);
       setPictureUrl(res.profile.pictureUrl ?? "");
@@ -166,8 +177,13 @@ export function SupervisorRegisterForm() {
       setStateCheck(status);
       setLiffReady(true);
     }).catch((error: unknown) => {
-      if (cancelled) return;
-      setLiffError(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
+      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
+      setLiffError({
+        source,
+        message: source === "registration"
+          ? "ติดต่อระบบลงทะเบียนไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง"
+          : error instanceof LiffSessionError ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่",
+      });
     });
     return () => {
       cancelled = true;
@@ -298,7 +314,11 @@ export function SupervisorRegisterForm() {
     if (pdpaConsent) fd.set("pdpaConsent", "on");
 
     startTransition(async () => {
-      const res = await submitSupervisorRegistration(fd);
+      const res = await submitSupervisorRegistration(fd).catch(() => null);
+      if (!res) {
+        toast.error("ติดต่อระบบลงทะเบียนไม่ได้ในขณะนี้ กรุณาลองใหม่อีกครั้ง");
+        return;
+      }
       if (!res.ok) {
         if (res.duplicate === "line_user_id") toast.error("บัญชี LINE นี้ลงทะเบียนไว้แล้ว");
         else if (res.duplicate === "national_id") toast.error("เลขบัตรประชาชนนี้มีในระบบแล้ว");
@@ -334,14 +354,16 @@ export function SupervisorRegisterForm() {
     return (
       <Card>
         <CardContent className="space-y-3 p-6 text-center" role="alert">
-          <h3 className="text-base font-semibold text-orange-600">เชื่อมต่อ LINE ไม่สำเร็จ</h3>
-          <p className="text-sm text-navy-500">{liffError}</p>
+          <h3 className="text-base font-semibold text-orange-600">
+            {liffError.source === "line" ? "เชื่อมต่อ LINE ไม่สำเร็จ" : "ระบบลงทะเบียนไม่พร้อมใช้งาน"}
+          </h3>
+          <p className="text-sm text-navy-500">{liffError.message}</p>
           <Button type="button" variant="outline" onClick={() => {
             setLiffError(null);
             setLiffReady(false);
             setLiffAttempt((attempt) => attempt + 1);
           }}>
-            ลองเชื่อมต่ออีกครั้ง
+            ลองอีกครั้ง
           </Button>
         </CardContent>
       </Card>

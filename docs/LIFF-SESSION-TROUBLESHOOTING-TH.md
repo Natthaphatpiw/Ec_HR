@@ -30,8 +30,19 @@ DEMO_MODE=false
 
 ```bash
 node scripts/check-liff-session.mjs
+node scripts/check-liff-registration.mjs
 npm run type-check
 npm run build
 ```
 
 Script ทดสอบ route/client จริงด้วย LINE responses จำลอง รวมถึง invalid claims, missing configuration, session expiry, demo rejection และกรณี 503 ต้องไม่ตามด้วย demo POST
+
+## หน้าสมัครเชื่อม LINE ได้ แต่โหลดข้อมูลไม่ได้
+
+ถ้า log ของ `POST /liff/register` แสดง `getOrgInviteByToken: TypeError: fetch failed` หรือหน้า LIFF อื่นแสดง `getEmployeeByLineId: TypeError: fetch failed` ให้ตรวจ Data API ของ Supabase ก่อนเปลี่ยนการตั้งค่า LINE หรือ Redis เหตุการณ์ 12 พฤศจิกายน 2026 พบว่าชื่อโดเมนของโปรเจกต์ Supabase เดิมตอบ `NXDOMAIN` จากทั้ง Cloudflare และ Google DNS ต่อมา DNS กลับมาตอบและ Data API ของ `org_invites` และ `employees` คืน HTTP 200
+
+เปิดโปรเจกต์ที่ใช้จริงใน Supabase Dashboard หากสถานะเป็น Paused ให้ใช้ **Resume project** ตาม [คู่มือ Supabase](https://supabase.com/docs/guides/platform/free-project-pausing) หากเป็น Active ให้ตรวจ Project URL เทียบกับ `NEXT_PUBLIC_SUPABASE_URL` ใน Vercel Production โดยไม่ส่ง API key ในแชท การอ่านสถานะหรือคำเชิญล้มเหลวจะแจ้งให้ลองใหม่ โดยไม่ถือว่าคำเชิญไม่ถูกต้องหรืออนุญาตให้สมัครข้ามการตรวจสิทธิ์
+
+## Dashboard แจ้งชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
+
+หน้า `/login` ตรวจบัญชีผู้ดูแลจาก `DASHBOARD_AUTH_USERNAME` และ `DASHBOARD_AUTH_PASSWORD` ของ deployment ปัจจุบัน ชื่อผู้ใช้ตัดช่องว่างหัวท้าย รหัสผ่านต้องตรงทุกตัวอักษร หากต้องการใช้บัญชีอื่น ให้แก้ตัวแปรทั้งสองใน Vercel Production แล้ว redeploy ไม่ต้องแก้ SQL หรือตั้งค่า LINE Login ใหม่
