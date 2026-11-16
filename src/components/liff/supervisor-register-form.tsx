@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   ArrowLeft,
@@ -189,6 +190,14 @@ export function SupervisorRegisterForm() {
       cancelled = true;
     };
   }, [liffAttempt]);
+
+  // An already-registered member has nothing to do here: open the app. A
+  // brand-new owner stays on the invite screen that follows their submission.
+  const router = useRouter();
+  const alreadyActive = stateCheck?.state === "active" && !ownerInvite;
+  useEffect(() => {
+    if (alreadyActive) router.replace("/liff");
+  }, [alreadyActive, router]);
 
   function addSubordinate() {
     setSubs((rows) => [
@@ -390,7 +399,7 @@ export function SupervisorRegisterForm() {
       />
     );
   }
-  if (stateCheck?.state === "active") return <AlreadyActive employee={stateCheck.employee!} />;
+  if (alreadyActive) return <OpeningHome />;
   if (stateCheck?.state === "pending" || submitted) {
     return (
       <PendingReview
@@ -1089,23 +1098,12 @@ function PendingReview({ employee }: { employee: ResultEmployee }) {
   );
 }
 
-function AlreadyActive({ employee }: { employee: ResultEmployee }) {
+function OpeningHome() {
   return (
     <Card>
-      <CardContent className="space-y-4 p-6 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-          <CheckCircle2 className="h-7 w-7 text-emerald-600" />
-        </div>
-        <h3 className="text-base font-semibold text-navy-900">ลงทะเบียนเรียบร้อยแล้ว</h3>
-        <p className="text-sm text-navy-500">
-          {employee.name} · {employee.department ?? "—"}
-        </p>
-        <Button asChild size="lg" className="w-full">
-          <a href="/liff">
-            เปิดหน้าหลัก
-            <ChevronRight className="h-4 w-4" />
-          </a>
-        </Button>
+      <CardContent className="flex items-center justify-center gap-2 p-8 text-sm text-navy-500" role="status">
+        <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+        <span>กำลังเปิดหน้าหลัก…</span>
       </CardContent>
     </Card>
   );

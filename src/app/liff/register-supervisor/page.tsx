@@ -1,7 +1,9 @@
 import { LiffHeader } from "@/components/liff/header";
 import { SupervisorRegisterForm } from "@/components/liff/supervisor-register-form";
+import { redirectActiveMemberHome } from "@/lib/registration-entry";
 
-export default function RegisterSupervisorPage() {
+export default async function RegisterSupervisorPage() {
+  await redirectActiveMemberHome();
   return (
     <>
       <LiffHeader title="ลงทะเบียนหัวหน้า" />

@@ -435,6 +435,26 @@
     }
   },
   "liff": {
+    "home": {
+      "supervisor": "Supervisor",
+      "kpiAnnual": "Annual",
+      "kpiSick": "Sick",
+      "kpiTeam": "Team",
+      "daysShort": "{count}d",
+      "checkinDesc": "GPS · Photo · IP",
+      "leaveDesc": "Annual · Sick",
+      "payslipDesc": "SSO 2026",
+      "attendanceDesc": "This month",
+      "attendanceTeamDesc": "Own + team schedule",
+      "profileDesc": "Edit details",
+      "analyticsTitle": "Workforce Analytics",
+      "analyticsTeamDesc": "Team dashboard",
+      "analyticsOrgDesc": "Organization dashboard",
+      "aiDesc": "Ask anything",
+      "teamSummary": "Team summary",
+      "subordinates": "{count} subordinates",
+      "schedule": "Schedule"
+    },
     "checkin": {
       "title": "Clock In / Out",
       "currentTime": "Current Time",
@@ -448,7 +468,9 @@
       "verifyingLocation": "Verifying location",
       "success": "Clocked in successfully",
       "successOut": "Clocked out successfully",
-      "addPhoto": "Add photo (optional)"
+      "addPhoto": "Add photo (optional)",
+      "lineBound": "LINE account linked",
+      "retryLocation": "Try locating again"
     },
     "myAttendance": {
       "title": "My Attendance",
@@ -464,7 +486,13 @@
         "historySubtitle": "Weekly + monthly clock-in / out timeline",
         "scheduleTitle": "จัดการตารางงาน",
         "scheduleSubtitle": "Plan your week — work / OT / leave"
-      }
+      },
+      "early": "Early",
+      "total": "Total",
+      "daysShort": "{count}d",
+      "timeline": "Daily clock-in / clock-out timeline",
+      "clockIn": "In",
+      "clockOut": "Out"
     },
     "requestLeave": {
       "title": "Request Leave",
@@ -473,13 +501,44 @@
       "to": "To",
       "reason": "Reason",
       "balance": "Current Balance",
-      "submit": "Submit Request"
+      "submit": "Submit Request",
+      "types": {
+        "annual": "Annual leave",
+        "sick": "Sick leave",
+        "maternity": "Maternity leave",
+        "personal": "Personal leave"
+      },
+      "balanceLabels": {
+        "annual": "Annual",
+        "sick": "Sick",
+        "personal": "Personal"
+      },
+      "daysShort": "{count}d",
+      "percentLeft": "{percent}% left",
+      "reasonPlaceholder": "Briefly describe the reason for your leave",
+      "selectDates": "Please select dates",
+      "doneTitle": "Request submitted",
+      "doneBody": "Your supervisor will be notified in LINE. You'll receive a push notification when it's approved.",
+      "submitAnother": "Submit another",
+      "approvalFlow": "Approval flow",
+      "twoStep": "2-step",
+      "stepSupervisor": "Direct supervisor",
+      "stepHr": "HR final approval"
     },
     "requestOt": {
       "title": "Request Overtime",
       "date": "Date",
       "hours": "Hours",
-      "reason": "Reason"
+      "reason": "Reason",
+      "reasonPlaceholder": "e.g. Production rush order, equipment maintenance",
+      "submit": "Submit OT request",
+      "incomplete": "Please complete all fields",
+      "doneTitle": "OT request submitted",
+      "doneBody": "Your supervisor will be notified. Estimated pay: ฿{amount}.",
+      "submitAnother": "Submit another",
+      "estimatedPay": "Estimated pay",
+      "holidayRate": "Holiday · 3x",
+      "lawNote": "Per Thai labor law (Section 61–63). Calculated at ฿{rate}/h × {multiplier}x × {hours}h"
     },
     "payslip": {
       "title": "Payslips",
@@ -594,7 +653,9 @@
         "requiredField": "This field is required",
         "invalidNid": "National ID must be 13 digits",
         "invalidPhone": "Please enter a valid phone number"
-      }
+      },
+      "openingHome": "Opening home",
+      "checkingAccount": "Checking your LINE account"
     }
   }
 }

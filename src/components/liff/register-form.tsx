@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
@@ -9,7 +10,6 @@ import {
   Building2,
   Camera,
   CheckCircle2,
-  ChevronRight,
   Hourglass,
   Link2,
   Loader2,
@@ -55,8 +55,9 @@ function parseMapsUrl(raw: string): { lat: number; lng: number } | null {
   return null;
 }
 
-export function RegisterForm() {
+export function RegisterForm({ hero }: { hero?: React.ReactNode }) {
   const t = useTranslations("liff.register");
+  const router = useRouter();
 
   // LIFF
   const [liffReady, setLiffReady] = useState(false);
@@ -181,6 +182,20 @@ export function RegisterForm() {
       cancelled = true;
     };
   }, [liffAttempt]);
+
+  // An already-registered member has nothing to do here: open the app.
+  const alreadyActive = stateCheck?.state === "active";
+  useEffect(() => {
+    if (alreadyActive) router.replace("/liff");
+  }, [alreadyActive, router]);
+
+  // The registration banner appears only for visitors who still need to register.
+  const framed = (content: React.ReactNode) => (
+    <>
+      {hero}
+      {content}
+    </>
+  );
 
   function validateStep(): string | null {
     if (step === 0) {
@@ -334,16 +349,16 @@ export function RegisterForm() {
       <Card>
         <CardContent className="flex items-center justify-center gap-2 p-8 text-sm text-navy-500">
           <Loader2 className="h-4 w-4 animate-spin" />
-          <span>{t("lineProfile")}…</span>
+          <span>{t("checkingAccount")}…</span>
         </CardContent>
       </Card>
     );
   }
 
   // Already-registered short-circuits take priority over the invite gate.
-  if (stateCheck?.state === "active") return <AlreadyActive employee={stateCheck.employee!} />;
+  if (alreadyActive) return <OpeningHome label={t("openingHome")} />;
   if (stateCheck?.state === "pending" || submitted) {
-    return (
+    return framed(
       <PendingReview
         employee={
           stateCheck?.employee ?? {
@@ -361,18 +376,18 @@ export function RegisterForm() {
   // the form. Only show the dead-end Rejected screen when they have no usable
   // invite.
   if (stateCheck?.state === "rejected" && (!inviteToken || !inviteInfo?.ok)) {
-    return <Rejected employee={stateCheck.employee!} />;
+    return framed(<Rejected employee={stateCheck.employee!} />);
   }
 
   // Invite-only gate: no token or an invalid/expired token → explain how to join.
   if (!inviteToken || !inviteInfo?.ok) {
-    return <NeedInvite reason={inviteToken ? "invalid" : "missing"} />;
+    return framed(<NeedInvite reason={inviteToken ? "invalid" : "missing"} />);
   }
 
   // Org can't accept a new seat (full / expired / deactivated) — show the reason
   // up front instead of letting the user fill a form that will be rejected.
   if (inviteInfo.seatBlocked) {
-    return (
+    return framed(
       <div className="space-y-4">
         <InviteBanner
           businessName={inviteInfo.businessName ?? "—"}
@@ -383,7 +398,7 @@ export function RegisterForm() {
     );
   }
 
-  return (
+  return framed(
     <div className="space-y-4">
       <InviteBanner
         businessName={inviteInfo.businessName ?? "—"}
@@ -963,25 +978,12 @@ function PendingReview({ employee }: { employee: ResultEmployee }) {
   );
 }
 
-function AlreadyActive({ employee }: { employee: ResultEmployee }) {
+function OpeningHome({ label }: { label: string }) {
   return (
     <Card>
-      <CardContent className="space-y-4 p-6 text-center">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-emerald-50">
-          <CheckCircle2 className="h-7 w-7 text-emerald-600" />
-        </div>
-        <div>
-          <h3 className="text-base font-semibold text-navy-900">ลงทะเบียนเรียบร้อยแล้ว</h3>
-          <p className="mt-1 text-sm text-navy-500">
-            {employee.name} · {employee.department ?? "—"}
-          </p>
-        </div>
-        <Button asChild size="lg" className="w-full">
-          <a href="/liff">
-            เปิดหน้าหลัก
-            <ChevronRight className="h-4 w-4" />
-          </a>
-        </Button>
+      <CardContent className="flex items-center justify-center gap-2 p-8 text-sm text-navy-500" role="status">
+        <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+        <span>{label}…</span>
       </CardContent>
     </Card>
   );

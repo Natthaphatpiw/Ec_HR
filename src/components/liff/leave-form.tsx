@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
@@ -17,8 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { initLiff, LiffSessionError } from "@/lib/liff-client";
-import { fetchMyLeaveBalance, submitLeaveRequest } from "@/app/liff/request-leave/actions";
+import { submitLeaveRequest } from "@/app/liff/request-leave/actions";
 
 interface Balance {
   annual: { used: number; total: number };
@@ -26,10 +25,11 @@ interface Balance {
   personal: { used: number; total: number };
 }
 
-export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserId }: {
+export function LeaveForm({ balance, employeeId, lineUserId }: {
   balance: Balance;
   employeeId?: string;
-  serverLineUserId?: string;
+  /** Verified by the server session; the form never asks the LINE SDK for it. */
+  lineUserId?: string;
 }) {
   const t = useTranslations("liff.requestLeave");
   const [type, setType] = useState<"annual" | "sick" | "maternity" | "personal">("annual");
@@ -38,32 +38,10 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
-  const [lineUserId, setLineUserId] = useState<string>("");
-  const [refreshedBalance, setRefreshedBalance] = useState<{ userId: string; balance: Balance } | null>(null);
-  const balance = refreshedBalance?.userId === lineUserId && lineUserId !== serverLineUserId
-    ? refreshedBalance.balance
-    : initialBalance;
-
-  useEffect(() => {
-    let cancelled = false;
-    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_LEAVE).then(async (res) => {
-      if (cancelled || !res.profile) return;
-      setLineUserId(res.profile.userId);
-      // The server already loaded this actor's balance. Refresh only when the
-      // SDK has verified a different LINE account since the page was rendered.
-      if (res.profile.userId === serverLineUserId) return;
-      const b = await fetchMyLeaveBalance(res.profile.userId);
-      if (!cancelled && b) setRefreshedBalance({ userId: res.profile.userId, balance: b });
-    }).catch((error: unknown) => {
-      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
-      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
-    });
-    return () => { cancelled = true; };
-  }, [serverLineUserId]);
 
   function submit() {
     if (!from || !to) {
-      toast.error("Please select dates");
+      toast.error(t("selectDates"));
       return;
     }
     const fd = new FormData();
@@ -91,13 +69,10 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
             <CheckCircle2 className="h-6 w-6 text-emerald-600" />
           </div>
-          <h3 className="mt-4 text-lg font-semibold text-navy-900">Request submitted</h3>
-          <p className="mt-1 text-sm text-navy-500">
-            Your supervisor will be notified in LINE. You'll receive a push notification when it's
-            approved.
-          </p>
+          <h3 className="mt-4 text-lg font-semibold text-navy-900">{t("doneTitle")}</h3>
+          <p className="mt-1 text-sm text-navy-500">{t("doneBody")}</p>
           <Button className="mt-6" onClick={() => setDone(false)} variant="outline">
-            Submit another
+            {t("submitAnother")}
           </Button>
         </CardContent>
       </Card>
@@ -110,9 +85,19 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
         <CardContent className="p-5">
           <div className="text-xs uppercase tracking-wider text-navy-500">{t("balance")}</div>
           <div className="mt-3 grid grid-cols-3 gap-2">
-            <BalancePill label="Annual" used={balance.annual.used} total={balance.annual.total} />
-            <BalancePill label="Sick" used={balance.sick.used} total={balance.sick.total} />
-            <BalancePill label="Personal" used={balance.personal.used} total={balance.personal.total} />
+            {(["annual", "sick", "personal"] as const).map((kind) => {
+              const remaining = balance[kind].total - balance[kind].used;
+              return (
+                <BalancePill
+                  key={kind}
+                  label={t(`balanceLabels.${kind}`)}
+                  remaining={t("daysShort", { count: remaining })}
+                  left={t("percentLeft", {
+                    percent: balance[kind].total > 0 ? Math.round((remaining / balance[kind].total) * 100) : 0,
+                  })}
+                />
+              );
+            })}
           </div>
         </CardContent>
       </Card>
@@ -126,10 +111,10 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="annual">Annual leave</SelectItem>
-                <SelectItem value="sick">Sick leave</SelectItem>
-                <SelectItem value="maternity">Maternity leave</SelectItem>
-                <SelectItem value="personal">Personal leave</SelectItem>
+                <SelectItem value="annual">{t("types.annual")}</SelectItem>
+                <SelectItem value="sick">{t("types.sick")}</SelectItem>
+                <SelectItem value="maternity">{t("types.maternity")}</SelectItem>
+                <SelectItem value="personal">{t("types.personal")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -150,7 +135,7 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="Briefly describe the reason for your leave"
+              placeholder={t("reasonPlaceholder")}
               rows={3}
             />
           </div>
@@ -165,12 +150,12 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
-            <span className="text-xs text-navy-500">Approval flow</span>
-            <Badge variant="info">2-step</Badge>
+            <span className="text-xs text-navy-500">{t("approvalFlow")}</span>
+            <Badge variant="info">{t("twoStep")}</Badge>
           </div>
           <div className="mt-3 space-y-2 text-xs text-navy-600">
-            <Step n={1} label="Direct supervisor" status="next" />
-            <Step n={2} label="HR final approval" />
+            <Step n={1} label={t("stepSupervisor")} status="next" />
+            <Step n={2} label={t("stepHr")} />
           </div>
         </CardContent>
       </Card>
@@ -178,14 +163,12 @@ export function LeaveForm({ balance: initialBalance, employeeId, serverLineUserI
   );
 }
 
-function BalancePill({ label, used, total }: { label: string; used: number; total: number }) {
-  const remaining = total - used;
-  const pct = Math.round((remaining / total) * 100);
+function BalancePill({ label, remaining, left }: { label: string; remaining: string; left: string }) {
   return (
     <div className="rounded-lg border border-navy-100 p-3 text-center">
       <div className="text-[10px] uppercase tracking-wider text-navy-500">{label}</div>
-      <div className="mt-1 text-lg font-semibold text-navy-900">{remaining}d</div>
-      <div className="text-[10px] text-navy-400">{pct}% left</div>
+      <div className="mt-1 text-lg font-semibold text-navy-900">{remaining}</div>
+      <div className="text-[10px] text-navy-400">{left}</div>
     </div>
   );
 }

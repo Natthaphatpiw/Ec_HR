@@ -435,6 +435,26 @@
     }
   },
   "liff": {
+    "home": {
+      "supervisor": "หัวหน้างาน",
+      "kpiAnnual": "ลาพักร้อน",
+      "kpiSick": "ลาป่วย",
+      "kpiTeam": "ทีม",
+      "daysShort": "{count} วัน",
+      "checkinDesc": "GPS · รูปถ่าย · IP",
+      "leaveDesc": "ลาพักร้อน · ลาป่วย",
+      "payslipDesc": "ประกันสังคม 2026",
+      "attendanceDesc": "เดือนนี้",
+      "attendanceTeamDesc": "ของฉัน + ตารางทีม",
+      "profileDesc": "แก้ไขข้อมูล",
+      "analyticsTitle": "วิเคราะห์กำลังคน",
+      "analyticsTeamDesc": "แดชบอร์ดทีม",
+      "analyticsOrgDesc": "แดชบอร์ดองค์กร",
+      "aiDesc": "ถามได้ทุกเรื่อง",
+      "teamSummary": "สรุปทีม",
+      "subordinates": "ลูกทีม {count} คน",
+      "schedule": "ตารางงาน"
+    },
     "checkin": {
       "title": "ตอกบัตรเข้า / ออก",
       "currentTime": "เวลาปัจจุบัน",
@@ -448,7 +468,9 @@
       "verifyingLocation": "กำลังตรวจสอบตำแหน่ง",
       "success": "ตอกบัตรเข้างานสำเร็จ",
       "successOut": "ตอกบัตรออกงานสำเร็จ",
-      "addPhoto": "เพิ่มรูปถ่าย (ไม่บังคับ)"
+      "addPhoto": "เพิ่มรูปถ่าย (ไม่บังคับ)",
+      "lineBound": "ผูกบัญชี LINE แล้ว",
+      "retryLocation": "ลองหาตำแหน่งอีกครั้ง"
     },
     "myAttendance": {
       "title": "เวลาทำงานของฉัน",
@@ -464,7 +486,13 @@
         "historySubtitle": "ดูเช็คอิน / ออกรายสัปดาห์ + รายเดือน",
         "scheduleTitle": "จัดการตารางงาน",
         "scheduleSubtitle": "วางแผนสัปดาห์ — ทำงาน / โอที / ลา"
-      }
+      },
+      "early": "ก่อนเวลา",
+      "total": "รวม",
+      "daysShort": "{count} วัน",
+      "timeline": "เวลาเข้า-ออกงานรายวัน",
+      "clockIn": "เข้า",
+      "clockOut": "ออก"
     },
     "requestLeave": {
       "title": "ขอลา",
@@ -473,13 +501,44 @@
       "to": "ถึง",
       "reason": "เหตุผล",
       "balance": "สิทธิคงเหลือ",
-      "submit": "ส่งคำขอ"
+      "submit": "ส่งคำขอ",
+      "types": {
+        "annual": "ลาพักร้อน",
+        "sick": "ลาป่วย",
+        "maternity": "ลาคลอด",
+        "personal": "ลากิจ"
+      },
+      "balanceLabels": {
+        "annual": "พักร้อน",
+        "sick": "ป่วย",
+        "personal": "กิจ"
+      },
+      "daysShort": "{count} วัน",
+      "percentLeft": "เหลือ {percent}%",
+      "reasonPlaceholder": "ระบุเหตุผลการลาโดยย่อ",
+      "selectDates": "กรุณาเลือกวันที่",
+      "doneTitle": "ส่งคำขอแล้ว",
+      "doneBody": "หัวหน้าของคุณจะได้รับแจ้งใน LINE และระบบจะแจ้งคุณเมื่อคำขอได้รับการอนุมัติ",
+      "submitAnother": "ส่งคำขอใหม่",
+      "approvalFlow": "ขั้นตอนอนุมัติ",
+      "twoStep": "2 ขั้นตอน",
+      "stepSupervisor": "หัวหน้าโดยตรง",
+      "stepHr": "HR อนุมัติขั้นสุดท้าย"
     },
     "requestOt": {
       "title": "ขอ OT",
       "date": "วันที่",
       "hours": "ชั่วโมง",
-      "reason": "เหตุผล"
+      "reason": "เหตุผล",
+      "reasonPlaceholder": "เช่น งานผลิตเร่งด่วน ซ่อมบำรุงเครื่องจักร",
+      "submit": "ส่งคำขอ OT",
+      "incomplete": "กรุณากรอกข้อมูลให้ครบ",
+      "doneTitle": "ส่งคำขอ OT แล้ว",
+      "doneBody": "หัวหน้าของคุณจะได้รับแจ้ง ค่าตอบแทนโดยประมาณ ฿{amount}",
+      "submitAnother": "ส่งคำขอใหม่",
+      "estimatedPay": "ค่าตอบแทนโดยประมาณ",
+      "holidayRate": "วันหยุด · 3x",
+      "lawNote": "ตามกฎหมายแรงงานไทย (มาตรา 61–63) คำนวณที่ ฿{rate}/ชม. × {multiplier}x × {hours} ชม."
     },
     "payslip": {
       "title": "สลิปเงินเดือน",
@@ -594,7 +653,9 @@
         "requiredField": "กรุณากรอกข้อมูล",
         "invalidNid": "เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก",
         "invalidPhone": "กรุณากรอกเบอร์โทรศัพท์ให้ถูกต้อง"
-      }
+      },
+      "openingHome": "กำลังเปิดหน้าหลัก",
+      "checkingAccount": "กำลังตรวจสอบบัญชี LINE"
     }
   }
 }

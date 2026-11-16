@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { CalendarClock, CheckCircle2, Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,28 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { submitContactRequest } from "@/app/liff/ai-chat/contact-actions";
 
-export function ContactForm({ employeeId }: { employeeId?: string }) {
+export function ContactForm({ employeeId, lineUserId }: {
+  employeeId?: string;
+  /** Verified by the server session; the form never asks the LINE SDK for it. */
+  lineUserId?: string;
+}) {
   const [date, setDate] = useState("");
   const [timeStart, setTimeStart] = useState("13:00");
   const [timeEnd, setTimeEnd] = useState("13:30");
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
-  const [lineUserId, setLineUserId] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_AI_CHAT).then((res) => {
-      if (!cancelled && res.profile) setLineUserId(res.profile.userId);
-    }).catch((error: unknown) => {
-      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
-      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
-    });
-    return () => { cancelled = true; };
-  }, []);
 
   function submit() {
     const fd = new FormData();

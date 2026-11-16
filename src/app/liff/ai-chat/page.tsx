@@ -35,7 +35,7 @@ export default async function LiffAiChatPage() {
           </TabsList>
 
           <TabsContent value="contact" className="mt-3">
-            <ContactForm employeeId={me.id} />
+            <ContactForm employeeId={me.id} lineUserId={guard.lineUserId} />
           </TabsContent>
 
           <TabsContent value="ai" className="mt-3">

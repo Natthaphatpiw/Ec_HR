@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { CheckCircle2, Loader2, Send } from "lucide-react";
@@ -10,30 +10,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { initLiff, LiffSessionError } from "@/lib/liff-client";
 import { submitOvertimeRequest } from "@/app/liff/request-ot/actions";
 
 const HOURLY_RATE = 86; // 15000 / 22 days / 8 hours ≈ 86 baht/h
 
-export function OtForm({ employeeId }: { employeeId?: string }) {
+export function OtForm({ employeeId, lineUserId }: {
+  employeeId?: string;
+  /** Verified by the server session; the form never asks the LINE SDK for it. */
+  lineUserId?: string;
+}) {
   const t = useTranslations("liff.requestOt");
   const [date, setDate] = useState("");
   const [hours, setHours] = useState("3");
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
   const [done, setDone] = useState(false);
-  const [lineUserId, setLineUserId] = useState("");
-
-  useEffect(() => {
-    let cancelled = false;
-    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_OT).then((res) => {
-      if (!cancelled && res.profile) setLineUserId(res.profile.userId);
-    }).catch((error: unknown) => {
-      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
-      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
-    });
-    return () => { cancelled = true; };
-  }, []);
 
   const calc = useMemo(() => {
     const h = parseFloat(hours) || 0;
@@ -45,7 +36,7 @@ export function OtForm({ employeeId }: { employeeId?: string }) {
 
   function submit() {
     if (!date || !hours) {
-      toast.error("Please complete all fields");
+      toast.error(t("incomplete"));
       return;
     }
     const fd = new FormData();
@@ -72,12 +63,10 @@ export function OtForm({ employeeId }: { employeeId?: string }) {
           <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50">
             <CheckCircle2 className="h-6 w-6 text-emerald-600" />
           </div>
-          <h3 className="mt-4 text-lg font-semibold text-navy-900">OT request submitted</h3>
-          <p className="mt-1 text-sm text-navy-500">
-            Your supervisor will be notified. Estimated pay: ฿{calc.pay.toFixed(0)}.
-          </p>
+          <h3 className="mt-4 text-lg font-semibold text-navy-900">{t("doneTitle")}</h3>
+          <p className="mt-1 text-sm text-navy-500">{t("doneBody", { amount: calc.pay.toFixed(0) })}</p>
           <Button className="mt-6" onClick={() => setDone(false)} variant="outline">
-            Submit another
+            {t("submitAnother")}
           </Button>
         </CardContent>
       </Card>
@@ -108,14 +97,14 @@ export function OtForm({ employeeId }: { employeeId?: string }) {
             <Textarea
               value={reason}
               onChange={(e) => setReason(e.target.value)}
-              placeholder="e.g. Production rush order, equipment maintenance"
+              placeholder={t("reasonPlaceholder")}
               rows={3}
             />
           </div>
 
           <Button size="lg" className="w-full" onClick={submit} disabled={submitting}>
             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            Submit OT request
+            {t("submit")}
           </Button>
         </CardContent>
       </Card>
@@ -124,18 +113,17 @@ export function OtForm({ employeeId }: { employeeId?: string }) {
         <CardContent className="p-5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wider text-navy-500">
-              Estimated pay
+              {t("estimatedPay")}
             </span>
             <Badge variant={calc.isHoliday ? "default" : "muted"}>
-              {calc.isHoliday ? "Holiday · 3x" : `${calc.rate}x`}
+              {calc.isHoliday ? t("holidayRate") : `${calc.rate}x`}
             </Badge>
           </div>
           <div className="mt-3 text-3xl font-semibold tabular-nums text-navy-900">
             ฿{calc.pay.toFixed(0)}
           </div>
           <p className="mt-1 text-xs text-navy-500">
-            Per Thai labor law (Section 61–63). Calculated at ฿{HOURLY_RATE}/h × {calc.rate}x ×{" "}
-            {hours || 0}h
+            {t("lawNote", { rate: HOURLY_RATE, multiplier: calc.rate, hours: hours || 0 })}
           </p>
         </CardContent>
       </Card>

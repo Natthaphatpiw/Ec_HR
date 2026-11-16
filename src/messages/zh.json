@@ -435,6 +435,26 @@
     }
   },
   "liff": {
+    "home": {
+      "supervisor": "主管",
+      "kpiAnnual": "年假",
+      "kpiSick": "病假",
+      "kpiTeam": "团队",
+      "daysShort": "{count} 天",
+      "checkinDesc": "GPS · 照片 · IP",
+      "leaveDesc": "年假 · 病假",
+      "payslipDesc": "社保 2026",
+      "attendanceDesc": "本月",
+      "attendanceTeamDesc": "本人 + 团队排班",
+      "profileDesc": "编辑资料",
+      "analyticsTitle": "人力分析",
+      "analyticsTeamDesc": "团队仪表板",
+      "analyticsOrgDesc": "组织仪表板",
+      "aiDesc": "随时提问",
+      "teamSummary": "团队概览",
+      "subordinates": "{count} 名下属",
+      "schedule": "排班"
+    },
     "checkin": {
       "title": "打卡",
       "currentTime": "当前时间",
@@ -448,7 +468,9 @@
       "verifyingLocation": "正在验证位置",
       "success": "签到成功",
       "successOut": "签退成功",
-      "addPhoto": "添加照片(可选)"
+      "addPhoto": "添加照片(可选)",
+      "lineBound": "已绑定 LINE 账号",
+      "retryLocation": "重新定位"
     },
     "myAttendance": {
       "title": "我的出勤",
@@ -464,7 +486,13 @@
         "historySubtitle": "每周与每月签到/签退时间线",
         "scheduleTitle": "工作排程",
         "scheduleSubtitle": "安排本周工作 / 加班 / 休假"
-      }
+      },
+      "early": "提前",
+      "total": "合计",
+      "daysShort": "{count} 天",
+      "timeline": "每日上下班打卡记录",
+      "clockIn": "上班",
+      "clockOut": "下班"
     },
     "requestLeave": {
       "title": "申请请假",
@@ -473,13 +501,44 @@
       "to": "到",
       "reason": "原因",
       "balance": "当前余额",
-      "submit": "提交申请"
+      "submit": "提交申请",
+      "types": {
+        "annual": "年假",
+        "sick": "病假",
+        "maternity": "产假",
+        "personal": "事假"
+      },
+      "balanceLabels": {
+        "annual": "年假",
+        "sick": "病假",
+        "personal": "事假"
+      },
+      "daysShort": "{count} 天",
+      "percentLeft": "剩余 {percent}%",
+      "reasonPlaceholder": "请简要说明请假原因",
+      "selectDates": "请选择日期",
+      "doneTitle": "申请已提交",
+      "doneBody": "系统将通过 LINE 通知您的主管，审批通过后您会收到通知。",
+      "submitAnother": "再次申请",
+      "approvalFlow": "审批流程",
+      "twoStep": "两步",
+      "stepSupervisor": "直属主管",
+      "stepHr": "HR 最终审批"
     },
     "requestOt": {
       "title": "申请加班",
       "date": "日期",
       "hours": "小时",
-      "reason": "原因"
+      "reason": "原因",
+      "reasonPlaceholder": "例如：生产赶工、设备维护",
+      "submit": "提交加班申请",
+      "incomplete": "请填写所有字段",
+      "doneTitle": "加班申请已提交",
+      "doneBody": "系统将通知您的主管。预计加班费：฿{amount}。",
+      "submitAnother": "再次申请",
+      "estimatedPay": "预计加班费",
+      "holidayRate": "节假日 · 3x",
+      "lawNote": "依据泰国劳动法（第 61–63 条）。按 ฿{rate}/小时 × {multiplier}x × {hours} 小时计算"
     },
     "payslip": {
       "title": "工资单",
@@ -594,7 +653,9 @@
         "requiredField": "此项必填",
         "invalidNid": "身份证号必须为 13 位数字",
         "invalidPhone": "请输入有效的电话号码"
-      }
+      },
+      "openingHome": "正在打开首页",
+      "checkingAccount": "正在验证 LINE 账号"
     }
   }
 }

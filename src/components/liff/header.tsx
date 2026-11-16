@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { ChevronLeft } from "lucide-react";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { BrandMark } from "@/components/brand-mark";
@@ -9,6 +10,7 @@ import { LiffLogoutButton } from "@/components/liff/logout-button";
 
 export function LiffHeader({ title }: { title?: string }) {
   const pathname = usePathname();
+  const t = useTranslations("common");
   const showBack = pathname !== "/liff" && pathname !== "/liff/";
 
   return (
@@ -19,7 +21,7 @@ export function LiffHeader({ title }: { title?: string }) {
             <Link
               href="/liff"
               className="-ml-2 inline-flex h-9 w-9 items-center justify-center rounded-md text-navy-700 hover:bg-navy-50"
-              aria-label="Back"
+              aria-label={t("back")}
             >
               <ChevronLeft className="h-5 w-5" />
             </Link>

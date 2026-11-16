@@ -36,7 +36,7 @@ export default async function AttendanceHistoryPage() {
         <div className="grid grid-cols-3 gap-2">
           <SummaryCard label={t("ontime")} value={String(ontime)} icon={CheckCircle2} accent="success" />
           <SummaryCard label={t("late")} value={String(late)} icon={Clock} accent="warning" />
-          <SummaryCard label="Total" value={`${totalIn}d`} icon={Calendar} />
+          <SummaryCard label={t("total")} value={t("daysShort", { count: totalIn })} icon={Calendar} />
         </div>
 
         <Tabs defaultValue="month">
@@ -49,7 +49,7 @@ export default async function AttendanceHistoryPage() {
             <Card>
               <CardHeader>
                 <CardTitle>{t("thisMonth")}</CardTitle>
-                <CardDescription>Daily clock-in / clock-out timeline</CardDescription>
+                <CardDescription>{t("timeline")}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
                 {days.map(([date, logs]) => {
@@ -63,9 +63,9 @@ export default async function AttendanceHistoryPage() {
                       <div>
                         <div className="text-sm font-medium text-navy-900">{formatDate(date)}</div>
                         <div className="mt-0.5 flex items-center gap-2 text-xs text-navy-500">
-                          <span>In: {inLog ? formatTime(inLog.timestamp) : "—"}</span>
+                          <span>{t("clockIn")}: {inLog ? formatTime(inLog.timestamp) : "—"}</span>
                           <span>·</span>
-                          <span>Out: {outLog ? formatTime(outLog.timestamp) : "—"}</span>
+                          <span>{t("clockOut")}: {outLog ? formatTime(outLog.timestamp) : "—"}</span>
                         </div>
                       </div>
                       <Badge
@@ -77,7 +77,7 @@ export default async function AttendanceHistoryPage() {
                               : "danger"
                         }
                       >
-                        {inLog ? inLog.status : "absent"}
+                        {t(inLog ? inLog.status : "absent")}
                       </Badge>
                     </div>
                   );
@@ -102,11 +102,11 @@ export default async function AttendanceHistoryPage() {
                       <div>
                         <div className="text-sm font-medium text-navy-900">{formatDate(date)}</div>
                         <div className="mt-0.5 text-xs text-navy-500">
-                          In: {inLog ? formatTime(inLog.timestamp) : "—"}
+                          {t("clockIn")}: {inLog ? formatTime(inLog.timestamp) : "—"}
                         </div>
                       </div>
                       <Badge variant={inLog?.status === "late" ? "warning" : "success"}>
-                        {inLog ? inLog.status : "absent"}
+                        {t(inLog ? inLog.status : "absent")}
                       </Badge>
                     </div>
                   );

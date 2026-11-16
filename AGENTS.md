@@ -47,7 +47,7 @@ This is the **single most important non-obvious thing**. Every page under `/liff
    - `new` / `pending` / `rejected` → render `<NeedsRegistration />`
    - `active` → fetch data scoped to `registration.employee.id` and render
 
-**Pitfall**: every form/page MUST pass its own LIFF id to `initLiff(...)`. With no arg, `initLiff` defaults to `NEXT_PUBLIC_LIFF_ID_CHECKIN`. Calling that default from a different page (e.g. `/liff/request-leave`) makes `liff.init` fail → silent fallback to a demo profile with userId `U1234...` → `getEmployeeByLineId` returns nothing → server actions misfire as EMP001. There's a `console.warn("falling back to demo")` in `liff-client.ts` when this happens — grep Vercel logs.
+**Pitfall**: one webview belongs to one LIFF app. Calling `liff.init()` with a second LIFF ID makes LINE treat the page as a LIFF-to-LIFF transition: a login round trip through LINE (3–4 s) plus its native "Switched to {LIFF app name}" notice. So feature pages and their forms never call `initLiff` — they take `lineUserId` from `guardLiffPage` as a prop. Only `<LiffInit>` (no session yet), the registration forms, and `LiffSessionSync` in the LIFF layout (one background identity check per LINE launch) call it, and `initLiff` itself keeps the webview on the LIFF app LINE opened it with, whatever ID a page passes. In-app navigation must stay client-side (`<Link>`), never `liff.line.me` URLs.
 
 ### Supervisor model
 

@@ -71,7 +71,7 @@ function fixture(options = {}) {
   const location = {};
   for (const [field, value] of Object.entries({
     search: "?liff.state=%2Fregister%3Finvite%3Dsynthetic&code=synthetic-oauth-code",
-    hash: "#access_token=synthetic-access-token&id_token=synthetic-id-token",
+    hash: state.hash ?? "#access_token=synthetic-access-token&id_token=synthetic-id-token",
     pathname: "/liff",
     href: "https://app.invalid/liff?liff.state=synthetic#id_token=synthetic",
   })) {
@@ -80,7 +80,7 @@ function fixture(options = {}) {
       set: () => { urlWrites++; throw new Error("Client must let the SDK process LIFF redirect URLs"); },
     });
   }
-  const window = { location };
+  const window = { location, atob: (value) => Buffer.from(value, "base64").toString("binary") };
   const noClientAuthStore = () => { throw new Error("Do not persist service login authority in browser storage"); };
   for (const object of [window]) {
     Object.defineProperty(object, "localStorage", { get: noClientAuthStore });
@@ -202,15 +202,41 @@ await scenario(async () => {
   const first = f.client.initLiff(LIFF_ID);
   const duplicate = f.client.initLiff(LIFF_ID);
   const otherId = f.client.initLiff("1000000000-leave");
-  assert.deepEqual(f.sdkIds, [LIFF_ID, "1000000000-leave"]);
-  assert.deepEqual(methods(f), ["GET"], "Concurrent identities share only the in-flight cookie session read");
+  assert.deepEqual(f.sdkIds, [LIFF_ID], "A page asking for another LIFF app must not switch the webview's LIFF app");
+  assert.deepEqual(methods(f), ["GET"], "Concurrent callers share the in-flight cookie session read");
   getGate.resolve();
   await Promise.all([first, duplicate, otherId]);
   f.state.cachedUser = USER_B;
   f.state.sdkUser = USER_B;
-  assert.equal((await f.client.initLiff(LIFF_ID)).profile.userId, USER_B);
-  assert.equal(f.sdkIds.length, 3, "Completed init results must not become a persistent identity cache");
+  assert.equal((await f.client.initLiff("1000000000-leave")).profile.userId, USER_B, "Completed init results must not become a persistent identity cache");
+  assert.deepEqual(f.sdkIds, [LIFF_ID], "The SDK is initialized once per webview");
   assert.deepEqual(methods(f), ["GET", "GET"]);
+});
+
+await scenario(async () => {
+  // LINE names the app it opened in the launch fragment. That app wins over
+  // the LIFF ID of whichever page happens to render first.
+  const context = Buffer.from(JSON.stringify({ liffId: "1000000000-launched" })).toString("base64url");
+  const f = fixture({ hash: `#access_token=synthetic-access-token&context_token=synthetic.${context}.signature&id_token=synthetic-id-token` });
+  assert.equal(f.client.launchedLiffId(), "1000000000-launched");
+  assert.equal((await f.client.initLiff(LIFF_ID)).profile.userId, USER_A);
+  assert.deepEqual(f.sdkIds, ["1000000000-launched"]);
+  assert.equal(f.urlWrites, 0);
+});
+
+await scenario(async () => {
+  const f = fixture({ hash: "#access_token=synthetic-access-token&context_token=not-a-context&id_token=synthetic-id-token" });
+  assert.equal(f.client.launchedLiffId(), undefined);
+  await f.client.initLiff(LIFF_ID);
+  assert.deepEqual(f.sdkIds, [LIFF_ID], "An unreadable launch fragment falls back to the page's LIFF ID");
+});
+
+await scenario(async () => {
+  const f = fixture({ sdkError: new Error("Synthetic SDK failure"), isInClient: true });
+  await assert.rejects(f.client.initLiff(LIFF_ID), /Synthetic SDK failure/);
+  f.state.sdkError = undefined;
+  assert.equal((await f.client.initLiff(LIFF_ID)).profile.userId, USER_A);
+  assert.deepEqual(f.sdkIds, [LIFF_ID, LIFF_ID], "A failed SDK init must stay retryable");
 });
 
 await scenario(async () => {

@@ -56,6 +56,57 @@ let resetInFlight: Promise<void> | undefined;
 const initInFlight = new Map<string, Promise<LiffInitResult>>();
 const activeSessionRequests = new Set<AbortController>();
 
+// A webview belongs to the one LIFF app LINE opened it with. Calling
+// liff.init() with another LIFF ID makes LINE treat the page as a LIFF-to-LIFF
+// transition: a login round trip through LINE plus its native "Switched to
+// {LIFF app name}" notice. Every later caller therefore reuses this binding.
+let sdkBinding: { id: string; ready: Promise<void> } | undefined;
+
+function readLaunchLiffId(): string | undefined {
+  try {
+    for (const pair of window.location.hash.replace(/^#/, "").split("&")) {
+      const at = pair.indexOf("=");
+      if (at < 0 || pair.slice(0, at) !== "context_token") continue;
+      const payload = decodeURIComponent(pair.slice(at + 1)).split(".")[1];
+      if (!payload) return undefined;
+      const context: unknown = JSON.parse(window.atob(payload.replace(/-/g, "+").replace(/_/g, "/")));
+      const id = context && typeof context === "object" ? (context as { liffId?: unknown }).liffId : undefined;
+      return typeof id === "string" && /^\d+-\w+$/.test(id) ? id : undefined;
+    }
+  } catch {
+    // An unreadable fragment leaves the caller's own LIFF ID in charge.
+  }
+  return undefined;
+}
+
+// Captured while the module loads: the SDK and in-app navigation both remove
+// the launch fragment from the URL soon after.
+const launchLiffId = typeof window === "undefined" ? undefined : readLaunchLiffId();
+
+/**
+ * LIFF ID of the app LINE opened this webview with, taken from the launch
+ * fragment. Undefined when the page was not opened by a fresh LINE launch.
+ */
+export function launchedLiffId(): string | undefined {
+  return launchLiffId;
+}
+
+function resolveLiffId(requested: string): string {
+  if (!requested) return requested;
+  return sdkBinding?.id ?? launchLiffId ?? requested;
+}
+
+function ensureSdk(id: string): Promise<void> {
+  if (sdkBinding) return sdkBinding.ready;
+  const binding = { id, ready: liff.init({ liffId: id }) };
+  sdkBinding = binding;
+  // A failed init leaves the webview unbound so a retry can start over.
+  binding.ready.catch(() => {
+    if (sdkBinding === binding) sdkBinding = undefined;
+  });
+  return binding.ready;
+}
+
 function ensureCurrentSession(generation: number) {
   if (generation !== sessionGeneration) throw new LiffSessionError("session_reset", 401);
 }
@@ -139,7 +190,7 @@ async function bootstrapLiff(id: string, generation: number): Promise<LiffInitRe
   }
 
   try {
-    await liff.init({ liffId: id });
+    await ensureSdk(id);
     ensureCurrentSession(generation);
     if (!liff.isLoggedIn()) {
       // The service session can outlive the SDK token in an external browser.
@@ -198,7 +249,7 @@ async function bootstrapLiff(id: string, generation: number): Promise<LiffInitRe
 
 export function initLiff(liffId?: string): Promise<LiffInitResult> {
   if (resetInFlight) return resetInFlight.then(() => initLiff(liffId));
-  const id = (liffId ?? process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN)?.trim() ?? "";
+  const id = resolveLiffId((liffId ?? process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN)?.trim() ?? "");
   const existing = initInFlight.get(id);
   if (existing) return existing;
   const generation = sessionGeneration;

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { Calendar, Clock, Home, Receipt, User } from "lucide-react";
+import { LinkPending } from "@/components/liff/link-pending";
 import { cn } from "@/lib/utils";
 
 const HIDDEN_PATHS = new Set([
@@ -37,12 +38,13 @@ export function LiffBottomNav() {
               <Link
                 href={it.href}
                 className={cn(
-                  "flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium",
+                  "relative flex flex-col items-center justify-center gap-1 py-2.5 text-[10px] font-medium",
                   active ? "text-orange-500" : "text-navy-500",
                 )}
               >
                 <it.icon className={cn("h-5 w-5", active && "text-orange-500")} />
                 {it.label}
+                <LinkPending className="absolute right-3 top-1.5 h-3 w-3" />
               </Link>
             </li>
           );

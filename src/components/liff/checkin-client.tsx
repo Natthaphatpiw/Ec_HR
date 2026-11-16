@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import {
@@ -18,15 +18,15 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { initLiff, LiffSessionError, type LiffProfile } from "@/lib/liff-client";
+import { useLivePosition, type LocationProblem } from "@/lib/use-live-position";
 import { haversineMeters } from "@/lib/utils";
-import {
-  clockAction,
-  loadCheckinStatus,
-  type CheckinStatus,
-} from "@/app/liff/checkin/actions";
+import { clockAction, type CheckinStatus } from "@/app/liff/checkin/actions";
 
 interface CheckinProps {
+  /** Identity and last clock event, loaded by the server-rendered page. */
+  lineUserId: string;
+  displayName: string;
+  initialStatus: CheckinStatus;
   shiftStart?: string;
   shiftEnd?: string;
   geofence: {
@@ -37,90 +37,28 @@ interface CheckinProps {
   };
 }
 
-interface Position {
-  lat: number;
-  lng: number;
-  accuracy: number;
-}
+const LOCATION_PROBLEMS: Record<LocationProblem, string> = {
+  unsupported: "อุปกรณ์นี้ไม่รองรับการอ่าน GPS",
+  denied: "ยังไม่ได้อนุญาตให้เข้าถึงตำแหน่ง กรุณาเปิดสิทธิ์ location",
+  unavailable: "อ่าน GPS ไม่สำเร็จ กรุณาตรวจสัญญาณแล้วลองใหม่",
+  slow: "ใช้เวลาค้นหา GPS นานเกินไป กรุณาตรวจสิทธิ์ location",
+};
 
 export function CheckinClient(props: CheckinProps) {
   const t = useTranslations("liff.checkin");
-  const [profile, setProfile] = useState<LiffProfile | null>(null);
-  const [lineUserId, setLineUserId] = useState("");
+  const { lineUserId, displayName } = props;
   const [now, setNow] = useState<Date>(() => new Date());
-  const [position, setPosition] = useState<Position | null>(null);
-  const [locating, setLocating] = useState(true);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [status, setStatus] = useState<CheckinStatus | null>(null);
+  // Shared GPS watch: it keeps running across menu switches, so returning to
+  // this page neither waits for a new fix nor asks for permission again.
+  const { position, locating, problem, retry: retryLocation } = useLivePosition();
+  const locationError = problem ? LOCATION_PROBLEMS[problem] : null;
+  const [status, setStatus] = useState<CheckinStatus | null>(props.initialStatus);
   const [reason, setReason] = useState("");
   const [submitting, startTransition] = useTransition();
-  const watchRef = useRef<number | null>(null);
 
   useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(interval);
-  }, []);
-
-  // LIFF init + load attendance status
-  useEffect(() => {
-    let cancelled = false;
-    initLiff(process.env.NEXT_PUBLIC_LIFF_ID_CHECKIN).then(async (res) => {
-      if (cancelled) return;
-      if (res.profile) {
-        setProfile(res.profile);
-        setLineUserId(res.profile.userId);
-        const s = await loadCheckinStatus(res.profile.userId);
-        if (!cancelled) setStatus(s);
-      }
-    }).catch((error: unknown) => {
-      if (cancelled || (error instanceof LiffSessionError && error.code === "session_reset")) return;
-      toast.error(error instanceof Error ? error.message : "เชื่อมต่อ LINE ไม่สำเร็จ กรุณาลองใหม่");
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  // Keep a live GPS reading so the UI can explain the same geofence rule that
-  // the server enforces when the employee submits a clock event.
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!navigator.geolocation) {
-      setLocating(false);
-      setLocationError("อุปกรณ์นี้ไม่รองรับการอ่าน GPS");
-      return;
-    }
-    setLocating(true);
-    const timeoutId = setTimeout(() => {
-      setLocating(false);
-      setLocationError("ใช้เวลาค้นหา GPS นานเกินไป กรุณาตรวจสิทธิ์ location");
-    }, 8000);
-    watchRef.current = navigator.geolocation.watchPosition(
-      (pos) => {
-        clearTimeout(timeoutId);
-        setPosition({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-          accuracy: pos.coords.accuracy,
-        });
-        setLocationError(null);
-        setLocating(false);
-      },
-      (error) => {
-        clearTimeout(timeoutId);
-        setLocationError(
-          error.code === 1
-            ? "ยังไม่ได้อนุญาตให้เข้าถึงตำแหน่ง กรุณาเปิดสิทธิ์ location"
-            : "อ่าน GPS ไม่สำเร็จ กรุณาตรวจสัญญาณแล้วลองใหม่",
-        );
-        setLocating(false);
-      },
-      { enableHighAccuracy: true, timeout: 10_000, maximumAge: 60_000 },
-    );
-    return () => {
-      clearTimeout(timeoutId);
-      if (watchRef.current !== null) navigator.geolocation.clearWatch(watchRef.current);
-    };
   }, []);
 
   const hasGeofenceConfig =
@@ -220,21 +158,19 @@ export function CheckinClient(props: CheckinProps) {
             )}
           </div>
 
-          {profile && (
-            <div className="flex items-center gap-3 rounded-lg bg-navy-50 px-3 py-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-900 text-xs font-semibold text-orange-400">
-                {profile.displayName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .slice(0, 2)
-                  .join("")}
-              </div>
-              <div className="text-xs text-navy-700">
-                <div className="font-medium">{profile.displayName}</div>
-                <div className="text-navy-500">LINE bound</div>
-              </div>
+          <div className="flex items-center gap-3 rounded-lg bg-navy-50 px-3 py-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-navy-900 text-xs font-semibold text-orange-400">
+              {displayName
+                .split(" ")
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")}
             </div>
-          )}
+            <div className="text-xs text-navy-700">
+              <div className="font-medium">{displayName}</div>
+              <div className="text-navy-500">{t("lineBound")}</div>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -311,6 +247,12 @@ export function CheckinClient(props: CheckinProps) {
                     ? `อยู่ภายในพื้นที่อนุญาต ระยะ ${formatDistance(geofenceDistanceM)} จากจุดทำงาน (กำหนดไว้ ${formatDistance(props.geofence.radiusM)})`
                     : geofenceBlockMessage}
           </div>
+          {!position && problem && problem !== "unsupported" && (
+            <Button type="button" variant="outline" size="sm" className="mt-3 w-full" onClick={retryLocation}>
+              <MapPin className="h-4 w-4" />
+              {t("retryLocation")}
+            </Button>
+          )}
         </CardContent>
       </Card>
 

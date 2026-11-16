@@ -14,7 +14,7 @@ export default async function RequestOtPage() {
     <>
       <LiffHeader title={t("title")} />
       <main className="px-4 pb-6 pt-3">
-        <OtForm employeeId={guard.employee.id} />
+        <OtForm employeeId={guard.employee.id} lineUserId={guard.lineUserId} />
       </main>
     </>
   );
